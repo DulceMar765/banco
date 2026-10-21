@@ -1,0 +1,467 @@
+:root {
+  --naranja: #d9580a;
+  --naranja-hover: #b84a08;
+  --rojo: #8e1b2d;
+  --rojo-hover: #741625;
+  --rojo-suave: #fbeef0;
+  --verde: #14442f;
+  --verde-hover: #0e3323;
+  --cafe: #a9714b;
+  --negro: #222222;
+  --marfil: #fbf9f5;
+  --blanco: #ffffff;
+  --gris-texto: #6e655e;
+  --gris-linea: #e8e0d6;
+  --radio-card: 28px;
+  --sombra: 0 24px 60px -24px rgba(34, 34, 34, 0.3);
+}
+
+.login-page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  overflow: hidden;
+  background-color: var(--marfil);
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--negro);
+}
+
+/* Formas decorativas de fondo: rojo vino y verde profundo como protagonistas */
+.login-deco {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.login-deco--naranja {
+  width: 440px;
+  height: 440px;
+  top: -170px;
+  left: -150px;
+  background: var(--rojo);
+  opacity: 0.14;
+}
+
+.login-deco--verde {
+  width: 380px;
+  height: 380px;
+  bottom: -160px;
+  right: -120px;
+  background: var(--verde);
+  opacity: 0.16;
+}
+
+.login-deco--anillo {
+  width: 140px;
+  height: 140px;
+  bottom: 12%;
+  left: 8%;
+  border: 14px solid var(--cafe);
+  opacity: 0.18;
+}
+
+/* Tarjeta principal */
+.login-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 980px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 860px) {
+  .login-card {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+}
+
+.login-bienvenida,
+.login-formulario {
+  position: relative;
+  background: var(--blanco);
+  border-radius: var(--radio-card);
+  box-shadow: var(--sombra);
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Franja superior: rojo vino en bienvenida, verde profundo en formulario */
+.login-bienvenida::before,
+.login-formulario::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+}
+
+.login-bienvenida::before {
+  background: linear-gradient(90deg, var(--rojo) 0%, var(--rojo) 60%, var(--naranja) 100%);
+}
+
+.login-formulario::before {
+  background: linear-gradient(90deg, var(--verde) 0%, var(--verde) 60%, var(--cafe) 100%);
+}
+
+/* Panel izquierdo: Bienvenida */
+.login-bienvenida {
+  align-items: center;
+  text-align: center;
+}
+
+.login-logo {
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+  margin-bottom: 20px;
+  mix-blend-mode: multiply;
+}
+
+.login-bienvenida__titulo {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--rojo);
+  letter-spacing: -0.02em;
+}
+
+.login-bienvenida__texto {
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+  color: var(--gris-texto);
+}
+
+.login-ilustracion {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  margin: 24px auto;
+}
+
+.login-ilustracion__img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
+}
+
+.login-ilustracion__circulo {
+  position: absolute;
+  z-index: 2;
+  top: 6px;
+  left: 4px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--verde);
+  opacity: 0.9;
+}
+
+.login-ilustracion__triangulo {
+  position: absolute;
+  z-index: 2;
+  right: 8px;
+  top: 30%;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 20px solid var(--rojo);
+  transform: rotate(18deg);
+}
+
+.login-bienvenida__acciones {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: auto;
+}
+
+/* Botones: base */
+.login-btn {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.login-btn:active {
+  transform: scale(0.98);
+}
+
+.login-btn:focus-visible,
+.login-enlace:focus-visible {
+  outline: 3px solid var(--naranja);
+  outline-offset: 3px;
+}
+
+/* Contorno rojo vino.
+   Sirve para .login-btn--rojo y también para .login-btn--contorno (clase anterior),
+   así "Iniciar sesión" se ve rojo aunque el JSX no se haya cambiado. */
+.login-btn--rojo,
+.login-btn--contorno {
+  background: var(--rojo-suave);
+  color: var(--rojo);
+  border: 2px solid var(--rojo);
+}
+
+.login-btn--rojo:hover,
+.login-btn--rojo.is-activo,
+.login-btn--contorno:hover,
+.login-btn--contorno.is-activo {
+  background: var(--rojo);
+  color: var(--blanco);
+  box-shadow: 0 10px 24px -12px rgba(142, 27, 45, 0.7);
+}
+
+/* Contorno verde profundo ("Registrarse") */
+.login-btn--verde {
+  background: rgba(20, 68, 47, 0.07);
+  color: var(--verde);
+  border: 2px solid var(--verde);
+}
+
+.login-btn--verde:hover,
+.login-btn--verde.is-activo {
+  background: var(--verde);
+  color: var(--blanco);
+  box-shadow: 0 10px 24px -12px rgba(20, 68, 47, 0.7);
+}
+
+/* Botón principal ("Entrar"): rojo vino relleno.
+   Sirve para .login-btn--principal y también para .login-btn--naranja (clase anterior). */
+.login-btn--principal,
+.login-btn--naranja {
+  margin-top: 8px;
+  color: var(--blanco);
+  background: var(--rojo);
+  border: 2px solid var(--rojo);
+  box-shadow: 0 12px 26px -12px rgba(142, 27, 45, 0.75);
+}
+
+.login-btn--principal:hover,
+.login-btn--naranja:hover {
+  background: var(--rojo-hover);
+  border-color: var(--rojo-hover);
+}
+
+/* En modo registro, el botón principal pasa a verde profundo */
+.login-btn--principal.is-registro,
+.login-btn--naranja.is-registro {
+  background: var(--verde);
+  border-color: var(--verde);
+  box-shadow: 0 12px 26px -12px rgba(20, 68, 47, 0.75);
+}
+
+.login-btn--principal.is-registro:hover,
+.login-btn--naranja.is-registro:hover {
+  background: var(--verde-hover);
+  border-color: var(--verde-hover);
+}
+
+/* Panel derecho: Formulario */
+.login-formulario {
+  justify-content: center;
+  padding-top: 72px;
+}
+
+.login-formulario__punto {
+  position: absolute;
+  top: 22px;
+  left: 24px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid var(--verde);
+  background: var(--marfil);
+}
+
+.login-formulario__punto::after {
+  content: '';
+  position: absolute;
+  top: 46px;
+  left: 210px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid var(--rojo);
+  background: rgba(142, 27, 45, 0.12);
+}
+
+/* Rama decorativa hecha con CSS */
+.login-formulario__hojas {
+  position: absolute;
+  top: 16px;
+  left: 64px;
+  width: 150px;
+  height: 60px;
+  transform: rotate(-12deg);
+}
+
+.login-formulario__hojas::before {
+  content: '';
+  position: absolute;
+  top: 30px;
+  left: 0;
+  width: 140px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--cafe);
+}
+
+.login-formulario__hojas i {
+  position: absolute;
+  width: 26px;
+  height: 12px;
+  border-radius: 0 100% 0 100%;
+  background: var(--verde);
+}
+
+.login-formulario__hojas i:nth-child(1) { top: 16px; left: 18px; transform: rotate(-30deg); }
+.login-formulario__hojas i:nth-child(2) { top: 36px; left: 38px; transform: rotate(30deg); background: var(--rojo); }
+.login-formulario__hojas i:nth-child(3) { top: 14px; left: 62px; transform: rotate(-30deg); }
+.login-formulario__hojas i:nth-child(4) { top: 36px; left: 86px; transform: rotate(30deg); background: var(--rojo); }
+.login-formulario__hojas i:nth-child(5) { top: 16px; left: 110px; transform: rotate(-30deg); background: var(--naranja); }
+
+.login-formulario__titulo {
+  margin: 0;
+  font-size: 1.85rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--verde);
+  letter-spacing: -0.02em;
+}
+
+.login-formulario__subtitulo {
+  margin: 6px 0 28px;
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--gris-texto);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.login-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-campo label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cafe);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.login-campo input {
+  width: 100%;
+  padding: 10px 2px;
+  border: none;
+  border-bottom: 2px solid var(--gris-linea);
+  border-radius: 0;
+  background: transparent;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--negro);
+  transition: border-color 0.2s ease;
+}
+
+.login-campo input::placeholder {
+  color: #ada298;
+}
+
+.login-campo input:focus,
+.login-campo input:focus-visible {
+  outline: none;
+  border-bottom-color: var(--verde);
+}
+
+/* Estado de error en los campos (usa aria-invalid="true" en el input) */
+.login-campo input[aria-invalid='true'],
+.login-campo input[aria-invalid='true']:focus {
+  border-bottom-color: var(--rojo);
+}
+
+.login-enlace {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: var(--rojo);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.login-enlace:hover {
+  text-decoration: underline;
+}
+
+.login-enlace--olvido {
+  align-self: flex-end;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--naranja);
+}
+
+.login-alerta {
+  min-height: 1.2em;
+  margin: 0;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.login-alerta--error {
+  color: var(--rojo);
+  font-weight: 600;
+}
+
+/* Cuando hay un mensaje de error, se muestra como recuadro */
+.login-alerta--error:not(:empty) {
+  padding: 10px 14px;
+  border: 1px solid var(--rojo);
+  border-radius: 12px;
+  background: var(--rojo-suave);
+}
+
+.login-alerta--ok {
+  color: var(--verde);
+  font-weight: 600;
+}
+
+.login-formulario__pie {
+  margin: 22px 0 0;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--gris-texto);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-btn,
+  .login-campo input {
+    transition: none;
+  }
+}
