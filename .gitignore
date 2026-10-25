@@ -1,0 +1,28 @@
+# Dependencias y artefactos
+node_modules/
+dist/
+build/
+.cache/
+
+# Entorno y credenciales confidenciales
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db

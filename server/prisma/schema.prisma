@@ -1,0 +1,1252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model account_interest_accruals {
+  id                      BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
+  account_id              BigInt                           @db.UnsignedBigInt
+  accrual_date            DateTime                         @db.Date
+  balance_basis           Decimal                          @db.Decimal(18, 2)
+  annual_rate             Decimal                          @db.Decimal(9, 6)
+  day_count_basis         Int                              @db.UnsignedSmallInt
+  interest_amount         Decimal                          @db.Decimal(18, 8)
+  status                  account_interest_accruals_status @default(PENDING)
+  credited_transaction_id BigInt?                          @db.UnsignedBigInt
+  credited_at             DateTime?                        @db.DateTime(0)
+  created_at              DateTime                         @default(now()) @db.Timestamp(0)
+  accounts                accounts                         @relation(fields: [account_id], references: [id], map: "fk_interest_accrual_account")
+  financial_transactions  financial_transactions?          @relation(fields: [credited_transaction_id], references: [id], onDelete: Restrict, map: "fk_interest_accrual_transaction")
+
+  @@unique([account_id, accrual_date], map: "uq_interest_account_day")
+  @@index([credited_transaction_id], map: "fk_interest_accrual_transaction")
+  @@index([accrual_date, status], map: "idx_interest_accrual_month_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model account_movements {
+  id                     BigInt                          @id @default(autoincrement()) @db.UnsignedBigInt
+  transaction_id         BigInt                          @unique(map: "transaction_id") @db.UnsignedBigInt
+  account_id             BigInt                          @db.UnsignedBigInt
+  movement_type          account_movements_movement_type
+  direction              account_movements_direction
+  amount                 Decimal                         @db.Decimal(18, 2)
+  created_at             DateTime                        @default(now()) @db.DateTime(0)
+  accounts               accounts                        @relation(fields: [account_id], references: [id], map: "fk_account_movements_account")
+  financial_transactions financial_transactions          @relation(fields: [transaction_id], references: [id], map: "fk_account_movements_transaction")
+
+  @@index([account_id, created_at], map: "idx_account_movements_account_date")
+}
+
+model account_number_sequences {
+  sequence_name String @id @db.VarChar(40)
+  next_value    BigInt @db.UnsignedBigInt
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model accounts {
+  id                        BigInt                      @id @default(autoincrement()) @db.UnsignedBigInt
+  account_number            String                      @unique(map: "account_number") @db.VarChar(24)
+  customer_id               BigInt                      @db.UnsignedBigInt
+  product_id                BigInt                      @db.UnsignedBigInt
+  balance                   Decimal                     @default(0.00) @db.Decimal(18, 2)
+  status                    accounts_status             @default(ACTIVE)
+  opened_at                 DateTime                    @default(now()) @db.DateTime(0)
+  closed_at                 DateTime?                   @db.DateTime(0)
+  created_by_user_id        BigInt?                     @db.UnsignedBigInt
+  account_interest_accruals account_interest_accruals[]
+  account_movements         account_movements[]
+  app_users                 app_users?                  @relation(fields: [created_by_user_id], references: [id], map: "fk_accounts_creator")
+  customers                 customers                   @relation(fields: [customer_id], references: [id], map: "fk_accounts_customer")
+  financial_products        financial_products          @relation(fields: [product_id], references: [id], map: "fk_accounts_product")
+  daily_balance_snapshots   daily_balance_snapshots[]
+  loans                     loans[]
+
+  @@index([created_by_user_id], map: "fk_accounts_creator")
+  @@index([customer_id, status], map: "idx_accounts_customer_status")
+  @@index([product_id], map: "idx_accounts_product")
+}
+
+model app_user_roles {
+  user_id                                         BigInt     @db.UnsignedBigInt
+  role_id                                         Int        @db.UnsignedSmallInt
+  assigned_by                                     BigInt?    @db.UnsignedBigInt
+  assigned_at                                     DateTime   @default(now()) @db.Timestamp(0)
+  app_users_app_user_roles_assigned_byToapp_users app_users? @relation("app_user_roles_assigned_byToapp_users", fields: [assigned_by], references: [id], map: "fk_user_roles_assigner")
+  roles                                           roles      @relation(fields: [role_id], references: [id], map: "fk_user_roles_role")
+  app_users_app_user_roles_user_idToapp_users     app_users  @relation("app_user_roles_user_idToapp_users", fields: [user_id], references: [id], map: "fk_user_roles_user")
+
+  @@id([user_id, role_id])
+  @@index([assigned_by], map: "fk_user_roles_assigner")
+  @@index([role_id], map: "fk_user_roles_role")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model app_users {
+  id                                                             BigInt                          @id @default(autoincrement()) @db.UnsignedBigInt
+  username                                                       String                          @unique(map: "username") @db.VarChar(100)
+  email                                                          String                          @unique(map: "email") @db.VarChar(254)
+  password_hash                                                  String                          @db.VarChar(255)
+  customer_id                                                    BigInt?                         @unique(map: "customer_id") @db.UnsignedBigInt
+  employee_id                                                    BigInt?                         @unique(map: "employee_id") @db.UnsignedBigInt
+  is_enabled                                                     Boolean                         @default(true)
+  last_login_at                                                  DateTime?                       @db.DateTime(0)
+  created_at                                                     DateTime                        @default(now()) @db.Timestamp(0)
+  accounts                                                       accounts[]
+  app_user_roles_app_user_roles_assigned_byToapp_users           app_user_roles[]                @relation("app_user_roles_assigned_byToapp_users")
+  app_user_roles_app_user_roles_user_idToapp_users               app_user_roles[]                @relation("app_user_roles_user_idToapp_users")
+  customers                                                      customers?                      @relation(fields: [customer_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_app_users_customer")
+  employees                                                      employees?                      @relation(fields: [employee_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_app_users_employee")
+  cashier_session_denominations                                  cashier_session_denominations[]
+  cashier_sessions_cashier_sessions_cashier_user_idToapp_users   cashier_sessions[]              @relation("cashier_sessions_cashier_user_idToapp_users")
+  cashier_sessions_cashier_sessions_closed_by_user_idToapp_users cashier_sessions[]              @relation("cashier_sessions_closed_by_user_idToapp_users")
+  cashier_sessions_cashier_sessions_opened_by_user_idToapp_users cashier_sessions[]              @relation("cashier_sessions_opened_by_user_idToapp_users")
+  collection_cases                                               collection_cases[]
+  collection_reports                                             collection_reports[]
+  customer_documents                                             customer_documents[]
+  customer_income_records                                        customer_income_records[]
+  education_events                                               education_events[]
+  financial_transactions                                         financial_transactions[]
+  interest_rate_plans                                            interest_rate_plans[]
+  loan_applications                                              loan_applications[]
+  loan_approvals                                                 loan_approvals[]
+  loyalty_movements                                              loyalty_movements[]
+  product_applications                                           product_applications[]
+  projection_models                                              projection_models[]
+  promotions                                                     promotions[]
+  service_turns                                                  service_turns[]
+
+  @@index([is_enabled], map: "idx_app_users_enabled")
+}
+
+model audit_logs {
+  id            BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  actor_user_id BigInt?           @db.UnsignedBigInt
+  entity_name   String            @db.VarChar(80)
+  entity_pk     String            @db.VarChar(100)
+  action        audit_logs_action
+  old_data      Json?
+  new_data      Json?
+  connection_id BigInt            @db.UnsignedBigInt
+  occurred_at   DateTime          @default(now()) @db.Timestamp(0)
+
+  @@index([actor_user_id, occurred_at], map: "idx_audit_actor_date")
+  @@index([entity_name, entity_pk, occurred_at], map: "idx_audit_entity")
+}
+
+model branches {
+  id               Int                @id @default(autoincrement()) @db.UnsignedSmallInt
+  code             String             @unique(map: "code") @db.VarChar(20)
+  name             String             @db.VarChar(120)
+  address          String?            @db.VarChar(255)
+  phone            String?            @db.VarChar(25)
+  is_active        Boolean            @default(true)
+  created_at       DateTime           @default(now()) @db.Timestamp(0)
+  cashier_sessions cashier_sessions[]
+  employees        employees[]
+  service_turns    service_turns[]
+}
+
+model business_calendar {
+  calendar_date   DateTime @id @db.Date
+  is_business_day Boolean
+  description     String?  @db.VarChar(160)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model cashier_session_denominations {
+  id                 BigInt                                    @id @default(autoincrement()) @db.UnsignedBigInt
+  session_id         BigInt                                    @db.UnsignedBigInt
+  count_stage        cashier_session_denominations_count_stage
+  denomination       Decimal                                   @db.Decimal(8, 2)
+  quantity           Int                                       @db.UnsignedInt
+  counted_by_user_id BigInt?                                   @db.UnsignedBigInt
+  counted_at         DateTime                                  @default(now()) @db.Timestamp(0)
+  cashier_sessions   cashier_sessions                          @relation(fields: [session_id], references: [id], map: "fk_cash_denomination_session")
+  app_users          app_users?                                @relation(fields: [counted_by_user_id], references: [id], map: "fk_cash_denomination_user")
+
+  @@unique([session_id, count_stage, denomination], map: "uq_cash_session_denomination")
+  @@index([counted_by_user_id], map: "fk_cash_denomination_user")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model cashier_sessions {
+  id                                                      BigInt                          @id @default(autoincrement()) @db.UnsignedBigInt
+  branch_id                                               Int                             @db.UnsignedSmallInt
+  cashier_user_id                                         BigInt                          @db.UnsignedBigInt
+  opened_by_user_id                                       BigInt                          @db.UnsignedBigInt
+  closed_by_user_id                                       BigInt?                         @db.UnsignedBigInt
+  opened_at                                               DateTime                        @default(now()) @db.DateTime(0)
+  closed_at                                               DateTime?                       @db.DateTime(0)
+  opening_cash                                            Decimal                         @default(0.00) @db.Decimal(18, 2)
+  counted_cash                                            Decimal?                        @db.Decimal(18, 2)
+  notes                                                   String?                         @db.VarChar(500)
+  status                                                  cashier_sessions_status         @default(OPEN)
+  open_cashier_key                                        BigInt?                         @unique(map: "uq_one_open_session_per_cashier") @db.UnsignedBigInt
+  cashier_session_denominations                           cashier_session_denominations[]
+  branches                                                branches                        @relation(fields: [branch_id], references: [id], onUpdate: Restrict, map: "fk_cash_session_branch")
+  app_users_cashier_sessions_cashier_user_idToapp_users   app_users                       @relation("cashier_sessions_cashier_user_idToapp_users", fields: [cashier_user_id], references: [id], onUpdate: Restrict, map: "fk_cash_session_cashier")
+  app_users_cashier_sessions_closed_by_user_idToapp_users app_users?                      @relation("cashier_sessions_closed_by_user_idToapp_users", fields: [closed_by_user_id], references: [id], onUpdate: Restrict, map: "fk_cash_session_closer")
+  app_users_cashier_sessions_opened_by_user_idToapp_users app_users                       @relation("cashier_sessions_opened_by_user_idToapp_users", fields: [opened_by_user_id], references: [id], onUpdate: Restrict, map: "fk_cash_session_opener")
+  financial_transactions                                  financial_transactions[]
+
+  @@index([branch_id], map: "fk_cash_session_branch")
+  @@index([closed_by_user_id], map: "fk_cash_session_closer")
+  @@index([opened_by_user_id], map: "fk_cash_session_opener")
+  @@index([cashier_user_id, status, opened_at], map: "idx_cash_session_cashier_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model catalog_seasons {
+  id                    BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  name                  String                  @unique(map: "name") @db.VarChar(120)
+  starts_on             DateTime                @db.Date
+  ends_on               DateTime                @db.Date
+  is_active             Boolean                 @default(false)
+  loyalty_catalog_items loyalty_catalog_items[]
+}
+
+model collection_cases {
+  id                         BigInt                            @id @default(autoincrement()) @db.UnsignedBigInt
+  loan_id                    BigInt                            @unique(map: "loan_id") @db.UnsignedBigInt
+  assigned_collector_user_id BigInt?                           @db.UnsignedBigInt
+  classification             collection_cases_classification
+  sale_eligibility           collection_cases_sale_eligibility @default(REVIEW)
+  business_days_overdue      Int                               @default(0) @db.UnsignedInt
+  last_contact_at            DateTime?                         @db.DateTime(0)
+  next_action_at             DateTime?                         @db.DateTime(0)
+  notes                      String?                           @db.VarChar(1000)
+  updated_at                 DateTime                          @default(now()) @db.Timestamp(0)
+  app_users                  app_users?                        @relation(fields: [assigned_collector_user_id], references: [id], map: "fk_collection_case_collector")
+  loans                      loans                             @relation(fields: [loan_id], references: [id], map: "fk_collection_case_loan")
+  debt_sales                 debt_sales[]
+
+  @@index([assigned_collector_user_id], map: "fk_collection_case_collector")
+  @@index([classification, next_action_at], map: "idx_collection_classification")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model collection_report_rows {
+  id                     BigInt                                   @id @default(autoincrement()) @db.UnsignedBigInt
+  report_id              BigInt                                   @db.UnsignedBigInt
+  loan_id                BigInt                                   @db.UnsignedBigInt
+  contract_number        String                                   @db.VarChar(40)
+  customer_id            BigInt                                   @db.UnsignedBigInt
+  customer_name          String                                   @db.VarChar(405)
+  oldest_unpaid_due_date DateTime                                 @db.Date
+  overdue_amount         Decimal                                  @db.Decimal(18, 2)
+  overdue_installments   Int                                      @db.UnsignedInt
+  business_days_overdue  Int                                      @db.UnsignedInt
+  classification         collection_report_rows_classification?
+  sale_eligibility       collection_report_rows_sale_eligibility?
+  customers              customers                                @relation(fields: [customer_id], references: [id], map: "fk_collection_report_row_customer")
+  loans                  loans                                    @relation(fields: [loan_id], references: [id], map: "fk_collection_report_row_loan")
+  collection_reports     collection_reports                       @relation(fields: [report_id], references: [id], map: "fk_collection_report_row_report")
+
+  @@unique([report_id, loan_id], map: "uq_collection_report_loan")
+  @@index([customer_id], map: "fk_collection_report_row_customer")
+  @@index([loan_id], map: "fk_collection_report_row_loan")
+  @@index([report_id, classification, sale_eligibility], map: "idx_collection_report_row_class")
+}
+
+model collection_reports {
+  id                     BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  period_end             DateTime                 @db.Date
+  generated_by_user_id   BigInt?                  @db.UnsignedBigInt
+  generated_at           DateTime                 @default(now()) @db.Timestamp(0)
+  row_count              Int                      @default(0) @db.UnsignedInt
+  collection_report_rows collection_report_rows[]
+  app_users              app_users?               @relation(fields: [generated_by_user_id], references: [id], map: "fk_collection_report_generator")
+
+  @@index([generated_by_user_id], map: "fk_collection_report_generator")
+  @@index([period_end, generated_at], map: "idx_collection_report_period")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model collection_rules {
+  id                            BigInt                          @id @default(autoincrement()) @db.UnsignedBigInt
+  name                          String                          @db.VarChar(120)
+  minimum_business_days_overdue Int                             @db.UnsignedInt
+  maximum_business_days_overdue Int?                            @db.UnsignedInt
+  classification                collection_rules_classification
+  effective_from                DateTime                        @db.Date
+  effective_until               DateTime?                       @db.Date
+  is_active                     Boolean                         @default(true)
+
+  @@index([is_active, effective_from, effective_until], map: "idx_collection_rules_effective")
+}
+
+model customer_documents {
+  id                            BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id                   BigInt                           @db.UnsignedBigInt
+  document_type                 customer_documents_document_type
+  storage_uri                   String                           @db.VarChar(700)
+  sha256_hash                   String?                          @db.Char(64)
+  encrypted                     Boolean                          @default(true)
+  uploaded_by                   BigInt?                          @db.UnsignedBigInt
+  uploaded_at                   DateTime                         @default(now()) @db.Timestamp(0)
+  expires_on                    DateTime?                        @db.Date
+  status                        customer_documents_status        @default(PENDING)
+  notes                         String?                          @db.VarChar(500)
+  customers                     customers                        @relation(fields: [customer_id], references: [id], map: "fk_documents_customer")
+  app_users                     app_users?                       @relation(fields: [uploaded_by], references: [id], map: "fk_documents_uploaded_by")
+  customer_income_records       customer_income_records[]
+  loan_application_documents    loan_application_documents[]
+  product_application_documents product_application_documents[]
+
+  @@index([uploaded_by], map: "fk_documents_uploaded_by")
+  @@index([customer_id, document_type, status], map: "idx_documents_customer_type")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model customer_income_records {
+  id                   BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id          BigInt              @db.UnsignedBigInt
+  monthly_amount       Decimal             @db.Decimal(18, 2)
+  is_declared          Boolean
+  income_source        String              @db.VarChar(160)
+  verified             Boolean             @default(false)
+  valid_from           DateTime            @db.Date
+  valid_until          DateTime?           @db.Date
+  evidence_document_id BigInt?             @db.UnsignedBigInt
+  created_by           BigInt?             @db.UnsignedBigInt
+  created_at           DateTime            @default(now()) @db.Timestamp(0)
+  app_users            app_users?          @relation(fields: [created_by], references: [id], map: "fk_income_creator")
+  customers            customers           @relation(fields: [customer_id], references: [id], map: "fk_income_customer")
+  customer_documents   customer_documents? @relation(fields: [evidence_document_id], references: [id], map: "fk_income_document")
+
+  @@index([created_by], map: "fk_income_creator")
+  @@index([evidence_document_id], map: "fk_income_document")
+  @@index([customer_id, is_declared, valid_from], map: "idx_income_customer_declared")
+}
+
+model customer_notifications {
+  id                BigInt                                   @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id       BigInt                                   @db.UnsignedBigInt
+  promotion_id      BigInt?                                  @db.UnsignedBigInt
+  title             String                                   @db.VarChar(180)
+  message           String                                   @db.VarChar(2000)
+  notification_type customer_notifications_notification_type
+  status            customer_notifications_status            @default(QUEUED)
+  created_at        DateTime                                 @default(now()) @db.DateTime(0)
+  sent_at           DateTime?                                @db.DateTime(0)
+  read_at           DateTime?                                @db.DateTime(0)
+  customers         customers                                @relation(fields: [customer_id], references: [id], map: "fk_notification_customer")
+  promotions        promotions?                              @relation(fields: [promotion_id], references: [id], map: "fk_notification_promotion")
+
+  @@index([promotion_id], map: "fk_notification_promotion")
+  @@index([customer_id, status, created_at], map: "idx_notifications_customer_status")
+}
+
+model customer_relationships {
+  id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id       BigInt    @db.UnsignedBigInt
+  relative_name     String    @db.VarChar(200)
+  relationship_type String    @db.VarChar(60)
+  phone             String?   @db.VarChar(25)
+  notes             String?   @db.VarChar(255)
+  created_at        DateTime  @default(now()) @db.Timestamp(0)
+  customers         customers @relation(fields: [customer_id], references: [id], map: "fk_relationship_customer")
+
+  @@index([customer_id], map: "idx_relationship_customer")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model customers {
+  id                        BigInt                      @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_number           String?                     @unique(map: "customer_number") @db.VarChar(24)
+  first_name                String                      @db.VarChar(100)
+  middle_name               String?                     @db.VarChar(100)
+  paternal_surname          String                      @db.VarChar(100)
+  maternal_surname          String?                     @db.VarChar(100)
+  birth_date                DateTime?                   @db.Date
+  rfc                       String?                     @unique(map: "rfc") @db.VarChar(13)
+  curp                      String?                     @unique(map: "curp") @db.VarChar(18)
+  email                     String?                     @unique(map: "email") @db.VarChar(254)
+  phone                     String?                     @db.VarChar(25)
+  address_line              String?                     @db.VarChar(255)
+  neighborhood              String?                     @db.VarChar(100)
+  municipality              String?                     @db.VarChar(100)
+  state_name                String?                     @db.VarChar(100)
+  postal_code               String?                     @db.VarChar(10)
+  status                    customers_status            @default(ACTIVE)
+  created_at                DateTime                    @default(now()) @db.Timestamp(0)
+  updated_at                DateTime                    @default(now()) @db.Timestamp(0)
+  accounts                  accounts[]
+  app_users                 app_users?
+  collection_report_rows    collection_report_rows[]
+  customer_documents        customer_documents[]
+  customer_income_records   customer_income_records[]
+  customer_notifications    customer_notifications[]
+  customer_relationships    customer_relationships[]
+  education_event_attendees education_event_attendees[]
+  financial_transactions    financial_transactions[]
+  loan_applications         loan_applications[]
+  loyalty_accounts          loyalty_accounts?
+  loyalty_movements         loyalty_movements[]
+  loyalty_redemptions       loyalty_redemptions[]
+  product_applications      product_applications[]
+  service_turns             service_turns[]
+
+  @@index([paternal_surname, maternal_surname, first_name], map: "idx_customers_name")
+  @@index([status], map: "idx_customers_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model daily_balance_snapshots {
+  account_id      BigInt   @db.UnsignedBigInt
+  snapshot_date   DateTime @db.Date
+  closing_balance Decimal  @db.Decimal(18, 2)
+  captured_at     DateTime @default(now()) @db.Timestamp(0)
+  accounts        accounts @relation(fields: [account_id], references: [id], map: "fk_balance_snapshot_account")
+
+  @@id([account_id, snapshot_date])
+  @@index([snapshot_date], map: "idx_balance_snapshot_date")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model debt_sales {
+  id                 BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  collection_case_id BigInt           @db.UnsignedBigInt
+  buyer_name         String           @db.VarChar(200)
+  sale_price         Decimal          @db.Decimal(18, 2)
+  sold_at            DateTime         @default(now()) @db.DateTime(0)
+  contract_reference String?          @unique(map: "uq_debt_sale_contract") @db.VarChar(120)
+  notes              String?          @db.VarChar(500)
+  collection_cases   collection_cases @relation(fields: [collection_case_id], references: [id], map: "fk_debt_sale_case")
+
+  @@index([collection_case_id], map: "fk_debt_sale_case")
+}
+
+model education_event_attendees {
+  event_id            BigInt                                        @db.UnsignedBigInt
+  customer_id         BigInt                                        @db.UnsignedBigInt
+  registration_status education_event_attendees_registration_status @default(REGISTERED)
+  registered_at       DateTime                                      @default(now()) @db.Timestamp(0)
+  customers           customers                                     @relation(fields: [customer_id], references: [id], map: "fk_event_attendee_customer")
+  education_events    education_events                              @relation(fields: [event_id], references: [id], map: "fk_event_attendee_event")
+
+  @@id([event_id, customer_id])
+  @@index([customer_id], map: "fk_event_attendee_customer")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model education_events {
+  id                        BigInt                      @id @default(autoincrement()) @db.UnsignedBigInt
+  title                     String                      @db.VarChar(180)
+  description               String?                     @db.Text
+  location                  String?                     @db.VarChar(255)
+  starts_at                 DateTime                    @db.DateTime(0)
+  ends_at                   DateTime                    @db.DateTime(0)
+  capacity                  Int?                        @db.UnsignedInt
+  created_by_user_id        BigInt?                     @db.UnsignedBigInt
+  status                    education_events_status     @default(PLANNED)
+  education_event_attendees education_event_attendees[]
+  app_users                 app_users?                  @relation(fields: [created_by_user_id], references: [id], map: "fk_event_creator")
+
+  @@index([created_by_user_id], map: "fk_event_creator")
+  @@index([status, starts_at], map: "idx_events_status_start")
+}
+
+model employees {
+  id               BigInt           @id @default(autoincrement()) @db.UnsignedBigInt
+  employee_number  String           @unique(map: "employee_number") @db.VarChar(24)
+  branch_id        Int?             @db.UnsignedSmallInt
+  first_name       String           @db.VarChar(100)
+  paternal_surname String           @db.VarChar(100)
+  maternal_surname String?          @db.VarChar(100)
+  job_title        String?          @db.VarChar(120)
+  hired_on         DateTime?        @db.Date
+  status           employees_status @default(ACTIVE)
+  created_at       DateTime         @default(now()) @db.Timestamp(0)
+  app_users        app_users?
+  branches         branches?        @relation(fields: [branch_id], references: [id], onDelete: Restrict, map: "fk_employees_branch")
+
+  @@index([branch_id, status], map: "idx_employees_branch_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model financial_products {
+  id                   BigInt                          @id @default(autoincrement()) @db.UnsignedBigInt
+  code                 String                          @unique(map: "code") @db.VarChar(40)
+  name                 String                          @db.VarChar(160)
+  product_type         financial_products_product_type
+  description          String?                         @db.Text
+  minimum_amount       Decimal?                        @db.Decimal(18, 2)
+  maximum_amount       Decimal?                        @db.Decimal(18, 2)
+  minimum_term_days    Int?                            @db.UnsignedInt
+  maximum_term_days    Int?                            @db.UnsignedInt
+  default_annual_rate  Decimal?                        @db.Decimal(9, 6)
+  fixed_benefits       Json?
+  rules                Json?
+  is_active            Boolean                         @default(true)
+  created_at           DateTime                        @default(now()) @db.Timestamp(0)
+  accounts             accounts[]
+  loan_applications    loan_applications[]
+  product_applications product_applications[]
+  product_requirements product_requirements[]
+
+  @@index([product_type, is_active], map: "idx_products_type_active")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model financial_transactions {
+  id                        BigInt                                  @id @default(autoincrement()) @db.UnsignedBigInt
+  receipt_number            String                                  @unique(map: "receipt_number") @db.VarChar(50)
+  customer_id               BigInt                                  @db.UnsignedBigInt
+  processed_by_user_id      BigInt?                                 @db.UnsignedBigInt
+  cashier_session_id        BigInt?                                 @db.UnsignedBigInt
+  product_application_id    BigInt?                                 @db.UnsignedBigInt
+  transaction_type          financial_transactions_transaction_type
+  channel                   financial_transactions_channel          @default(COUNTER)
+  payment_method            financial_transactions_payment_method   @default(CASH)
+  amount                    Decimal                                 @db.Decimal(18, 2)
+  status                    financial_transactions_status           @default(PENDING)
+  notes                     String?                                 @db.VarChar(1000)
+  created_at                DateTime                                @default(now()) @db.DateTime(0)
+  posted_at                 DateTime?                               @db.DateTime(0)
+  account_interest_accruals account_interest_accruals[]
+  account_movements         account_movements?
+  cashier_sessions          cashier_sessions?                       @relation(fields: [cashier_session_id], references: [id], onDelete: Restrict, map: "fk_transactions_cash_session")
+  customers                 customers                               @relation(fields: [customer_id], references: [id], map: "fk_transactions_customer")
+  product_applications      product_applications?                   @relation(fields: [product_application_id], references: [id], onDelete: Restrict, map: "fk_transactions_product_application")
+  app_users                 app_users?                              @relation(fields: [processed_by_user_id], references: [id], onDelete: Restrict, map: "fk_transactions_user")
+  loan_payments             loan_payments?
+  loans                     loans?
+  loyalty_movements         loyalty_movements[]
+
+  @@index([product_application_id], map: "fk_transactions_product_application")
+  @@index([processed_by_user_id], map: "fk_transactions_user")
+  @@index([cashier_session_id, status], map: "idx_transactions_cash_session")
+  @@index([customer_id, created_at], map: "idx_transactions_customer_date")
+  @@index([transaction_type, status, created_at], map: "idx_transactions_type_status_date")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model interest_rate_plans {
+  id                       BigInt                     @id @default(autoincrement()) @db.UnsignedBigInt
+  name                     String                     @db.VarChar(120)
+  inflation_reference_rate Decimal                    @default(0.050000) @db.Decimal(9, 6)
+  day_count_basis          Int                        @default(365) @db.UnsignedSmallInt
+  effective_from           DateTime                   @db.Date
+  effective_until          DateTime?                  @db.Date
+  status                   interest_rate_plans_status @default(DRAFT)
+  active_plan_key          Int?                       @unique(map: "uq_single_active_interest_plan") @db.TinyInt
+  created_by_user_id       BigInt?                    @db.UnsignedBigInt
+  created_at               DateTime                   @default(now()) @db.Timestamp(0)
+  app_users                app_users?                 @relation(fields: [created_by_user_id], references: [id], map: "fk_interest_plan_creator")
+  interest_segments        interest_segments[]
+
+  @@index([created_by_user_id], map: "fk_interest_plan_creator")
+  @@index([status, effective_from, effective_until], map: "idx_interest_plan_dates")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model interest_segments {
+  id                  BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
+  plan_id             BigInt                           @db.UnsignedBigInt
+  segment_number      Int                              @db.UnsignedTinyInt
+  name                String                           @db.VarChar(100)
+  criterion_type      interest_segments_criterion_type
+  min_balance         Decimal?                         @db.Decimal(18, 2)
+  max_balance         Decimal?                         @db.Decimal(18, 2)
+  min_tenure_days     Int?                             @db.UnsignedInt
+  max_tenure_days     Int?                             @db.UnsignedInt
+  annual_rate         Decimal                          @db.Decimal(9, 6)
+  priority            Int                              @default(1) @db.SmallInt
+  interest_rate_plans interest_rate_plans              @relation(fields: [plan_id], references: [id], map: "fk_interest_segment_plan")
+
+  @@unique([plan_id, segment_number], map: "uq_interest_segment_number")
+}
+
+model loan_application_documents {
+  application_id     BigInt             @db.UnsignedBigInt
+  document_id        BigInt             @db.UnsignedBigInt
+  loan_applications  loan_applications  @relation(fields: [application_id], references: [id], map: "fk_loan_app_docs_application")
+  customer_documents customer_documents @relation(fields: [document_id], references: [id], map: "fk_loan_app_docs_document")
+
+  @@id([application_id, document_id])
+  @@index([document_id], map: "fk_loan_app_docs_document")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model loan_applications {
+  id                               BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id                      BigInt                       @db.UnsignedBigInt
+  product_id                       BigInt                       @db.UnsignedBigInt
+  assigned_executive_user_id       BigInt?                      @db.UnsignedBigInt
+  requested_amount                 Decimal                      @db.Decimal(18, 2)
+  term_months                      Int                          @db.UnsignedSmallInt
+  proposed_annual_rate             Decimal                      @db.Decimal(9, 6)
+  rfc_snapshot                     String?                      @db.VarChar(13)
+  declared_monthly_income_snapshot Decimal                      @default(0.00) @db.Decimal(18, 2)
+  requires_supervisor_approval     Boolean                      @default(false)
+  status                           loan_applications_status     @default(DRAFT)
+  submitted_at                     DateTime?                    @db.DateTime(0)
+  decision_at                      DateTime?                    @db.DateTime(0)
+  decision_comment                 String?                      @db.VarChar(1000)
+  created_at                       DateTime                     @default(now()) @db.Timestamp(0)
+  loan_application_documents       loan_application_documents[]
+  customers                        customers                    @relation(fields: [customer_id], references: [id], map: "fk_loan_app_customer")
+  app_users                        app_users?                   @relation(fields: [assigned_executive_user_id], references: [id], map: "fk_loan_app_executive")
+  financial_products               financial_products           @relation(fields: [product_id], references: [id], map: "fk_loan_app_product")
+  loan_approvals                   loan_approvals?
+  loans                            loans?
+
+  @@index([assigned_executive_user_id], map: "fk_loan_app_executive")
+  @@index([product_id], map: "fk_loan_app_product")
+  @@index([customer_id, created_at], map: "idx_loan_app_customer")
+  @@index([status, submitted_at], map: "idx_loan_app_status")
+}
+
+model loan_approvals {
+  id                  BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  loan_application_id BigInt                  @unique(map: "loan_application_id") @db.UnsignedBigInt
+  supervisor_user_id  BigInt                  @db.UnsignedBigInt
+  decision            loan_approvals_decision
+  comment             String                  @db.VarChar(1000)
+  decided_at          DateTime                @default(now()) @db.Timestamp(0)
+  loan_applications   loan_applications       @relation(fields: [loan_application_id], references: [id], map: "fk_loan_approval_application")
+  app_users           app_users               @relation(fields: [supervisor_user_id], references: [id], map: "fk_loan_approval_supervisor")
+
+  @@index([supervisor_user_id], map: "fk_loan_approval_supervisor")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model loan_installments {
+  id                       BigInt                     @id @default(autoincrement()) @db.UnsignedBigInt
+  loan_id                  BigInt                     @db.UnsignedBigInt
+  installment_number       Int                        @db.UnsignedSmallInt
+  due_date                 DateTime                   @db.Date
+  scheduled_principal      Decimal                    @default(0.00) @db.Decimal(18, 2)
+  scheduled_interest       Decimal                    @default(0.00) @db.Decimal(18, 2)
+  late_fee_due             Decimal                    @default(0.00) @db.Decimal(18, 2)
+  principal_paid           Decimal                    @default(0.00) @db.Decimal(18, 2)
+  interest_paid            Decimal                    @default(0.00) @db.Decimal(18, 2)
+  late_fee_paid            Decimal                    @default(0.00) @db.Decimal(18, 2)
+  status                   loan_installments_status   @default(OPEN)
+  loans                    loans                      @relation(fields: [loan_id], references: [id], map: "fk_installments_loan")
+  loan_payment_allocations loan_payment_allocations[]
+
+  @@unique([loan_id, installment_number], map: "uq_loan_installment_number")
+  @@index([due_date, status], map: "idx_installments_due_status")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model loan_payment_allocations {
+  id                BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  loan_payment_id   BigInt            @db.UnsignedBigInt
+  installment_id    BigInt            @db.UnsignedBigInt
+  principal_amount  Decimal           @default(0.00) @db.Decimal(18, 2)
+  interest_amount   Decimal           @default(0.00) @db.Decimal(18, 2)
+  late_fee_amount   Decimal           @default(0.00) @db.Decimal(18, 2)
+  created_at        DateTime          @default(now()) @db.Timestamp(0)
+  loan_installments loan_installments @relation(fields: [installment_id], references: [id], map: "fk_payment_alloc_installment")
+  loan_payments     loan_payments     @relation(fields: [loan_payment_id], references: [id], map: "fk_payment_alloc_payment")
+
+  @@index([loan_payment_id], map: "fk_payment_alloc_payment")
+  @@index([installment_id], map: "idx_payment_alloc_installment")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model loan_payments {
+  id                       BigInt                     @id @default(autoincrement()) @db.UnsignedBigInt
+  loan_id                  BigInt                     @db.UnsignedBigInt
+  transaction_id           BigInt                     @unique(map: "transaction_id") @db.UnsignedBigInt
+  total_amount             Decimal                    @db.Decimal(18, 2)
+  paid_at                  DateTime                   @default(now()) @db.DateTime(0)
+  loan_payment_allocations loan_payment_allocations[]
+  loans                    loans                      @relation(fields: [loan_id], references: [id], map: "fk_loan_payments_loan")
+  financial_transactions   financial_transactions     @relation(fields: [transaction_id], references: [id], map: "fk_loan_payments_transaction")
+
+  @@index([loan_id, paid_at], map: "idx_loan_payments_loan_date")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model loans {
+  id                          BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  loan_application_id         BigInt                   @unique(map: "loan_application_id") @db.UnsignedBigInt
+  contract_number             String                   @unique(map: "contract_number") @db.VarChar(40)
+  disbursement_transaction_id BigInt                   @unique(map: "disbursement_transaction_id") @db.UnsignedBigInt
+  deposit_account_id          BigInt?                  @db.UnsignedBigInt
+  principal_amount            Decimal                  @db.Decimal(18, 2)
+  principal_balance           Decimal                  @db.Decimal(18, 2)
+  annual_interest_rate        Decimal                  @db.Decimal(9, 6)
+  term_months                 Int                      @db.UnsignedSmallInt
+  start_date                  DateTime                 @db.Date
+  maturity_date               DateTime                 @db.Date
+  status                      loans_status             @default(ACTIVE)
+  created_at                  DateTime                 @default(now()) @db.Timestamp(0)
+  collection_cases            collection_cases?
+  collection_report_rows      collection_report_rows[]
+  loan_installments           loan_installments[]
+  loan_payments               loan_payments[]
+  loan_applications           loan_applications        @relation(fields: [loan_application_id], references: [id], map: "fk_loans_application")
+  accounts                    accounts?                @relation(fields: [deposit_account_id], references: [id], onDelete: Restrict, map: "fk_loans_deposit_account")
+  financial_transactions      financial_transactions   @relation(fields: [disbursement_transaction_id], references: [id], map: "fk_loans_disbursement_tx")
+
+  @@index([deposit_account_id], map: "fk_loans_deposit_account")
+  @@index([status, maturity_date], map: "idx_loans_status_maturity")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model loyalty_accounts {
+  customer_id    BigInt                  @id @db.UnsignedBigInt
+  points_balance BigInt                  @default(0)
+  enrolled_at    DateTime                @default(now()) @db.Timestamp(0)
+  status         loyalty_accounts_status @default(ACTIVE)
+  customers      customers               @relation(fields: [customer_id], references: [id], map: "fk_loyalty_account_customer")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model loyalty_catalog_items {
+  id                  BigInt                @id @default(autoincrement()) @db.UnsignedBigInt
+  supplier_id         BigInt?               @db.UnsignedBigInt
+  season_id           BigInt?               @db.UnsignedBigInt
+  code                String                @unique(map: "code") @db.VarChar(40)
+  name                String                @db.VarChar(180)
+  description         String?               @db.VarChar(500)
+  points_cost         BigInt                @db.UnsignedBigInt
+  stock_quantity      Int                   @default(0) @db.UnsignedInt
+  is_active           Boolean               @default(true)
+  catalog_seasons     catalog_seasons?      @relation(fields: [season_id], references: [id], map: "fk_catalog_season")
+  suppliers           suppliers?            @relation(fields: [supplier_id], references: [id], map: "fk_catalog_supplier")
+  loyalty_redemptions loyalty_redemptions[]
+
+  @@index([season_id], map: "fk_catalog_season")
+  @@index([supplier_id], map: "fk_catalog_supplier")
+  @@index([is_active, season_id], map: "idx_catalog_active_season")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model loyalty_earning_rules {
+  id                      BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
+  code                    String                           @unique(map: "code") @db.VarChar(40)
+  name                    String                           @db.VarChar(120)
+  event_type              loyalty_earning_rules_event_type
+  points_per_100_currency Decimal?                         @db.Decimal(10, 4)
+  fixed_points            Int?                             @db.UnsignedInt
+  effective_from          DateTime                         @db.Date
+  effective_until         DateTime?                        @db.Date
+  is_active               Boolean                          @default(true)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model loyalty_movements {
+  id                     BigInt                          @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id            BigInt                          @db.UnsignedBigInt
+  points_delta           BigInt
+  movement_type          loyalty_movements_movement_type
+  description            String                          @db.VarChar(300)
+  related_redemption_id  BigInt?                         @unique(map: "related_redemption_id") @db.UnsignedBigInt
+  related_transaction_id BigInt?                         @db.UnsignedBigInt
+  created_by_user_id     BigInt?                         @db.UnsignedBigInt
+  created_at             DateTime                        @default(now()) @db.Timestamp(0)
+  app_users              app_users?                      @relation(fields: [created_by_user_id], references: [id], map: "fk_loyalty_movement_creator")
+  customers              customers                       @relation(fields: [customer_id], references: [id], map: "fk_loyalty_movement_customer")
+  loyalty_redemptions    loyalty_redemptions?            @relation(fields: [related_redemption_id], references: [id], onDelete: Restrict, map: "fk_loyalty_movement_redemption")
+  financial_transactions financial_transactions?         @relation(fields: [related_transaction_id], references: [id], onDelete: Restrict, map: "fk_loyalty_movement_transaction")
+
+  @@index([created_by_user_id], map: "fk_loyalty_movement_creator")
+  @@index([related_transaction_id], map: "fk_loyalty_movement_transaction")
+  @@index([customer_id, created_at], map: "idx_loyalty_customer_date")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model loyalty_redemptions {
+  id                    BigInt                     @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id           BigInt                     @db.UnsignedBigInt
+  catalog_item_id       BigInt                     @db.UnsignedBigInt
+  quantity              Int                        @default(1) @db.UnsignedInt
+  points_redeemed       BigInt                     @db.UnsignedBigInt
+  status                loyalty_redemptions_status @default(APPROVED)
+  requested_at          DateTime                   @default(now()) @db.DateTime(0)
+  fulfilled_at          DateTime?                  @db.DateTime(0)
+  loyalty_movements     loyalty_movements?
+  customers             customers                  @relation(fields: [customer_id], references: [id], map: "fk_redemption_customer")
+  loyalty_catalog_items loyalty_catalog_items      @relation(fields: [catalog_item_id], references: [id], map: "fk_redemption_item")
+
+  @@index([catalog_item_id], map: "fk_redemption_item")
+  @@index([customer_id, requested_at], map: "idx_redemption_customer_date")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model loyalty_settings {
+  singleton_id             Int @id @db.UnsignedTinyInt
+  points_per_currency_unit Int @default(100) @db.UnsignedSmallInt
+}
+
+model permissions {
+  id               Int                @id @default(autoincrement()) @db.UnsignedSmallInt
+  code             String             @unique(map: "code") @db.VarChar(80)
+  description      String?            @db.VarChar(255)
+  role_permissions role_permissions[]
+}
+
+model product_application_documents {
+  application_id       BigInt               @db.UnsignedBigInt
+  document_id          BigInt               @db.UnsignedBigInt
+  product_applications product_applications @relation(fields: [application_id], references: [id], map: "fk_product_app_docs_application")
+  customer_documents   customer_documents   @relation(fields: [document_id], references: [id], map: "fk_product_app_docs_document")
+
+  @@id([application_id, document_id])
+  @@index([document_id], map: "fk_product_app_docs_document")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model product_applications {
+  id                            BigInt                          @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id                   BigInt                          @db.UnsignedBigInt
+  product_id                    BigInt                          @db.UnsignedBigInt
+  handled_by_user_id            BigInt?                         @db.UnsignedBigInt
+  requested_amount              Decimal?                        @db.Decimal(18, 2)
+  proposed_annual_rate          Decimal?                        @db.Decimal(9, 6)
+  status                        product_applications_status     @default(SUBMITTED)
+  application_data              Json?
+  decision_comment              String?                         @db.VarChar(1000)
+  submitted_at                  DateTime                        @default(now()) @db.DateTime(0)
+  decided_at                    DateTime?                       @db.DateTime(0)
+  financial_transactions        financial_transactions[]
+  product_application_documents product_application_documents[]
+  customers                     customers                       @relation(fields: [customer_id], references: [id], map: "fk_product_app_customer")
+  app_users                     app_users?                      @relation(fields: [handled_by_user_id], references: [id], map: "fk_product_app_handler")
+  financial_products            financial_products              @relation(fields: [product_id], references: [id], map: "fk_product_app_product")
+
+  @@index([handled_by_user_id], map: "fk_product_app_handler")
+  @@index([product_id], map: "fk_product_app_product")
+  @@index([customer_id, submitted_at], map: "idx_product_app_customer")
+  @@index([status, submitted_at], map: "idx_product_app_status_date")
+}
+
+model product_requirements {
+  id                 BigInt             @id @default(autoincrement()) @db.UnsignedBigInt
+  product_id         BigInt             @db.UnsignedBigInt
+  requirement_name   String             @db.VarChar(160)
+  description        String?            @db.VarChar(500)
+  is_mandatory       Boolean            @default(true)
+  display_order      Int                @default(1) @db.UnsignedSmallInt
+  financial_products financial_products @relation(fields: [product_id], references: [id], map: "fk_product_requirements_product")
+
+  @@unique([product_id, requirement_name], map: "uq_product_requirement")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model projection_models {
+  id                       BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
+  name                     String                       @db.VarChar(180)
+  description              String?                      @db.VarChar(1000)
+  initial_investment       Decimal                      @db.Decimal(18, 2)
+  block_type               projection_models_block_type
+  horizon_start            DateTime                     @db.Date
+  horizon_end              DateTime                     @db.Date
+  annual_rate              Decimal                      @db.Decimal(9, 6)
+  operating_cost_per_block Decimal                      @default(0.00) @db.Decimal(18, 2)
+  assumptions              Json?
+  created_by_user_id       BigInt?                      @db.UnsignedBigInt
+  created_at               DateTime                     @default(now()) @db.Timestamp(0)
+  app_users                app_users?                   @relation(fields: [created_by_user_id], references: [id], map: "fk_projection_creator")
+  projection_scenarios     projection_scenarios[]
+
+  @@index([created_by_user_id], map: "fk_projection_creator")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model projection_results {
+  id                         BigInt               @id @default(autoincrement()) @db.UnsignedBigInt
+  scenario_id                BigInt               @db.UnsignedBigInt
+  block_number               Int                  @db.UnsignedInt
+  block_start                DateTime             @db.Date
+  block_end                  DateTime             @db.Date
+  projected_revenue          Decimal              @default(0.00) @db.Decimal(18, 2)
+  projected_expenses         Decimal              @default(0.00) @db.Decimal(18, 2)
+  projected_net_cash_flow    Decimal              @default(0.00) @db.Decimal(18, 2)
+  projected_cumulative_value Decimal              @default(0.00) @db.Decimal(18, 2)
+  calculated_at              DateTime             @default(now()) @db.Timestamp(0)
+  projection_scenarios       projection_scenarios @relation(fields: [scenario_id], references: [id], map: "fk_projection_result_scenario")
+
+  @@unique([scenario_id, block_number], map: "uq_projection_result_block")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model projection_scenarios {
+  id                 BigInt                             @id @default(autoincrement()) @db.UnsignedBigInt
+  model_id           BigInt                             @db.UnsignedBigInt
+  scenario_type      projection_scenarios_scenario_type
+  name               String                             @db.VarChar(120)
+  revenue_factor     Decimal                            @default(1.000000) @db.Decimal(9, 6)
+  default_rate       Decimal                            @default(0.000000) @db.Decimal(9, 6)
+  assumptions        Json?
+  projection_results projection_results[]
+  projection_models  projection_models                  @relation(fields: [model_id], references: [id], map: "fk_projection_scenario_model")
+
+  @@unique([model_id, scenario_type], map: "uq_projection_scenario")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model promotions {
+  id                     BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  title                  String                   @db.VarChar(180)
+  message                String                   @db.VarChar(2000)
+  starts_at              DateTime                 @db.DateTime(0)
+  ends_at                DateTime                 @db.DateTime(0)
+  created_by_user_id     BigInt?                  @db.UnsignedBigInt
+  status                 promotions_status        @default(DRAFT)
+  created_at             DateTime                 @default(now()) @db.Timestamp(0)
+  customer_notifications customer_notifications[]
+  app_users              app_users?               @relation(fields: [created_by_user_id], references: [id], map: "fk_promotion_creator")
+
+  @@index([created_by_user_id], map: "fk_promotion_creator")
+  @@index([status, starts_at, ends_at], map: "idx_promotions_status_dates")
+}
+
+model role_permissions {
+  role_id       Int         @db.UnsignedSmallInt
+  permission_id Int         @db.UnsignedSmallInt
+  permissions   permissions @relation(fields: [permission_id], references: [id], map: "fk_role_permissions_permission")
+  roles         roles       @relation(fields: [role_id], references: [id], map: "fk_role_permissions_role")
+
+  @@id([role_id, permission_id])
+  @@index([permission_id], map: "fk_role_permissions_permission")
+}
+
+model roles {
+  id               Int                @id @default(autoincrement()) @db.UnsignedSmallInt
+  code             String             @unique(map: "code") @db.VarChar(40)
+  name             String             @db.VarChar(100)
+  description      String?            @db.VarChar(255)
+  app_user_roles   app_user_roles[]
+  role_permissions role_permissions[]
+}
+
+model service_turns {
+  id                    BigInt                              @id @default(autoincrement()) @db.UnsignedBigInt
+  branch_id             Int                                 @db.UnsignedSmallInt
+  customer_id           BigInt?                             @db.UnsignedBigInt
+  turn_type_id          Int                                 @db.UnsignedSmallInt
+  assigned_to_user_id   BigInt?                             @db.UnsignedBigInt
+  priority_snapshot     Int                                 @db.SmallInt
+  service_area_snapshot service_turns_service_area_snapshot
+  status                service_turns_status                @default(WAITING)
+  created_at            DateTime                            @default(now()) @db.DateTime(0)
+  called_at             DateTime?                           @db.DateTime(0)
+  started_at            DateTime?                           @db.DateTime(0)
+  completed_at          DateTime?                           @db.DateTime(0)
+  notes                 String?                             @db.VarChar(500)
+  app_users             app_users?                          @relation(fields: [assigned_to_user_id], references: [id], map: "fk_turn_assignee")
+  branches              branches                            @relation(fields: [branch_id], references: [id], map: "fk_turn_branch")
+  customers             customers?                          @relation(fields: [customer_id], references: [id], onDelete: Restrict, map: "fk_turn_customer")
+  turn_types            turn_types                          @relation(fields: [turn_type_id], references: [id], map: "fk_turn_type")
+
+  @@index([assigned_to_user_id], map: "fk_turn_assignee")
+  @@index([turn_type_id], map: "fk_turn_type")
+  @@index([customer_id, created_at], map: "idx_turn_customer")
+  @@index([branch_id, status, priority_snapshot(sort: Desc), created_at], map: "idx_turn_queue")
+}
+
+model suppliers {
+  id                    BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
+  name                  String                  @db.VarChar(180)
+  tax_id                String?                 @unique(map: "uq_supplier_tax_id") @db.VarChar(20)
+  contact_name          String?                 @db.VarChar(150)
+  email                 String?                 @db.VarChar(254)
+  phone                 String?                 @db.VarChar(25)
+  is_active             Boolean                 @default(true)
+  loyalty_catalog_items loyalty_catalog_items[]
+}
+
+model turn_types {
+  id                Int                     @id @default(autoincrement()) @db.UnsignedSmallInt
+  code              String                  @unique(map: "code") @db.VarChar(40)
+  name              String                  @db.VarChar(120)
+  service_area      turn_types_service_area
+  priority          Int                     @default(0) @db.SmallInt
+  requires_customer Boolean                 @default(true)
+  is_active         Boolean                 @default(true)
+  service_turns     service_turns[]
+}
+
+enum cashier_session_denominations_count_stage {
+  OPENING
+  CLOSING
+}
+
+enum customer_documents_document_type {
+  INE
+  PROOF_OF_ADDRESS
+  RFC
+  TAX_STATUS
+  OTHER
+}
+
+enum education_event_attendees_registration_status {
+  REGISTERED
+  ATTENDED
+  CANCELLED
+  NO_SHOW
+}
+
+enum projection_scenarios_scenario_type {
+  BASE
+  OPTIMISTIC
+  ADVERSE
+}
+
+enum account_movements_movement_type {
+  DEPOSIT
+  WITHDRAWAL
+  INTEREST_CREDIT
+  LOAN_DISBURSEMENT
+  ADJUSTMENT
+}
+
+enum collection_cases_classification {
+  RECOVERABLE
+  NON_RECOVERABLE
+  SOLD
+}
+
+enum financial_products_product_type {
+  DEPOSIT_ACCOUNT
+  LOAN
+  INVESTMENT
+  INSURANCE
+}
+
+enum loan_approvals_decision {
+  APPROVED
+  REJECTED
+}
+
+enum loyalty_accounts_status {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum loyalty_earning_rules_event_type {
+  SAVINGS_CONSISTENCY
+  PRODUCT_USE
+  PROMOTION
+  MANUAL
+}
+
+enum loyalty_movements_movement_type {
+  EARN
+  REDEEM
+  ADJUSTMENT
+  EXPIRATION
+}
+
+enum turn_types_service_area {
+  WINDOW
+  DESK
+  CASHIER
+}
+
+enum account_movements_direction {
+  CREDIT
+  DEBIT
+}
+
+enum audit_logs_action {
+  INSERT
+  UPDATE
+  DELETE
+  AUTHORIZE
+  REJECT
+}
+
+enum collection_cases_sale_eligibility {
+  ELIGIBLE
+  NOT_ELIGIBLE
+  REVIEW
+}
+
+enum collection_rules_classification {
+  RECOVERABLE
+  NON_RECOVERABLE
+}
+
+enum interest_segments_criterion_type {
+  BALANCE
+  TENURE
+}
+
+enum projection_models_block_type {
+  WEEKLY
+  QUARTERLY
+  ANNUAL
+}
+
+enum accounts_status {
+  ACTIVE
+  BLOCKED
+  CLOSED
+}
+
+enum customer_notifications_notification_type {
+  PROMOTION
+  PAYMENT_REMINDER
+  ACCOUNT_ALERT
+  EVENT
+  GENERAL
+}
+
+enum loyalty_redemptions_status {
+  APPROVED
+  FULFILLED
+  CANCELLED
+}
+
+enum customer_notifications_status {
+  QUEUED
+  SENT
+  READ
+  FAILED
+}
+
+enum financial_transactions_transaction_type {
+  ACCOUNT_DEPOSIT
+  ACCOUNT_WITHDRAWAL
+  INTEREST_CREDIT
+  LOAN_PAYMENT
+  LOAN_DISBURSEMENT
+  INVESTMENT_CONTRIBUTION
+  INSURANCE_PAYMENT
+  PRODUCT_PAYMENT
+  OTHER
+}
+
+enum interest_rate_plans_status {
+  DRAFT
+  ACTIVE
+  INACTIVE
+}
+
+enum product_applications_status {
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum promotions_status {
+  DRAFT
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+enum service_turns_service_area_snapshot {
+  WINDOW
+  DESK
+  CASHIER
+}
+
+enum account_interest_accruals_status {
+  PENDING
+  POSTED
+}
+
+enum financial_transactions_channel {
+  COUNTER
+  MOBILE_APP
+  WEB
+  SYSTEM
+}
+
+enum service_turns_status {
+  WAITING
+  CALLED
+  IN_SERVICE
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum education_events_status {
+  PLANNED
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum employees_status {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum financial_transactions_payment_method {
+  CASH
+  TRANSFER
+  DEBIT_CARD
+  ACCOUNT
+  OTHER
+  NONE
+}
+
+enum customer_documents_status {
+  PENDING
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+enum cashier_sessions_status {
+  OPEN
+  CLOSED
+}
+
+enum collection_report_rows_classification {
+  RECOVERABLE
+  NON_RECOVERABLE
+  SOLD
+}
+
+enum financial_transactions_status {
+  PENDING
+  POSTED
+  CANCELLED
+}
+
+enum loan_applications_status {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  DISBURSED
+  CANCELLED
+}
+
+enum loan_installments_status {
+  OPEN
+  PARTIAL
+  PAID
+}
+
+enum collection_report_rows_sale_eligibility {
+  ELIGIBLE
+  NOT_ELIGIBLE
+  REVIEW
+}
+
+enum loans_status {
+  ACTIVE
+  PAID_OFF
+  DEFAULTED
+  CLOSED
+}
+
+enum customers_status {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
