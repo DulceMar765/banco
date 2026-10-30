@@ -1,19 +1,16 @@
 :root {
-  --naranja: #d9580a;
-  --naranja-hover: #b84a08;
-  --rojo: #8e1b2d;
-  --rojo-hover: #741625;
-  --rojo-suave: #fbeef0;
-  --verde: #14442f;
-  --verde-hover: #0e3323;
-  --cafe: #a9714b;
-  --negro: #222222;
-  --marfil: #fbf9f5;
+  --naranja: #ff7a1a;
+  --naranja-hover: #e8650a;
+  --verde: #1f9d6b;
+  --verde-hover: #188457;
+  --cafe: #4b2e1f;
+  --negro: #161616;
+  --gris: #f2f5f3;
   --blanco: #ffffff;
-  --gris-texto: #6e655e;
-  --gris-linea: #e8e0d6;
+  --gris-texto: #66706b;
+  --gris-linea: #dfe5e1;
   --radio-card: 28px;
-  --sombra: 0 24px 60px -24px rgba(34, 34, 34, 0.3);
+  --sombra: 0 24px 60px -24px rgba(22, 22, 22, 0.25);
 }
 
 .login-page {
@@ -24,12 +21,11 @@
   justify-content: center;
   padding: 32px 16px;
   overflow: hidden;
-  background-color: var(--marfil);
+  background-color: var(--gris);
   font-family: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
   color: var(--negro);
 }
 
-/* Formas decorativas de fondo: rojo vino y verde profundo como protagonistas */
 .login-deco {
   position: absolute;
   border-radius: 50%;
@@ -41,8 +37,8 @@
   height: 440px;
   top: -170px;
   left: -150px;
-  background: var(--rojo);
-  opacity: 0.14;
+  background: var(--naranja);
+  opacity: 0.16;
 }
 
 .login-deco--verde {
@@ -51,7 +47,7 @@
   bottom: -160px;
   right: -120px;
   background: var(--verde);
-  opacity: 0.16;
+  opacity: 0.18;
 }
 
 .login-deco--anillo {
@@ -60,10 +56,9 @@
   bottom: 12%;
   left: 8%;
   border: 14px solid var(--cafe);
-  opacity: 0.18;
+  opacity: 0.12;
 }
 
-/* Tarjeta principal */
 .login-card {
   position: relative;
   z-index: 1;
@@ -93,7 +88,6 @@
   overflow: hidden;
 }
 
-/* Franja superior: rojo vino en bienvenida, verde profundo en formulario */
 .login-bienvenida::before,
 .login-formulario::before {
   content: '';
@@ -105,14 +99,13 @@
 }
 
 .login-bienvenida::before {
-  background: linear-gradient(90deg, var(--rojo) 0%, var(--rojo) 60%, var(--naranja) 100%);
+  background: linear-gradient(90deg, var(--naranja), var(--verde));
 }
 
 .login-formulario::before {
-  background: linear-gradient(90deg, var(--verde) 0%, var(--verde) 60%, var(--cafe) 100%);
+  background: linear-gradient(90deg, var(--verde), var(--naranja));
 }
 
-/* Panel izquierdo: Bienvenida */
 .login-bienvenida {
   align-items: center;
   text-align: center;
@@ -130,7 +123,7 @@
   margin: 0;
   font-size: 2rem;
   font-weight: 700;
-  color: var(--rojo);
+  color: var(--cafe);
   letter-spacing: -0.02em;
 }
 
@@ -164,7 +157,7 @@
   height: 38px;
   border-radius: 50%;
   background: var(--verde);
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
 .login-ilustracion__triangulo {
@@ -176,7 +169,7 @@
   height: 0;
   border-left: 12px solid transparent;
   border-right: 12px solid transparent;
-  border-bottom: 20px solid var(--rojo);
+  border-bottom: 20px solid var(--naranja);
   transform: rotate(18deg);
 }
 
@@ -189,7 +182,6 @@
   margin-top: auto;
 }
 
-/* Botones: base */
 .login-btn {
   width: 100%;
   padding: 14px 20px;
@@ -212,28 +204,21 @@
   outline-offset: 3px;
 }
 
-/* Contorno rojo vino.
-   Sirve para .login-btn--rojo y también para .login-btn--contorno (clase anterior),
-   así "Iniciar sesión" se ve rojo aunque el JSX no se haya cambiado. */
-.login-btn--rojo,
-.login-btn--contorno {
-  background: var(--rojo-suave);
-  color: var(--rojo);
-  border: 2px solid var(--rojo);
+.login-btn--naranja {
+  background: rgba(255, 122, 26, 0.08);
+  color: var(--naranja-hover);
+  border: 2px solid var(--naranja);
 }
 
-.login-btn--rojo:hover,
-.login-btn--rojo.is-activo,
-.login-btn--contorno:hover,
-.login-btn--contorno.is-activo {
-  background: var(--rojo);
+.login-btn--naranja:hover,
+.login-btn--naranja.is-activo {
+  background: var(--naranja);
   color: var(--blanco);
-  box-shadow: 0 10px 24px -12px rgba(142, 27, 45, 0.7);
+  box-shadow: 0 10px 24px -12px rgba(255, 122, 26, 0.8);
 }
 
-/* Contorno verde profundo ("Registrarse") */
 .login-btn--verde {
-  background: rgba(20, 68, 47, 0.07);
+  background: rgba(31, 157, 107, 0.08);
   color: var(--verde);
   border: 2px solid var(--verde);
 }
@@ -242,41 +227,33 @@
 .login-btn--verde.is-activo {
   background: var(--verde);
   color: var(--blanco);
-  box-shadow: 0 10px 24px -12px rgba(20, 68, 47, 0.7);
+  box-shadow: 0 10px 24px -12px rgba(31, 157, 107, 0.8);
 }
 
-/* Botón principal ("Entrar"): rojo vino relleno.
-   Sirve para .login-btn--principal y también para .login-btn--naranja (clase anterior). */
-.login-btn--principal,
-.login-btn--naranja {
+.login-btn--principal {
   margin-top: 8px;
   color: var(--blanco);
-  background: var(--rojo);
-  border: 2px solid var(--rojo);
-  box-shadow: 0 12px 26px -12px rgba(142, 27, 45, 0.75);
+  background: var(--naranja);
+  border: 2px solid var(--naranja);
+  box-shadow: 0 12px 26px -12px rgba(255, 122, 26, 0.8);
 }
 
-.login-btn--principal:hover,
-.login-btn--naranja:hover {
-  background: var(--rojo-hover);
-  border-color: var(--rojo-hover);
+.login-btn--principal:hover {
+  background: var(--naranja-hover);
+  border-color: var(--naranja-hover);
 }
 
-/* En modo registro, el botón principal pasa a verde profundo */
-.login-btn--principal.is-registro,
-.login-btn--naranja.is-registro {
+.login-btn--principal.is-registro {
   background: var(--verde);
   border-color: var(--verde);
-  box-shadow: 0 12px 26px -12px rgba(20, 68, 47, 0.75);
+  box-shadow: 0 12px 26px -12px rgba(31, 157, 107, 0.8);
 }
 
-.login-btn--principal.is-registro:hover,
-.login-btn--naranja.is-registro:hover {
+.login-btn--principal.is-registro:hover {
   background: var(--verde-hover);
   border-color: var(--verde-hover);
 }
 
-/* Panel derecho: Formulario */
 .login-formulario {
   justify-content: center;
   padding-top: 72px;
@@ -290,7 +267,7 @@
   height: 22px;
   border-radius: 50%;
   border: 3px solid var(--verde);
-  background: var(--marfil);
+  background: var(--gris);
 }
 
 .login-formulario__punto::after {
@@ -301,11 +278,10 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  border: 3px solid var(--rojo);
-  background: rgba(142, 27, 45, 0.12);
+  border: 3px solid var(--naranja);
+  background: rgba(255, 122, 26, 0.12);
 }
 
-/* Rama decorativa hecha con CSS */
 .login-formulario__hojas {
   position: absolute;
   top: 16px;
@@ -335,22 +311,22 @@
 }
 
 .login-formulario__hojas i:nth-child(1) { top: 16px; left: 18px; transform: rotate(-30deg); }
-.login-formulario__hojas i:nth-child(2) { top: 36px; left: 38px; transform: rotate(30deg); background: var(--rojo); }
+.login-formulario__hojas i:nth-child(2) { top: 36px; left: 38px; transform: rotate(30deg); background: var(--naranja); }
 .login-formulario__hojas i:nth-child(3) { top: 14px; left: 62px; transform: rotate(-30deg); }
-.login-formulario__hojas i:nth-child(4) { top: 36px; left: 86px; transform: rotate(30deg); background: var(--rojo); }
-.login-formulario__hojas i:nth-child(5) { top: 16px; left: 110px; transform: rotate(-30deg); background: var(--naranja); }
+.login-formulario__hojas i:nth-child(4) { top: 36px; left: 86px; transform: rotate(30deg); background: var(--naranja); }
+.login-formulario__hojas i:nth-child(5) { top: 16px; left: 110px; transform: rotate(-30deg); }
 
 .login-formulario__titulo {
   margin: 0;
   font-size: 1.85rem;
   font-weight: 700;
   text-align: center;
-  color: var(--verde);
+  color: var(--negro);
   letter-spacing: -0.02em;
 }
 
 .login-formulario__subtitulo {
-  margin: 6px 0 28px;
+  margin: 6px 0 24px;
   text-align: center;
   font-size: 0.92rem;
   color: var(--gris-texto);
@@ -360,6 +336,60 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+/* Selector de rol */
+.login-roles {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.login-roles legend {
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cafe);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.login-roles__opciones {
+  display: flex;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--gris);
+}
+
+.login-rol {
+  position: relative;
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gris-texto);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.login-rol input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.login-rol.is-activo {
+  background: var(--blanco);
+  color: var(--verde);
+  box-shadow: 0 4px 12px -6px rgba(22, 22, 22, 0.3);
+}
+
+.login-rol:has(input:focus-visible) {
+  outline: 3px solid var(--naranja);
+  outline-offset: 2px;
 }
 
 .login-campo {
@@ -390,7 +420,7 @@
 }
 
 .login-campo input::placeholder {
-  color: #ada298;
+  color: #9aa49f;
 }
 
 .login-campo input:focus,
@@ -399,19 +429,13 @@
   border-bottom-color: var(--verde);
 }
 
-/* Estado de error en los campos (usa aria-invalid="true" en el input) */
-.login-campo input[aria-invalid='true'],
-.login-campo input[aria-invalid='true']:focus {
-  border-bottom-color: var(--rojo);
-}
-
 .login-enlace {
   padding: 0;
   border: none;
   background: none;
   font: inherit;
   font-weight: 700;
-  color: var(--rojo);
+  color: var(--verde);
   text-decoration: none;
   cursor: pointer;
 }
@@ -424,7 +448,7 @@
   align-self: flex-end;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--naranja);
+  color: var(--naranja-hover);
 }
 
 .login-alerta {
@@ -435,16 +459,8 @@
 }
 
 .login-alerta--error {
-  color: var(--rojo);
+  color: #c0392b;
   font-weight: 600;
-}
-
-/* Cuando hay un mensaje de error, se muestra como recuadro */
-.login-alerta--error:not(:empty) {
-  padding: 10px 14px;
-  border: 1px solid var(--rojo);
-  border-radius: 12px;
-  background: var(--rojo-suave);
 }
 
 .login-alerta--ok {
@@ -461,6 +477,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .login-btn,
+  .login-rol,
   .login-campo input {
     transition: none;
   }

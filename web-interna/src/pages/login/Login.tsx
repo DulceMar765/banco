@@ -1,16 +1,68 @@
 
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
+import {
+  registrarUsuario,
+  iniciarSesion,
+  type Usuario,
+} from '../../services/auth'
 import './Login.css'
 
 type Modo = 'login' | 'registro'
 
-export default function Login() {
+type Props = {
+  onLoginSuccess: (usuario: Usuario) => void
+}
+
+export default function Login({ onLoginSuccess }: Props) {
   const [modo, setModo] = useState<Modo>('login')
+  const [mensaje, setMensaje] = useState('')
 
   const esRegistro = modo === 'registro'
 
   function cambiarModo(nuevoModo: Modo) {
     setModo(nuevoModo)
+    setMensaje('')
+  }
+
+  function manejarEnvio(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setMensaje('')
+
+    const formulario = event.currentTarget
+    const datos = new FormData(formulario)
+
+    const correo = String(datos.get('correo') || '')
+    const contrasena = String(datos.get('contrasena') || '')
+
+    if (esRegistro) {
+      const confirmar = String(datos.get('confirmar') || '')
+
+      if (contrasena !== confirmar) {
+        setMensaje('Las contraseñas no coinciden.')
+        return
+      }
+
+      const error = registrarUsuario(correo, contrasena)
+
+      if (error) {
+        setMensaje(error)
+        return
+      }
+
+      formulario.reset()
+      setMensaje('Cuenta creada correctamente. Ya puedes iniciar sesión.')
+      setModo('login')
+      return
+    }
+
+    const usuario = iniciarSesion(correo, contrasena)
+
+    if (!usuario) {
+      setMensaje('Correo o contraseña incorrectos.')
+      return
+    }
+
+    onLoginSuccess(usuario)
   }
 
   return (
@@ -127,7 +179,7 @@ export default function Login() {
 
           <form
             className="login-form"
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={manejarEnvio}
           >
             <div className="login-campo">
               <label htmlFor="correo">
@@ -140,6 +192,7 @@ export default function Login() {
                 type="email"
                 autoComplete="email"
                 placeholder="tucorreo@ejemplo.com"
+                required
               />
             </div>
 
@@ -158,6 +211,7 @@ export default function Login() {
                     : 'current-password'
                 }
                 placeholder="••••••••"
+                required
               />
             </div>
 
@@ -173,6 +227,7 @@ export default function Login() {
                   type="password"
                   autoComplete="new-password"
                   placeholder="••••••••"
+                  required
                 />
               </div>
             )}
@@ -187,7 +242,12 @@ export default function Login() {
               </a>
             )}
 
-            <div className="login-alerta" aria-live="polite" />
+            <div
+              className="login-alerta"
+              aria-live="polite"
+            >
+              {mensaje}
+            </div>
 
             <button
               type="submit"
@@ -217,4 +277,3 @@ export default function Login() {
     </main>
   )
 }
-
