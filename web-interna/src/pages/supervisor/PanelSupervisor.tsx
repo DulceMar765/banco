@@ -13,7 +13,7 @@ import {
   Mail,
   Megaphone,
   Search,
-  Truck,
+  Wallet,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -23,7 +23,9 @@ import ModuloPromociones from './ModuloPromociones'
 import ModuloLealtad from './ModuloLealtad'
 import ModuloClientes from './ModuloClientes'
 import ModuloHistorial from './ModuloHistorial'
-import ModuloReportes from './ModuloReportes';
+import ModuloReportes from './ModuloReportes'
+import ModuloCatalogos from './ModuloCatalogos'
+import ModuloProductos from './ModuloProductos';
 import './PanelSupervisor.css'
 
 type Modulo = {
@@ -71,10 +73,10 @@ const MODULOS: Modulo[] = [
     pendientes: 0,
   },
   {
-    id: 'proveedores',
-    nombre: 'Proveedores',
-    descripcion: 'Supervisar pedidos, precios y entregas.',
-    icono: Truck,
+    id: 'productos',
+    nombre: 'Productos financieros',
+    descripcion: 'En Productos financieros se crean las cuentas y sus condiciones.',
+    icono: Wallet,
     pendientes: 0,
   },
   {
@@ -216,6 +218,14 @@ export default function PanelSupervisor() {
            <ModuloReportes
            onVolver={() => setActivo('inicio')}
           />
+          ) : activo === 'catalogos' ? (
+            <ModuloCatalogos
+            onVolver={() => setActivo('inicio')}
+          />
+          ) : activo === 'productos' ? (
+            <ModuloProductos 
+            onVolver={() => setActivo('inicio')}
+             />
             ) : activo === 'inicio' ? (
 
             /* PÁGINA PRINCIPAL */
