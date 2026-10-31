@@ -1,3 +1,4 @@
+
 :root {
   --naranja: #ff7a1a;
   --naranja-hover: #e8650a;
@@ -190,8 +191,12 @@
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease,
-    transform 0.15s ease, box-shadow 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 }
 
 .login-btn:active {
@@ -217,19 +222,6 @@
   box-shadow: 0 10px 24px -12px rgba(255, 122, 26, 0.8);
 }
 
-.login-btn--verde {
-  background: rgba(31, 157, 107, 0.08);
-  color: var(--verde);
-  border: 2px solid var(--verde);
-}
-
-.login-btn--verde:hover,
-.login-btn--verde.is-activo {
-  background: var(--verde);
-  color: var(--blanco);
-  box-shadow: 0 10px 24px -12px rgba(31, 157, 107, 0.8);
-}
-
 .login-btn--principal {
   margin-top: 8px;
   color: var(--blanco);
@@ -241,17 +233,6 @@
 .login-btn--principal:hover {
   background: var(--naranja-hover);
   border-color: var(--naranja-hover);
-}
-
-.login-btn--principal.is-registro {
-  background: var(--verde);
-  border-color: var(--verde);
-  box-shadow: 0 12px 26px -12px rgba(31, 157, 107, 0.8);
-}
-
-.login-btn--principal.is-registro:hover {
-  background: var(--verde-hover);
-  border-color: var(--verde-hover);
 }
 
 .login-formulario {
@@ -310,11 +291,37 @@
   background: var(--verde);
 }
 
-.login-formulario__hojas i:nth-child(1) { top: 16px; left: 18px; transform: rotate(-30deg); }
-.login-formulario__hojas i:nth-child(2) { top: 36px; left: 38px; transform: rotate(30deg); background: var(--naranja); }
-.login-formulario__hojas i:nth-child(3) { top: 14px; left: 62px; transform: rotate(-30deg); }
-.login-formulario__hojas i:nth-child(4) { top: 36px; left: 86px; transform: rotate(30deg); background: var(--naranja); }
-.login-formulario__hojas i:nth-child(5) { top: 16px; left: 110px; transform: rotate(-30deg); }
+.login-formulario__hojas i:nth-child(1) {
+  top: 16px;
+  left: 18px;
+  transform: rotate(-30deg);
+}
+
+.login-formulario__hojas i:nth-child(2) {
+  top: 36px;
+  left: 38px;
+  transform: rotate(30deg);
+  background: var(--naranja);
+}
+
+.login-formulario__hojas i:nth-child(3) {
+  top: 14px;
+  left: 62px;
+  transform: rotate(-30deg);
+}
+
+.login-formulario__hojas i:nth-child(4) {
+  top: 36px;
+  left: 86px;
+  transform: rotate(30deg);
+  background: var(--naranja);
+}
+
+.login-formulario__hojas i:nth-child(5) {
+  top: 16px;
+  left: 110px;
+  transform: rotate(-30deg);
+}
 
 .login-formulario__titulo {
   margin: 0;
@@ -336,60 +343,6 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-}
-
-/* Selector de rol */
-.login-roles {
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-
-.login-roles legend {
-  margin-bottom: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--cafe);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.login-roles__opciones {
-  display: flex;
-  gap: 6px;
-  padding: 5px;
-  border-radius: 999px;
-  background: var(--gris);
-}
-
-.login-rol {
-  position: relative;
-  flex: 1;
-  padding: 9px 12px;
-  border-radius: 999px;
-  text-align: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--gris-texto);
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.login-rol input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.login-rol.is-activo {
-  background: var(--blanco);
-  color: var(--verde);
-  box-shadow: 0 4px 12px -6px rgba(22, 22, 22, 0.3);
-}
-
-.login-rol:has(input:focus-visible) {
-  outline: 3px solid var(--naranja);
-  outline-offset: 2px;
 }
 
 .login-campo {
@@ -468,16 +421,28 @@
   font-weight: 600;
 }
 
-.login-formulario__pie {
-  margin: 22px 0 0;
-  text-align: center;
-  font-size: 0.88rem;
-  color: var(--gris-texto);
+@media (max-width: 480px) {
+  .login-bienvenida,
+  .login-formulario {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .login-formulario {
+    padding-top: 72px;
+  }
+
+  .login-bienvenida__titulo {
+    font-size: 1.7rem;
+  }
+
+  .login-formulario__titulo {
+    font-size: 1.6rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .login-btn,
-  .login-rol,
   .login-campo input {
     transition: none;
   }

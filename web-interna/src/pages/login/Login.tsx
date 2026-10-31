@@ -1,28 +1,17 @@
 
 import { useState, type FormEvent } from 'react'
 import {
-  registrarUsuario,
   iniciarSesion,
   type Usuario,
 } from '../../services/auth'
 import './Login.css'
-
-type Modo = 'login' | 'registro'
 
 type Props = {
   onLoginSuccess: (usuario: Usuario) => void
 }
 
 export default function Login({ onLoginSuccess }: Props) {
-  const [modo, setModo] = useState<Modo>('login')
   const [mensaje, setMensaje] = useState('')
-
-  const esRegistro = modo === 'registro'
-
-  function cambiarModo(nuevoModo: Modo) {
-    setModo(nuevoModo)
-    setMensaje('')
-  }
 
   function manejarEnvio(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -33,27 +22,6 @@ export default function Login({ onLoginSuccess }: Props) {
 
     const correo = String(datos.get('correo') || '')
     const contrasena = String(datos.get('contrasena') || '')
-
-    if (esRegistro) {
-      const confirmar = String(datos.get('confirmar') || '')
-
-      if (contrasena !== confirmar) {
-        setMensaje('Las contraseñas no coinciden.')
-        return
-      }
-
-      const error = registrarUsuario(correo, contrasena)
-
-      if (error) {
-        setMensaje(error)
-        return
-      }
-
-      formulario.reset()
-      setMensaje('Cuenta creada correctamente. Ya puedes iniciar sesión.')
-      setModo('login')
-      return
-    }
 
     const usuario = iniciarSesion(correo, contrasena)
 
@@ -71,10 +39,12 @@ export default function Login({ onLoginSuccess }: Props) {
         className="login-deco login-deco--naranja"
         aria-hidden="true"
       />
+
       <span
         className="login-deco login-deco--verde"
         aria-hidden="true"
       />
+
       <span
         className="login-deco login-deco--anillo"
         aria-hidden="true"
@@ -107,6 +77,7 @@ export default function Login({ onLoginSuccess }: Props) {
               className="login-ilustracion__circulo"
               aria-hidden="true"
             />
+
             <span
               className="login-ilustracion__triangulo"
               aria-hidden="true"
@@ -122,24 +93,10 @@ export default function Login({ onLoginSuccess }: Props) {
           <div className="login-bienvenida__acciones">
             <button
               type="button"
-              className={`login-btn login-btn--contorno ${
-                !esRegistro ? 'is-activo' : ''
-              }`}
-              aria-pressed={!esRegistro}
-              onClick={() => cambiarModo('login')}
+              className="login-btn login-btn--contorno is-activo"
+              aria-pressed="true"
             >
               Iniciar sesión
-            </button>
-
-            <button
-              type="button"
-              className={`login-btn login-btn--verde ${
-                esRegistro ? 'is-activo' : ''
-              }`}
-              aria-pressed={esRegistro}
-              onClick={() => cambiarModo('registro')}
-            >
-              Registrarse
             </button>
           </div>
         </section>
@@ -168,13 +125,11 @@ export default function Login({ onLoginSuccess }: Props) {
             id="titulo-formulario"
             className="login-formulario__titulo"
           >
-            {esRegistro ? 'Crear cuenta' : 'Iniciar sesión'}
+            Iniciar sesión
           </h2>
 
           <p className="login-formulario__subtitulo">
-            {esRegistro
-              ? 'Regístrate, es gratis'
-              : 'Ingresa tus datos para continuar'}
+            Ingresa tus datos para continuar
           </p>
 
           <form
@@ -205,42 +160,19 @@ export default function Login({ onLoginSuccess }: Props) {
                 id="contrasena"
                 name="contrasena"
                 type="password"
-                autoComplete={
-                  esRegistro
-                    ? 'new-password'
-                    : 'current-password'
-                }
+                autoComplete="current-password"
                 placeholder="••••••••"
                 required
               />
             </div>
 
-            {esRegistro && (
-              <div className="login-campo">
-                <label htmlFor="confirmar">
-                  Confirmar contraseña
-                </label>
-
-                <input
-                  id="confirmar"
-                  name="confirmar"
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-            )}
-
-            {!esRegistro && (
-              <a
-                href="#"
-                className="login-enlace login-enlace--olvido"
-                onClick={(event) => event.preventDefault()}
-              >
-                ¿Olvidaste tu contraseña?
-              </a>
-            )}
+            <a
+              href="#"
+              className="login-enlace login-enlace--olvido"
+              onClick={(event) => event.preventDefault()}
+            >
+              ¿Olvidaste tu contraseña?
+            </a>
 
             <div
               className="login-alerta"
@@ -253,25 +185,9 @@ export default function Login({ onLoginSuccess }: Props) {
               type="submit"
               className="login-btn login-btn--naranja"
             >
-              {esRegistro ? 'Registrarse' : 'Entrar'}
+              Entrar
             </button>
           </form>
-
-          <p className="login-formulario__pie">
-            {esRegistro
-              ? '¿Ya tienes una cuenta? '
-              : '¿No tienes una cuenta? '}
-
-            <button
-              type="button"
-              className="login-enlace"
-              onClick={() =>
-                cambiarModo(esRegistro ? 'login' : 'registro')
-              }
-            >
-              {esRegistro ? 'Inicia sesión' : 'Regístrate'}
-            </button>
-          </p>
         </section>
       </div>
     </main>
