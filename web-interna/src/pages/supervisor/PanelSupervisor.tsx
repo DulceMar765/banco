@@ -25,7 +25,9 @@ import ModuloClientes from './ModuloClientes'
 import ModuloHistorial from './ModuloHistorial'
 import ModuloReportes from './ModuloReportes'
 import ModuloCatalogos from './ModuloCatalogos'
-import ModuloProductos from './ModuloProductos';
+import ModuloProductos from './ModuloProductos'
+import ModuloCobranza from './ModuloCobranza'
+
 import './PanelSupervisor.css'
 
 type Modulo = {
@@ -75,8 +77,15 @@ const MODULOS: Modulo[] = [
   {
     id: 'productos',
     nombre: 'Productos financieros',
-    descripcion: 'En Productos financieros se crean las cuentas y sus condiciones.',
+    descripcion: 'Crear cuentas y establecer sus condiciones.',
     icono: Wallet,
+    pendientes: 0,
+  },
+  {
+    id: 'cobranza',
+    nombre: 'Cobranza',
+    descripcion: 'Clasificar, recuperar y gestionar la venta de cartera vencida.',
+    icono: HandCoins,
     pendientes: 0,
   },
   {
@@ -202,31 +211,44 @@ export default function PanelSupervisor() {
             <ModuloPromociones
               onVolver={() => setActivo('inicio')}
             />
+
           ) : activo === 'lealtad' ? (
-              <ModuloLealtad
-                 onVolver={() => setActivo('inicio')}
+            <ModuloLealtad
+              onVolver={() => setActivo('inicio')}
             />
+
           ) : activo === 'clientes' ? (
             <ModuloClientes
               onVolver={() => setActivo('inicio')}
             />
+
           ) : activo === 'historial' ? (
             <ModuloHistorial
-            onVolver={() => setActivo('inicio')}
-             />
+              onVolver={() => setActivo('inicio')}
+            />
+
           ) : activo === 'reportes' ? (
-           <ModuloReportes
-           onVolver={() => setActivo('inicio')}
-          />
+            <ModuloReportes
+              onVolver={() => setActivo('inicio')}
+            />
+
           ) : activo === 'catalogos' ? (
             <ModuloCatalogos
-            onVolver={() => setActivo('inicio')}
-          />
+              onVolver={() => setActivo('inicio')}
+            />
+
           ) : activo === 'productos' ? (
-            <ModuloProductos 
-            onVolver={() => setActivo('inicio')}
-             />
-            ) : activo === 'inicio' ? (
+            <ModuloProductos
+              onVolver={() => setActivo('inicio')}
+            />
+
+          ) : activo === 'cobranza' ? (
+            /* MÓDULO DE COBRANZA */
+            <ModuloCobranza
+              onVolver={() => setActivo('inicio')}
+            />
+
+          ) : activo === 'inicio' ? (
 
             /* PÁGINA PRINCIPAL */
             <main className="sp-grid">
