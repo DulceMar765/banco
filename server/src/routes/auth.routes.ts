@@ -34,7 +34,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       });
     }
 
-    // Caso especial: credenciales iniciales de supervisor definidas en el sistema
+    // Casos especiales: credenciales institucionales de prueba definidas en el sistema
     if (credencial === 'supervisor@banuat.local' && clave === 'Banuat123!') {
       intentosFallidos.delete(credencial);
       return res.json({
@@ -44,6 +44,22 @@ authRouter.post('/login', async (req: Request, res: Response) => {
         nombre: 'Carlos Ramírez',
         rol: 'SUPERVISOR',
         puesto: 'Supervisor de Sucursal'
+      });
+    }
+
+    if (
+      (credencial === 'ejecutivo@banuat.local' && clave === 'Ejecutivo123!') ||
+      (credencial === 'canalizacion@banuat.local' && clave === 'Canalizacion123!')
+    ) {
+      intentosFallidos.delete(credencial);
+      const esCanalizacion = credencial.startsWith('canalizacion');
+      return res.json({
+        id: esCanalizacion ? '3' : '2',
+        usuario: esCanalizacion ? 'canalizacion' : 'ejecutivo',
+        correo: credencial,
+        nombre: esCanalizacion ? 'Pedro Gómez' : 'Laura Mendoza',
+        rol: esCanalizacion ? 'CANALIZACION' : 'EJECUTIVO',
+        puesto: esCanalizacion ? 'Personal de Canalización' : 'Ejecutivo de Escritorio'
       });
     }
 

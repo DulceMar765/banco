@@ -18,7 +18,7 @@ import "./RegistrarCliente.css";
 type RegistrarClienteProps = {
   onRegistrar: (
     datos: Omit<Cliente, "id" | "cuenta" | "estado">
-  ) => void;
+  ) => Promise<void> | void;
   onCancelar: () => void;
 };
 
@@ -42,6 +42,8 @@ function RegistrarCliente({
   const [ingreso, setIngreso] = useState("");
   const [tipoIngreso, setTipoIngreso] = useState("");
   const [documentos, setDocumentos] = useState<Documentos>({});
+  const [error, setError] = useState<string | null>(null);
+  const [guardando, setGuardando] = useState(false);
 
   const actualizarDocumento = (
     campo: keyof Documentos,
@@ -62,20 +64,28 @@ function RegistrarCliente({
     }));
   };
 
-  const manejarRegistro = (evento: FormEvent<HTMLFormElement>) => {
+  const manejarRegistro = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
+    setError(null);
+    setGuardando(true);
 
-    onRegistrar({
-      nombre: nombre.trim(),
-      correo: correo.trim(),
-      telefono: telefono.trim(),
-      rfc: rfc.trim(),
-      curp: curp.trim(),
-      direccion: direccion.trim(),
-      ingreso: ingreso ? Number(ingreso) : undefined,
-      tipoIngreso,
-      documentos,
-    });
+    try {
+      await onRegistrar({
+        nombre: nombre.trim(),
+        correo: correo.trim(),
+        telefono: telefono.trim(),
+        rfc: rfc.trim(),
+        curp: curp.trim(),
+        direccion: direccion.trim(),
+        ingreso: ingreso ? Number(ingreso) : undefined,
+        tipoIngreso,
+        documentos,
+      });
+    } catch (err: any) {
+      setError(err?.message || "Ocurrió un error al registrar al socio.");
+    } finally {
+      setGuardando(false);
+    }
   };
 
   const camposDocumentos: {
@@ -128,6 +138,26 @@ function RegistrarCliente({
           </p>
         </div>
       </div>
+
+      {error && (
+        <div
+          role="alert"
+          style={{
+            background: "#fee2e2",
+            border: "1px solid #ef4444",
+            color: "#991b1b",
+            padding: "0.85rem 1.25rem",
+            borderRadius: "0.5rem",
+            marginBottom: "1.25rem",
+            fontWeight: 500,
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem"
+          }}
+        >
+          <span>⚠️ {error}</span>
+        </div>
+      )}
 
       <form
         className="registrar-form"
@@ -357,9 +387,10 @@ function RegistrarCliente({
           <button
             type="submit"
             className="es-btn es-btn-primary"
+            disabled={guardando}
           >
             <UserPlus size={17} />
-            Registrar cliente
+            {guardando ? "Registrando socio..." : "Registrar cliente"}
           </button>
         </div>
 

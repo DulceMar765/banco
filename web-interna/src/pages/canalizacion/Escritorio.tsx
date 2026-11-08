@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -22,6 +22,13 @@ import Solicitudes from "./Solicitudes";
 import Productos, { type ProductoFinanciero } from "./Productos";
 import Seguimiento from "./Seguimiento";
 import Actividad from "./Actividad";
+
+import {
+  fetchClientes,
+  fetchSolicitudes,
+  registrarClienteApi,
+  registrarSolicitudApi
+} from "../../services/escritorio";
 
 import "./Escritorio.css";
 
@@ -105,6 +112,32 @@ function Escritorio() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
 
+  // Cargar clientes y solicitudes reales desde el backend al montar el componente
+  useEffect(() => {
+    let montado = true;
+
+    async function cargarDatos() {
+      try {
+        const [listaClientes, listaSolicitudes] = await Promise.all([
+          fetchClientes(),
+          fetchSolicitudes()
+        ]);
+
+        if (montado) {
+          if (listaClientes.length > 0) setClientes(listaClientes);
+          if (listaSolicitudes.length > 0) setSolicitudes(listaSolicitudes);
+        }
+      } catch (err) {
+        console.warn("No se pudieron cargar datos iniciales del backend:", err);
+      }
+    }
+
+    cargarDatos();
+    return () => {
+      montado = false;
+    };
+  }, []);
+
   const [productoInicial, setProductoInicial] = useState(
     "Préstamo personal"
   );
@@ -115,31 +148,52 @@ function Escritorio() {
     setMenuAbierto(false);
   };
 
-  const registrarCliente = (
+  const registrarCliente = async (
     datos: Omit<Cliente, "id" | "cuenta" | "estado">
   ) => {
-    const nuevoCliente: Cliente = {
-      ...datos,
-      id: Date.now(),
-      cuenta: `PEND-${String(clientes.length + 1).padStart(4, "0")}`,
-      estado: "Pendiente de documentos",
-    };
-
-    setClientes((actuales) => [...actuales, nuevoCliente]);
-    cambiarModulo("Clientes");
+    try {
+      const creado = await registrarClienteApi(datos);
+      if (creado) {
+        setClientes((actuales) => [creado, ...actuales]);
+        cambiarModulo("Clientes");
+      }
+    } catch (err: any) {
+      // Si el servidor retornó un error de validación (duplicado, formato, etc.), propagarlo al formulario
+      if (err?.message && !err.message.includes("Failed to fetch")) {
+        throw err;
+      }
+      // Fallback local en caso de que el backend esté completamente apagado en desarrollo
+      const nuevoCliente: Cliente = {
+        ...datos,
+        id: Date.now(),
+        cuenta: `PEND-${String(clientes.length + 1).padStart(4, "0")}`,
+        estado: "Pendiente de documentos",
+      };
+      setClientes((actuales) => [...actuales, nuevoCliente]);
+      cambiarModulo("Clientes");
+    }
   };
 
-  const registrarSolicitud = (
+  const registrarSolicitud = async (
     datos: Omit<Solicitud, "id" | "fecha" | "estado">
   ) => {
-    const nuevaSolicitud: Solicitud = {
-      ...datos,
-      id: Date.now(),
-      fecha: new Date().toLocaleDateString("es-MX"),
-      estado: "Enviada a supervisión",
-    };
-
-    setSolicitudes((actuales) => [...actuales, nuevaSolicitud]);
+    try {
+      const creada = await registrarSolicitudApi(datos);
+      if (creada) {
+        setSolicitudes((actuales) => [creada, ...actuales]);
+      } else {
+        throw new Error("Respuesta vacía del servidor");
+      }
+    } catch {
+      // Fallback local
+      const nuevaSolicitud: Solicitud = {
+        ...datos,
+        id: Date.now(),
+        fecha: new Date().toLocaleDateString("es-MX"),
+        estado: "Enviada a supervisión",
+      };
+      setSolicitudes((actuales) => [...actuales, nuevaSolicitud]);
+    }
     cambiarModulo("Solicitudes");
   };
 

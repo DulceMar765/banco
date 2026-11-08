@@ -16,7 +16,7 @@ function App() {
     return <PanelSupervisor />
   }
 
-  if (usuario.rol === 'canalizacion') {
+  if (usuario.rol === 'canalizacion' || usuario.rol === 'ejecutivo') {
     return <Escritorio />
   }
 

@@ -13,6 +13,7 @@ import { productosRouter } from './routes/productos.routes.js';
 import { catalogosRouter } from './routes/catalogos.routes.js';
 import { prestamosRouter } from './routes/prestamos.routes.js';
 import { lealtadRouter } from './routes/lealtad.routes.js';
+import { escritorioRouter } from './routes/escritorio.routes.js';
 
 dotenv.config();
 
@@ -67,9 +68,10 @@ app.use('/api/productos', productosRouter);
 app.use('/api/catalogos', catalogosRouter);
 app.use('/api/prestamos', prestamosRouter);
 app.use('/api/lealtad', lealtadRouter);
+app.use('/api/escritorio', escritorioRouter);
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor backend corriendo en http://localhost:${PORT}`);
   console.log(`🔌 Conexión configurada con MySQL (cooperativa_financiera).`);
-  console.log(`📡 Rutas activas: /api/auth, /api/clientes, /api/cobranza, /api/reportes, /api/productos, /api/catalogos, /api/prestamos, /api/lealtad`);
+  console.log(`📡 Rutas activas: /api/auth, /api/clientes, /api/cobranza, /api/reportes, /api/productos, /api/catalogos, /api/prestamos, /api/lealtad, /api/escritorio`);
 });

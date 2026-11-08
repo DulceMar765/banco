@@ -1,4 +1,4 @@
-export type Rol = 'cliente' | 'supervisor' | 'canalizacion'
+export type Rol = 'cliente' | 'supervisor' | 'canalizacion' | 'ejecutivo'
 
 export type Usuario = {
   correo: string
@@ -20,6 +20,12 @@ const CANALIZACION = {
   rol: 'canalizacion' as const,
 }
 
+const EJECUTIVO = {
+  correo: 'ejecutivo@banuat.local',
+  contrasena: 'Ejecutivo123!',
+  rol: 'ejecutivo' as const,
+}
+
 function obtenerUsuarios(): Usuario[] {
   try {
     const usuarios = JSON.parse(
@@ -38,13 +44,18 @@ function obtenerUsuarios(): Usuario[] {
       huboCambios = true
     }
 
+    if (!usuarios.some(u => u.correo === EJECUTIVO.correo)) {
+      usuarios.push(EJECUTIVO)
+      huboCambios = true
+    }
+
     if (huboCambios) {
       localStorage.setItem(CLAVE, JSON.stringify(usuarios))
     }
 
     return usuarios
   } catch {
-    const usuarios = [SUPERVISOR, CANALIZACION]
+    const usuarios = [SUPERVISOR, CANALIZACION, EJECUTIVO]
     localStorage.setItem(CLAVE, JSON.stringify(usuarios))
     return usuarios
   }

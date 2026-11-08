@@ -41,6 +41,8 @@ export const PROJECT_PARAMETERS = {
     MAX_DEBT_TO_INCOME_RATIO: 0.40,    // 40% máximo de ingresos comprometidos
     SUPERVISOR_APPROVAL_THRESHOLD: 50000.00, // Préstamos > $50,000 requieren supervisión
     ALLOW_EARLY_PAYMENT: true,         // Permite pagos adelantados con recálculo
+    DISBURSEMENTS_ENABLED: false,      // Bitácora 04/11/2026: Desembolsos físicos actualmente no habilitados
+    MONTH_END_POSTING_DELAY: true,     // Bitácora 04/11/2026: Autorizaciones fin de mes se reflejan el día 1 del siguiente mes
   },
 
   // E8. Cobranza y Cartera Vencida
@@ -51,10 +53,13 @@ export const PROJECT_PARAMETERS = {
     AUTO_GENERATE_EXCEL_REPORT: true,  // Reporte mensual automatizado
   },
 
-  // E9. Programa de Lealtad y Puntos
+  // E9. Programa de Lealtad y Puntos (Acuerdos 04/11/2026)
   LOYALTY: {
     POINTS_PER_PESO_REDEMPTION: 100,   // 100 puntos = $1.00 MXN
     POINTS_FOR_CONSECUTIVE_SAVINGS: 50,// Puntos por ahorro mensual constante
+    POINTS_PER_LOAN_PAYMENT: 25,       // Bitácora 04/11/2026: Puntos por abonos realizados a préstamos
+    AUTO_ENROLL_ON_ACCOUNT_CREATION: true, // Bitácora 04/11/2026: Todo cliente con cuenta ingresa al programa de puntos
+    REQUIRE_INITIAL_DEPOSIT_FOR_CONFIDENCE: false, // Bitácora 04/11/2026: No requiere pago inicial para medir confianza
     ALLOW_RATE_DISCOUNT_REDEMPTION: true, // Canje por reducción de tasa de interés
   },
 

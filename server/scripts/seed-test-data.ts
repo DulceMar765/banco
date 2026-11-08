@@ -63,6 +63,49 @@ async function seed() {
     }
   }
 
+  // 3b. Empleado Ejecutivo de Escritorio
+  let execEmployee = await prisma.employees.findFirst({ where: { employee_number: 'EMP-002' } });
+  if (!execEmployee) {
+    execEmployee = await prisma.employees.create({
+      data: {
+        employee_number: 'EMP-002',
+        first_name: 'Laura',
+        paternal_surname: 'Mendoza',
+        maternal_surname: 'Morales',
+        job_title: 'EJECUTIVO',
+        branch_id: branch.id,
+        status: 'ACTIVE'
+      }
+    });
+    console.log('✓ Empleado ejecutivo creado:', execEmployee.first_name);
+  }
+
+  let execUser = await prisma.app_users.findFirst({ where: { email: 'ejecutivo@banuat.local' } });
+  if (!execUser) {
+    execUser = await prisma.app_users.create({
+      data: {
+        username: 'ejecutivo',
+        email: 'ejecutivo@banuat.local',
+        password_hash: 'Ejecutivo123!',
+        employee_id: execEmployee.id,
+        is_enabled: true
+      }
+    });
+    console.log('✓ Usuario ejecutivo creado:', execUser.email);
+
+    const execRole = await prisma.roles.findFirst({ where: { code: 'EXECUTIVE' } });
+    if (execRole) {
+      await prisma.app_user_roles.create({
+        data: {
+          user_id: execUser.id,
+          role_id: execRole.id,
+          assigned_by: supervisorUser ? supervisorUser.id : execUser.id
+        }
+      });
+      console.log('✓ Rol EXECUTIVE asignado.');
+    }
+  }
+
   // 4. Productos Financieros
   let prodCuenta = await prisma.financial_products.findFirst({ where: { code: 'CTA-AHORRO-01' } });
   if (!prodCuenta) {
