@@ -1,0 +1,290 @@
+
+.registrar-cliente {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.registrar-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 17px;
+}
+
+.registrar-heading h1 {
+  margin: 7px 0 5px;
+  color: #252525;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.registrar-heading p {
+  margin: 0;
+  color: #858585;
+  font-size: 13px;
+}
+
+.registrar-eyebrow {
+  color: #e87924;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+}
+
+.registrar-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.registrar-card {
+  padding: 23px;
+}
+
+.registrar-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 23px;
+}
+
+.registrar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  color: #e87924;
+  background: #fff0e5;
+}
+
+.registrar-icon.green {
+  color: #1f9d6b;
+  background: #e8f7ef;
+}
+
+.registrar-card-heading h2 {
+  margin: 0 0 5px;
+  color: #292929;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.registrar-card-heading p {
+  margin: 0;
+  color: #8b8b8b;
+  font-size: 12px;
+}
+
+.registrar-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 19px;
+}
+
+.registrar-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.registrar-field-full {
+  grid-column: 1 / -1;
+}
+
+.registrar-field label {
+  color: #454545;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.registrar-field input,
+.registrar-field select,
+.registrar-field textarea {
+  width: 100%;
+  min-height: 43px;
+  padding: 11px 13px;
+  border: 1px solid #e6e9e7;
+  border-radius: 9px;
+  outline: none;
+  background: #fbfcfb;
+  color: #333;
+  font-family: inherit;
+  font-size: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.registrar-field textarea {
+  resize: vertical;
+  min-height: 85px;
+}
+
+.registrar-field input:focus,
+.registrar-field select:focus,
+.registrar-field textarea:focus {
+  border-color: #f39a55;
+  box-shadow: 0 0 0 3px rgba(243, 154, 85, 0.12);
+}
+
+.registrar-field input::placeholder,
+.registrar-field textarea::placeholder {
+  color: #b2b7b4;
+}
+
+.registrar-documents {
+  display: flex;
+  flex-direction: column;
+}
+
+.registrar-document {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 16px 0;
+  border-bottom: 1px solid #eff1ef;
+}
+
+.registrar-document:first-child {
+  padding-top: 0;
+}
+
+.registrar-document:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.registrar-document-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.registrar-document-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: #a16b42;
+  background: #f7f1eb;
+}
+
+.registrar-document-info > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.registrar-document-info strong {
+  color: #393939;
+  font-size: 12px;
+}
+
+.registrar-document-info span {
+  color: #929292;
+  font-size: 11px;
+}
+
+.registrar-file-name {
+  color: #1f9d6b;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.registrar-document-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.registrar-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid #f1d3bd;
+  border-radius: 8px;
+  color: #d66b20;
+  background: #fffaf6;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.registrar-upload:hover {
+  background: #fff0e5;
+}
+
+.registrar-upload input {
+  display: none;
+}
+
+.registrar-remove-file {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  color: #bd4a4a;
+  background: #fff0f0;
+  cursor: pointer;
+}
+
+.registrar-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-bottom: 10px;
+}
+
+.registrar-actions .es-btn {
+  min-height: 42px;
+}
+
+/* Responsive */
+@media (max-width: 650px) {
+  .registrar-card {
+    padding: 17px;
+  }
+
+  .registrar-fields {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .registrar-field-full {
+    grid-column: auto;
+  }
+
+  .registrar-document {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .registrar-document-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .registrar-actions {
+    flex-direction: column-reverse;
+  }
+
+  .registrar-actions .es-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,5 +1,4 @@
-
-export type Rol = 'cliente' | 'supervisor'
+export type Rol = 'cliente' | 'supervisor' | 'canalizacion'
 
 export type Usuario = {
   correo: string
@@ -15,21 +14,39 @@ const SUPERVISOR = {
   rol: 'supervisor' as const,
 }
 
+const CANALIZACION = {
+  correo: 'canalizacion@banuat.local',
+  contrasena: 'Canalizacion123!',
+  rol: 'canalizacion' as const,
+}
+
 function obtenerUsuarios(): Usuario[] {
   try {
     const usuarios = JSON.parse(
       localStorage.getItem(CLAVE) || '[]',
     ) as Usuario[]
 
+    let huboCambios = false
+
     if (!usuarios.some(u => u.correo === SUPERVISOR.correo)) {
       usuarios.push(SUPERVISOR)
+      huboCambios = true
+    }
+
+    if (!usuarios.some(u => u.correo === CANALIZACION.correo)) {
+      usuarios.push(CANALIZACION)
+      huboCambios = true
+    }
+
+    if (huboCambios) {
       localStorage.setItem(CLAVE, JSON.stringify(usuarios))
     }
 
     return usuarios
   } catch {
-    localStorage.setItem(CLAVE, JSON.stringify([SUPERVISOR]))
-    return [SUPERVISOR]
+    const usuarios = [SUPERVISOR, CANALIZACION]
+    localStorage.setItem(CLAVE, JSON.stringify(usuarios))
+    return usuarios
   }
 }
 
@@ -61,7 +78,8 @@ export function iniciarSesion(
   const email = correo.trim().toLowerCase()
 
   return obtenerUsuarios().find(
-    u => u.correo.toLowerCase() === email &&
-         u.contrasena === contrasena,
+    u =>
+      u.correo.toLowerCase() === email &&
+      u.contrasena === contrasena,
   ) ?? null
 }

@@ -1,0 +1,360 @@
+
+/* =========================================
+   ESTADÍSTICAS
+========================================= */
+
+.clientes-stat-orange {
+  color: #f47b24;
+  background: #fff0e4;
+}
+
+.clientes-stat-green {
+  color: #1f9d6b;
+  background: #e7f6ee;
+}
+
+.clientes-stat-brown {
+  color: #8a6047;
+  background: #f4ece6;
+}
+
+.clientes-stat-purple {
+  color: #8270bc;
+  background: #f0edfa;
+}
+
+/* =========================================
+   DIRECTORIO
+========================================= */
+
+.clientes-directory {
+  width: 100%;
+}
+
+.clientes-table-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clientes-table-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  color: #80543a;
+  background: #f5ebe3;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.clientes-table-person strong {
+  color: #343b35;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.clientes-estado-activo {
+  color: #21865d;
+  background: #e9f6ef;
+}
+
+.clientes-estado-pendiente {
+  color: #b77725;
+  background: #fff4df;
+}
+
+.clientes-estado-revision {
+  color: #7a68b0;
+  background: #f0edfa;
+}
+
+.clientes-search-mobile {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 17px;
+  color: #929a93;
+  border-top: 1px solid #f0f2f0;
+  font-size: 10px;
+}
+
+/* =========================================
+   ENCABEZADO DE DETALLES
+========================================= */
+
+.clientes-detail-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.clientes-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 25px;
+  background: linear-gradient(110deg, #4b2e1f, #65402b);
+  border-radius: 16px;
+}
+
+.clientes-profile-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 65px;
+  height: 65px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.clientes-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.clientes-profile-info .es-eyebrow {
+  margin: 0;
+  color: #ffb477;
+}
+
+.clientes-profile-info h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.clientes-profile-info p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 11px;
+}
+
+/* =========================================
+   INFORMACIÓN DEL CLIENTE
+========================================= */
+
+.clientes-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 17px;
+  align-items: stretch;
+}
+
+.clientes-information-card,
+.clientes-financial-card {
+  min-width: 0;
+}
+
+.clientes-information-card > .es-card-heading svg,
+.clientes-financial-card > .es-card-heading svg,
+.clientes-documents-card > .es-card-heading svg {
+  color: #ff7a1a;
+}
+
+.clientes-information-list {
+  display: flex;
+  flex-direction: column;
+  gap: 19px;
+}
+
+.clientes-information-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.clientes-information-item > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #9aa29b;
+}
+
+.clientes-information-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.clientes-information-item span {
+  color: #9aa29b;
+  font-size: 10px;
+}
+
+.clientes-information-item strong {
+  overflow-wrap: anywhere;
+  color: #343b35;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* =========================================
+   INFORMACIÓN FINANCIERA
+========================================= */
+
+.clientes-income-box {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 19px;
+  margin-bottom: 18px;
+  background: #f7faf7;
+  border: 1px solid #edf1ed;
+  border-radius: 12px;
+}
+
+.clientes-income-box span {
+  color: #929a93;
+  font-size: 10px;
+}
+
+.clientes-income-box strong {
+  color: #1f9d6b;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.clientes-financial-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid #f0f2f0;
+}
+
+.clientes-financial-row:last-child {
+  border-bottom: none;
+}
+
+.clientes-financial-row span {
+  color: #929a93;
+  font-size: 10px;
+}
+
+.clientes-financial-row strong {
+  color: #414941;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* =========================================
+   DOCUMENTOS
+========================================= */
+
+.clientes-documents-card {
+  width: 100%;
+}
+
+.clientes-document-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.clientes-document-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 13px;
+  background: #fafbfa;
+  border: 1px solid #edf0ed;
+  border-radius: 11px;
+}
+
+.clientes-document-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 35px;
+  height: 35px;
+  color: #b77943;
+  background: #f7eee6;
+  border-radius: 9px;
+}
+
+.clientes-document-item > span {
+  flex: 1;
+  min-width: 0;
+  color: #555e56;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.clientes-document-item small {
+  flex-shrink: 0;
+  color: #1f9d6b;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1150px) {
+  .clientes-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 850px) {
+  .clientes-document-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .clientes .es-page-heading {
+    align-items: stretch;
+  }
+
+  .clientes .es-page-heading .es-btn {
+    width: 100%;
+  }
+
+  .clientes-profile-card {
+    padding: 19px;
+  }
+
+  .clientes-profile-avatar {
+    width: 53px;
+    height: 53px;
+    font-size: 20px;
+  }
+
+  .clientes-profile-info h1 {
+    font-size: 18px;
+  }
+
+  .clientes-detail-heading {
+    align-items: flex-start;
+  }
+
+  .clientes-search-mobile {
+    display: flex;
+  }
+
+  .clientes .es-table {
+    min-width: 790px;
+  }
+
+  .clientes-financial-row {
+    align-items: flex-start;
+  }
+}

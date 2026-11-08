@@ -1,0 +1,277 @@
+
+.solicitudes-clientes {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.solicitudes-heading h1 {
+  margin-bottom: 7px;
+}
+
+.solicitudes-heading p {
+  max-width: 650px;
+}
+
+/* Resumen */
+
+.solicitudes-resumen {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.solicitud-resumen-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 17px;
+  border: 1px solid #edf0ed;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.solicitud-resumen-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 11px;
+}
+
+.solicitud-resumen-icon.orange {
+  color: #e87924;
+  background: #fff0e5;
+}
+
+.solicitud-resumen-icon.yellow {
+  color: #c58b24;
+  background: #fff7df;
+}
+
+.solicitud-resumen-icon.blue {
+  color: #4386c7;
+  background: #eaf3fc;
+}
+
+.solicitud-resumen-icon.green {
+  color: #1f9d6b;
+  background: #e8f7ef;
+}
+
+.solicitud-resumen-card div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.solicitud-resumen-card span {
+  color: #858585;
+  font-size: 11px;
+}
+
+.solicitud-resumen-card strong {
+  color: #292929;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+/* Tabla */
+
+.solicitudes-table-card {
+  overflow: hidden;
+}
+
+.solicitudes-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 21px 22px;
+}
+
+.solicitudes-table-header h2 {
+  margin: 0 0 5px;
+  color: #292929;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.solicitudes-table-header p {
+  margin: 0;
+  color: #8b8b8b;
+  font-size: 12px;
+}
+
+.solicitudes-total {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  color: #777;
+  background: #f5f6f5;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+/* Filtros */
+
+.solicitudes-filtros {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 22px 17px;
+  overflow-x: auto;
+  border-bottom: 1px solid #eff1ef;
+}
+
+.solicitudes-filtro {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #777;
+  background: transparent;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.solicitudes-filtro:hover {
+  color: #d66b20;
+  background: #fff8f2;
+}
+
+.solicitudes-filtro.activo {
+  color: #d66b20;
+  border-color: #f5dfce;
+  background: #fff4eb;
+}
+
+/* Encabezados de tabla */
+
+.solicitudes-table th {
+  white-space: nowrap;
+}
+
+.solicitudes-table td {
+  vertical-align: middle;
+}
+
+.solicitudes-empty {
+  padding: 48px 20px !important;
+}
+
+.solicitudes-empty .es-empty-icon {
+  margin-bottom: 13px;
+}
+
+.solicitudes-empty h3 {
+  margin: 0 0 7px;
+  color: #414141;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.solicitudes-empty p {
+  max-width: 400px;
+  margin: 0 auto;
+  color: #929292;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Nota del proceso */
+
+.solicitudes-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 17px;
+  border: 1px solid #f2e4d7;
+  border-radius: 12px;
+  background: #fffaf5;
+}
+
+.solicitudes-nota-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 35px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  color: #d98236;
+  background: #ffefdf;
+}
+
+.solicitudes-nota strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #60432d;
+  font-size: 12px;
+}
+
+.solicitudes-nota p {
+  margin: 0;
+  color: #8b7766;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* Responsive */
+
+@media (max-width: 1050px) {
+  .solicitudes-resumen {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .solicitudes-resumen {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .solicitud-resumen-card {
+    padding: 12px;
+    gap: 9px;
+  }
+
+  .solicitud-resumen-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .solicitud-resumen-card span {
+    font-size: 10px;
+  }
+
+  .solicitud-resumen-card strong {
+    font-size: 18px;
+  }
+
+  .solicitudes-table-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 17px;
+  }
+
+  .solicitudes-filtros {
+    padding: 0 17px 14px;
+  }
+
+  .solicitudes-nota {
+    padding: 13px;
+  }
+}

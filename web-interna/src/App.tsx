@@ -2,7 +2,9 @@
 import { useState } from 'react'
 import Login from './pages/login/Login'
 import PanelSupervisor from './pages/supervisor/PanelSupervisor'
+import Escritorio from './pages/canalizacion/Escritorio'
 import type { Usuario } from './services/auth'
+
 function App() {
   const [usuario, setUsuario] = useState<Usuario | null>(null)
 
@@ -12,6 +14,10 @@ function App() {
 
   if (usuario.rol === 'supervisor') {
     return <PanelSupervisor />
+  }
+
+  if (usuario.rol === 'canalizacion') {
+    return <Escritorio />
   }
 
   return (
