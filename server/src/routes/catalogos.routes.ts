@@ -22,57 +22,8 @@ catalogosRouter.get('/temporadas', async (_req: Request, res: Response) => {
       inicio: t.starts_on.toISOString().split('T')[0],
       fin: t.ends_on.toISOString().split('T')[0],
       estado: t.is_active ? 'Publicado' : 'Inactivo',
-      promociones: [
-        {
-          id: 1,
-          nombre: 'Tasa preferencial',
-          descripcion: 'Tasa especial para clientes elegibles.',
-          beneficio: '12 % de interés',
-          vigencia: 'Hasta fin de temporada',
-          seleccionada: true
-        },
-        {
-          id: 2,
-          nombre: 'Puntos dobles',
-          descripcion: 'Obtén puntos adicionales por tus pagos puntuales.',
-          beneficio: 'Doble acumulación de puntos',
-          vigencia: 'Hasta fin de temporada',
-          seleccionada: false
-        }
-      ]
+      promociones: []
     }));
-
-    if (resultado.length === 0) {
-      return res.json([
-        {
-          id: '1',
-          nombre: 'Catálogo de Invierno 2026',
-          descripcion: 'Promociones y beneficios especiales para la temporada invernal.',
-          temporada: 'Invierno 2026',
-          inicio: '2026-11-01',
-          fin: '2027-01-31',
-          estado: 'Publicado',
-          promociones: [
-            {
-              id: 1,
-              nombre: 'Tasa preferencial',
-              descripcion: 'Tasa especial para clientes con historial puntual.',
-              beneficio: '12 % de interés anual',
-              vigencia: 'Hasta el 31/12/2026',
-              seleccionada: true
-            },
-            {
-              id: 2,
-              nombre: 'Puntos dobles por ahorro',
-              descripcion: 'Doble acumulación de puntos por ahorro consecutivo.',
-              beneficio: '2x Puntos de lealtad',
-              vigencia: 'Hasta el 31/01/2027',
-              seleccionada: true
-            }
-          ]
-        }
-      ]);
-    }
 
     res.json(serializeData(resultado));
   } catch (error: any) {
@@ -103,6 +54,34 @@ catalogosRouter.get('/turnos', async (_req: Request, res: Response) => {
   try {
     const turnos = await prisma.turn_types.findMany();
     res.json(serializeData(turnos));
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/catalogos/beneficios
+ * Apartado institucional basado exclusivamente en promociones vigentes.
+ */
+catalogosRouter.get('/beneficios', async (_req: Request, res: Response) => {
+  try {
+    const ahora = new Date();
+    const beneficios = await prisma.promotions.findMany({
+      where: {
+        status: 'ACTIVE',
+        starts_at: { lte: ahora },
+        ends_at: { gte: ahora }
+      },
+      orderBy: { starts_at: 'asc' }
+    });
+
+    res.json(serializeData(beneficios.map((beneficio) => ({
+      id: beneficio.id.toString(),
+      titulo: beneficio.title,
+      descripcion: beneficio.message,
+      vigenciaDesde: beneficio.starts_at,
+      vigenciaHasta: beneficio.ends_at
+    }))));
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

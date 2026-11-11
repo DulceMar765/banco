@@ -1,6 +1,8 @@
 -- ============================================================================
 -- Sistema de Gestión para Cooperativa Financiera
--- Esquema relacional para MySQL 8.0.16+ (InnoDB, CHECK constraints activos)
+-- Esquema relacional para MySQL/MariaDB (InnoDB, CHECK constraints activos)
+-- utf8mb4_unicode_ci se usa por compatibilidad con MariaDB y versiones
+-- de MySQL que no incluyen utf8mb4_0900_ai_ci.
 --
 -- Diseño aplicado:
 --   * Normalización aproximada a 3FN: catálogos, relaciones N:M y datos atómicos.
@@ -23,7 +25,7 @@
 
 DROP DATABASE IF EXISTS cooperativa_financiera;
 CREATE DATABASE cooperativa_financiera
-  CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE cooperativa_financiera;
 
 SET NAMES utf8mb4;
@@ -2865,6 +2867,12 @@ BEGIN
     DECLARE v_total DECIMAL(18,2) DEFAULT 0;
     DECLARE v_source_customer BIGINT UNSIGNED;
     DECLARE v_receipt VARCHAR(50);
+    DECLARE v_idx INT DEFAULT 0;
+    DECLARE v_allocation_count INT DEFAULT 0;
+    DECLARE v_installment_id BIGINT UNSIGNED;
+    DECLARE v_principal_amount DECIMAL(18,2) DEFAULT 0;
+    DECLARE v_interest_amount DECIMAL(18,2) DEFAULT 0;
+    DECLARE v_late_fee_amount DECIMAL(18,2) DEFAULT 0;
     DECLARE EXIT HANDLER FOR NOT FOUND
     BEGIN
         ROLLBACK;
@@ -2882,13 +2890,27 @@ BEGIN
     SELECT la.customer_id INTO v_customer_id
       FROM loans l JOIN loan_applications la ON la.id = l.loan_application_id
      WHERE l.id = p_loan_id AND l.status = 'ACTIVE' FOR UPDATE;
-    SELECT COALESCE(SUM(COALESCE(j.principal_amount,0) + COALESCE(j.interest_amount,0) + COALESCE(j.late_fee_amount,0)),0)
-      INTO v_total
-      FROM JSON_TABLE(p_allocations, '$[*]' COLUMNS (
-        principal_amount DECIMAL(18,2) PATH '$.principal' DEFAULT '0' ON EMPTY,
-        interest_amount DECIMAL(18,2) PATH '$.interest' DEFAULT '0' ON EMPTY,
-        late_fee_amount DECIMAL(18,2) PATH '$.fee' DEFAULT '0' ON EMPTY
-      )) AS j;
+    SET v_allocation_count = JSON_LENGTH(p_allocations);
+    WHILE v_idx < v_allocation_count DO
+        SET v_principal_amount = COALESCE(
+            CAST(JSON_UNQUOTE(JSON_EXTRACT(
+                p_allocations, CONCAT('$[', v_idx, '].principal')
+            )) AS DECIMAL(18,2)), 0
+        );
+        SET v_interest_amount = COALESCE(
+            CAST(JSON_UNQUOTE(JSON_EXTRACT(
+                p_allocations, CONCAT('$[', v_idx, '].interest')
+            )) AS DECIMAL(18,2)), 0
+        );
+        SET v_late_fee_amount = COALESCE(
+            CAST(JSON_UNQUOTE(JSON_EXTRACT(
+                p_allocations, CONCAT('$[', v_idx, '].fee')
+            )) AS DECIMAL(18,2)), 0
+        );
+        SET v_total = v_total + v_principal_amount
+            + v_interest_amount + v_late_fee_amount;
+        SET v_idx = v_idx + 1;
+    END WHILE;
     IF v_total <= 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El pago calculado debe ser mayor que cero';
     END IF;
@@ -2920,17 +2942,34 @@ BEGIN
         INSERT INTO account_movements (transaction_id, account_id, movement_type, direction, amount)
         VALUES (p_transaction_id, p_source_account_id, 'WITHDRAWAL', 'DEBIT', v_total);
     END IF;
-    INSERT INTO loan_payment_allocations (
-      loan_payment_id, installment_id, principal_amount, interest_amount, late_fee_amount
-    )
-    SELECT p_loan_payment_id, j.installment_id,
-           COALESCE(j.principal_amount,0), COALESCE(j.interest_amount,0), COALESCE(j.late_fee_amount,0)
-      FROM JSON_TABLE(p_allocations, '$[*]' COLUMNS (
-        installment_id BIGINT UNSIGNED PATH '$.installment_id',
-        principal_amount DECIMAL(18,2) PATH '$.principal' DEFAULT '0' ON EMPTY,
-        interest_amount DECIMAL(18,2) PATH '$.interest' DEFAULT '0' ON EMPTY,
-        late_fee_amount DECIMAL(18,2) PATH '$.fee' DEFAULT '0' ON EMPTY
-      )) AS j;
+    SET v_idx = 0;
+    WHILE v_idx < v_allocation_count DO
+        SET v_installment_id = CAST(JSON_UNQUOTE(JSON_EXTRACT(
+            p_allocations, CONCAT('$[', v_idx, '].installment_id')
+        )) AS UNSIGNED);
+        SET v_principal_amount = COALESCE(
+            CAST(JSON_UNQUOTE(JSON_EXTRACT(
+                p_allocations, CONCAT('$[', v_idx, '].principal')
+            )) AS DECIMAL(18,2)), 0
+        );
+        SET v_interest_amount = COALESCE(
+            CAST(JSON_UNQUOTE(JSON_EXTRACT(
+                p_allocations, CONCAT('$[', v_idx, '].interest')
+            )) AS DECIMAL(18,2)), 0
+        );
+        SET v_late_fee_amount = COALESCE(
+            CAST(JSON_UNQUOTE(JSON_EXTRACT(
+                p_allocations, CONCAT('$[', v_idx, '].fee')
+            )) AS DECIMAL(18,2)), 0
+        );
+        INSERT INTO loan_payment_allocations (
+          loan_payment_id, installment_id, principal_amount, interest_amount, late_fee_amount
+        ) VALUES (
+          p_loan_payment_id, v_installment_id, v_principal_amount,
+          v_interest_amount, v_late_fee_amount
+        );
+        SET v_idx = v_idx + 1;
+    END WHILE;
     UPDATE financial_transactions SET status = 'POSTED' WHERE id = p_transaction_id;
     COMMIT;
 END$$

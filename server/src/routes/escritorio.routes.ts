@@ -109,7 +109,7 @@ escritorioRouter.get('/resumen', async (_req: Request, res: Response) => {
       serializeData({
         totalClientes,
         solicitudesActivas,
-        atencionesHoy: Math.max(atencionesHoy, 8), // Mínimo ilustrativo de operaciones de turno
+        atencionesHoy,
         productosColocados,
         solicitudesRecientes,
         clientesRecientes
@@ -390,8 +390,10 @@ escritorioRouter.post('/clientes', async (req: Request, res: Response) => {
       });
 
       // 8. Inscripción universal e inmediata al programa de lealtad (Bitácora 04/11/2026, regla #5)
-      await tx.loyalty_accounts.create({
-        data: {
+      await tx.loyalty_accounts.upsert({
+        where: { customer_id: nuevoCliente.id },
+        update: {},
+        create: {
           customer_id: nuevoCliente.id,
           points_balance: BigInt(0),
           status: 'ACTIVE'
@@ -686,4 +688,3 @@ escritorioRouter.get('/actividad', async (_req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 });
-

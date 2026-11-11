@@ -23,6 +23,15 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (_req: Request, res: Response) => {
+  res.json({
+    name: 'BANUAT API',
+    status: 'ok',
+    health: '/api/health',
+    message: 'Backend activo. Abre el frontend Vite para usar la interfaz.'
+  });
+});
+
 // Endpoint de verificación de estado y conexión a la base de datos MySQL
 app.get('/api/health', async (_req: Request, res: Response) => {
   try {

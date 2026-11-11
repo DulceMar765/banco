@@ -62,3 +62,25 @@ npm run dev
 
 El servidor estará escuchando en `http://localhost:3001`.
 - **Healthcheck:** [http://localhost:3001/api/health](http://localhost:3001/api/health)
+
+### 🧪 Validar los requerimientos implementados
+
+Con MySQL/MariaDB activo y la base configurada:
+
+```bash
+npm run seed:test
+npm run dev
+```
+
+En otra terminal:
+
+```bash
+npm run test:requerimientos
+```
+
+La prueba valida conexión, clientes con cuenta sin fondeo inicial, inscripción idempotente
+al programa de lealtad, puntos por ahorro y abono ligados a operaciones, ausencia de
+duplicados, beneficios, reportes y restricción de desembolsos.
+
+La documentación completa de implementación, endpoints y resultados está en
+[`docs/VALIDACION-REQUERIMIENTOS.md`](../docs/VALIDACION-REQUERIMIENTOS.md).

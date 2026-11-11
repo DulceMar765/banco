@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import {
   ArrowLeft,
   Search,
@@ -22,7 +22,7 @@ type Decision =
   | 'No autorizada'
 
 type Deuda = {
-  id: number
+  id: string
   cliente: string
   rfc: string
   prestamo: string
@@ -38,7 +38,7 @@ type Deuda = {
 }
 
 type Movimiento = {
-  id: number
+  id: string
   cliente: string
   prestamo: string
   decision: Decision
@@ -51,83 +51,7 @@ type Props = {
   onVolver: () => void
 }
 
-const datosIniciales: Deuda[] = [
-  {
-    id: 1,
-    cliente: 'Juan Pérez Hernández',
-    rfc: 'PEHJ900512AB1',
-    prestamo: 'PRE-2026-001',
-    saldo: 18500,
-    fechaVencimiento: '2026-08-28',
-    ultimoPago: '2026-08-15',
-    diasHabilesAtraso: 45,
-    clasificacion: 'Vencida',
-    susceptibleVenta: true,
-    decision: 'Pendiente',
-    fechaPlazo: '',
-    observaciones: 'Sin respuesta a los últimos avisos de cobranza.',
-  },
-  {
-    id: 2,
-    cliente: 'María González López',
-    rfc: 'GOLM950322CD2',
-    prestamo: 'PRE-2026-002',
-    saldo: 8200,
-    fechaVencimiento: '2026-09-20',
-    ultimoPago: '2026-09-10',
-    diasHabilesAtraso: 24,
-    clasificacion: 'Recuperable',
-    susceptibleVenta: false,
-    decision: 'Pendiente',
-    fechaPlazo: '',
-    observaciones: 'Cliente manifestó interés en regularizar sus pagos.',
-  },
-  {
-    id: 3,
-    cliente: 'Roberto Sánchez Díaz',
-    rfc: 'SADR880714EF3',
-    prestamo: 'PRE-2026-003',
-    saldo: 32400,
-    fechaVencimiento: '2026-07-15',
-    ultimoPago: '2026-06-30',
-    diasHabilesAtraso: 68,
-    clasificacion: 'Vencida',
-    susceptibleVenta: true,
-    decision: 'Pendiente',
-    fechaPlazo: '',
-    observaciones: 'No se ha recibido respuesta del cliente.',
-  },
-  {
-    id: 4,
-    cliente: 'Laura Martínez Ruiz',
-    rfc: 'MARL970809GH4',
-    prestamo: 'PRE-2026-004',
-    saldo: 5600,
-    fechaVencimiento: '2026-09-25',
-    ultimoPago: '2026-09-18',
-    diasHabilesAtraso: 18,
-    clasificacion: 'Recuperable',
-    susceptibleVenta: false,
-    decision: 'Plazo concedido',
-    fechaPlazo: '2026-11-10',
-    observaciones: 'Se acordó una fecha adicional para realizar el pago.',
-  },
-  {
-    id: 5,
-    cliente: 'Carlos Ramírez Torres',
-    rfc: 'RATC920116JK5',
-    prestamo: 'PRE-2026-005',
-    saldo: 12700,
-    fechaVencimiento: '2026-08-10',
-    ultimoPago: '2026-07-22',
-    diasHabilesAtraso: 52,
-    clasificacion: 'Vencida',
-    susceptibleVenta: false,
-    decision: 'No autorizada',
-    fechaPlazo: '',
-    observaciones: 'Caso pendiente de revisión documental.',
-  },
-]
+const datosIniciales: Deuda[] = []
 
 const moneda = (cantidad: number) =>
   cantidad.toLocaleString('es-MX', {
@@ -152,6 +76,16 @@ export default function ModuloCobranza({ onVolver }: Props) {
   const [observaciones, setObservaciones] = useState('')
 
   const [pestana, setPestana] = useState<'cartera' | 'historial'>('cartera')
+
+  useEffect(() => {
+    fetch('http://localhost:3001/api/cobranza')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('No se pudo cargar la cartera de cobranza.')
+        return response.json() as Promise<Deuda[]>
+      })
+      .then(setDeudas)
+      .catch((error: Error) => window.alert(error.message))
+  }, [])
 
   const deudasFiltradas = useMemo(() => {
     return deudas.filter((deuda) => {
@@ -200,7 +134,7 @@ export default function ModuloCobranza({ onVolver }: Props) {
     setObservaciones(deuda.observaciones)
   }
 
-  function guardarDecision(event: FormEvent<HTMLFormElement>) {
+  async function guardarDecision(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     if (!deudaSeleccionada) return
@@ -216,26 +150,32 @@ export default function ModuloCobranza({ onVolver }: Props) {
           ? false
           : deudaSeleccionada.susceptibleVenta
 
-    const deudaActualizada: Deuda = {
-      ...deudaSeleccionada,
+    const response = await fetch(`http://localhost:3001/api/cobranza/${deudaSeleccionada.id}/decision`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        decision,
+        fechaPlazo: decision === 'Plazo concedido' ? fechaPlazo : undefined,
+        motivo: observaciones,
+      }),
+    })
+    if (!response.ok) {
+      window.alert('No se pudo registrar la decisión.')
+      return
+    }
+
+    setDeudas((actuales) => actuales.map((deuda) => deuda.id === deudaSeleccionada.id ? {
+      ...deuda,
       clasificacion,
       decision,
       susceptibleVenta: esSusceptible,
       fechaPlazo: decision === 'Plazo concedido' ? fechaPlazo : '',
       observaciones,
-    }
-
-    setDeudas((actuales) =>
-      actuales.map((deuda) =>
-        deuda.id === deudaSeleccionada.id
-          ? deudaActualizada
-          : deuda
-      )
-    )
+    } : deuda))
 
     setHistorial((actuales) => [
       {
-        id: Date.now(),
+        id: String(Date.now()),
         cliente: deudaSeleccionada.cliente,
         prestamo: deudaSeleccionada.prestamo,
         decision,

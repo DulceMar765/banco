@@ -16,6 +16,13 @@ import type { Cliente, Solicitud } from "./Escritorio";
 
 import "./Actividad.css";
 
+const FECHA_RESUMEN = new Date().toLocaleDateString("es-MX", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
 type ActividadEjecutivo = {
   id: string;
   tipo: "atencion" | "registro" | "solicitud";
@@ -205,12 +212,7 @@ function Actividad({ clientes, solicitudes }: ActividadProps) {
         <div>
           <span>Resumen del día</span>
           <strong>
-            {new Date().toLocaleDateString("es-MX", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
+            {FECHA_RESUMEN}
           </strong>
         </div>
       </div>

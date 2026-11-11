@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowLeft,
   BadgeCheck,
@@ -19,7 +19,7 @@ type TipoProducto = 'Ahorro' | 'Inversión' | 'Otro'
 type EstadoProducto = 'Activo' | 'Inactivo'
 
 type Producto = {
-  id: number
+  id: string
   nombre: string
   tipo: TipoProducto
   descripcion: string
@@ -34,57 +34,6 @@ type Producto = {
 type Props = {
   onVolver: () => void
 }
-
-const PRODUCTOS_INICIALES: Producto[] = [
-  {
-    id: 1,
-    nombre: 'Cuenta de Ahorro Básica',
-    tipo: 'Ahorro',
-    descripcion: 'Cuenta para administrar y guardar dinero de manera segura.',
-    tasaInteres: 2.5,
-    montoMinimo: 500,
-    plazoMeses: 0,
-    comision: 0,
-    requisitos: 'Identificación oficial y comprobante de domicilio.',
-    estado: 'Activo',
-  },
-  {
-    id: 2,
-    nombre: 'Ahorro Creciente',
-    tipo: 'Ahorro',
-    descripcion: 'Cuenta de ahorro con rendimiento por mantener saldo.',
-    tasaInteres: 4.2,
-    montoMinimo: 1500,
-    plazoMeses: 0,
-    comision: 25,
-    requisitos: 'Identificación oficial, comprobante de domicilio y depósito inicial.',
-    estado: 'Activo',
-  },
-  {
-    id: 3,
-    nombre: 'Inversión Plazo Fijo',
-    tipo: 'Inversión',
-    descripcion: 'Producto de inversión con rendimiento a un plazo establecido.',
-    tasaInteres: 8.5,
-    montoMinimo: 10000,
-    plazoMeses: 12,
-    comision: 0,
-    requisitos: 'Identificación oficial y cuenta bancaria registrada.',
-    estado: 'Activo',
-  },
-  {
-    id: 4,
-    nombre: 'Inversión Flexible',
-    tipo: 'Inversión',
-    descripcion: 'Alternativa de inversión con diferentes opciones de plazo.',
-    tasaInteres: 6.8,
-    montoMinimo: 5000,
-    plazoMeses: 6,
-    comision: 50,
-    requisitos: 'Identificación oficial y comprobante de domicilio.',
-    estado: 'Inactivo',
-  },
-]
 
 const moneda = new Intl.NumberFormat('es-MX', {
   style: 'currency',
@@ -104,14 +53,24 @@ const FORMULARIO_VACIO = {
 }
 
 export default function ModuloProductos({ onVolver }: Props) {
-  const [productos, setProductos] = useState<Producto[]>(PRODUCTOS_INICIALES)
+  const [productos, setProductos] = useState<Producto[]>([])
   const [busqueda, setBusqueda] = useState('')
   const [filtroTipo, setFiltroTipo] = useState('Todos')
   const [filtroEstado, setFiltroEstado] = useState('Todos')
   const [modalAbierto, setModalAbierto] = useState(false)
-  const [productoEditar, setProductoEditar] = useState<number | null>(null)
+  const [productoEditar, setProductoEditar] = useState<string | null>(null)
   const [formulario, setFormulario] = useState(FORMULARIO_VACIO)
   const [productoDetalle, setProductoDetalle] = useState<Producto | null>(null)
+
+  useEffect(() => {
+    fetch('http://localhost:3001/api/productos')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('No se pudo cargar el catálogo de productos.')
+        return response.json() as Promise<Producto[]>
+      })
+      .then(setProductos)
+      .catch((error: Error) => window.alert(error.message))
+  }, [])
 
   const productosFiltrados = useMemo(() => {
     return productos.filter((producto) => {
@@ -168,11 +127,10 @@ export default function ModuloProductos({ onVolver }: Props) {
     setFormulario(FORMULARIO_VACIO)
   }
 
-  function guardarProducto(event: React.FormEvent<HTMLFormElement>) {
+  async function guardarProducto(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const nuevoProducto: Producto = {
-      id: productoEditar ?? Date.now(),
+    const payload = {
       nombre: formulario.nombre.trim(),
       tipo: formulario.tipo,
       descripcion: formulario.descripcion.trim(),
@@ -181,35 +139,54 @@ export default function ModuloProductos({ onVolver }: Props) {
       plazoMeses: Number(formulario.plazoMeses),
       comision: Number(formulario.comision),
       requisitos: formulario.requisitos.trim(),
-      estado: 'Activo',
     }
 
     if (productoEditar !== null) {
-      setProductos((actuales) =>
-        actuales.map((producto) =>
-          producto.id === productoEditar
-            ? { ...nuevoProducto, estado: producto.estado }
-            : producto,
-        ),
-      )
+      const response = await fetch(`http://localhost:3001/api/productos/${productoEditar}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!response.ok) {
+        window.alert('No se pudo actualizar el producto.')
+        return
+      }
+      const actualizado = await response.json() as { id: string; name: string; description: string; default_annual_rate: number; minimum_amount: number; is_active: boolean }
+      setProductos((actuales) => actuales.map((producto) => producto.id === productoEditar ? {
+        ...producto,
+        nombre: actualizado.name,
+        descripcion: actualizado.description || '',
+        tasaInteres: Number(actualizado.default_annual_rate || 0) * 100,
+        montoMinimo: Number(actualizado.minimum_amount || 0),
+      } : producto))
     } else {
-      setProductos((actuales) => [...actuales, nuevoProducto])
+      const response = await fetch('http://localhost:3001/api/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!response.ok) {
+        window.alert('No se pudo crear el producto.')
+        return
+      }
+      const creado = await response.json() as Producto
+      setProductos((actuales) => [...actuales, creado])
     }
 
     cerrarModal()
   }
 
-  function cambiarEstado(id: number) {
-    setProductos((actuales) =>
-      actuales.map((producto) =>
-        producto.id === id
-          ? {
-              ...producto,
-              estado: producto.estado === 'Activo' ? 'Inactivo' : 'Activo',
-            }
-          : producto,
-      ),
-    )
+  async function cambiarEstado(id: string) {
+    const response = await fetch(`http://localhost:3001/api/productos/${id}/estado`, { method: 'PATCH' })
+    if (!response.ok) {
+      window.alert('No se pudo actualizar el estado del producto.')
+      return
+    }
+    const actualizado = await response.json() as { is_active: boolean }
+    setProductos((actuales) => actuales.map((producto) => producto.id === id ? {
+      ...producto,
+      estado: actualizado.is_active ? 'Activo' : 'Inactivo',
+    } : producto))
   }
 
   return (

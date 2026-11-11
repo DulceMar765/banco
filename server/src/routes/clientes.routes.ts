@@ -55,9 +55,9 @@ clientesRouter.get('/', async (req: Request, res: Response) => {
 
     const resultado = clientes.map((c) => {
       const income = c.customer_income_records[0];
-      const ingresos = income ? Number(income.monthly_amount) : 15000;
-      const gastos = 5000;
-      const otrasDeudas = 1000;
+      const ingresos = income ? Number(income.monthly_amount) : 0;
+      const gastos = 0;
+      const otrasDeudas = 0;
 
       const productos = [
         ...c.accounts.map((a) => ({
@@ -247,8 +247,10 @@ clientesRouter.post('/', async (req: Request, res: Response) => {
       });
 
       // Inscripción automática a lealtad
-      await tx.loyalty_accounts.create({
-        data: {
+      await tx.loyalty_accounts.upsert({
+        where: { customer_id: nuevoCliente.id },
+        update: {},
+        create: {
           customer_id: nuevoCliente.id,
           points_balance: BigInt(0),
           status: 'ACTIVE'
