@@ -8,6 +8,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "db:init": "node scripts/init-db.mjs",
+    "seed:test": "tsx scripts/seed-test-data.ts",
+    "test:requerimientos": "tsx scripts/test-requerimientos.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"

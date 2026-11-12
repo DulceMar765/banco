@@ -4,6 +4,18 @@ import { serializeData } from '../utils/serializer.js';
 
 export const prestamosRouter = Router();
 
+function esUltimoDiaDelMes(fecha: Date) {
+  return fecha.getDate() === new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate();
+}
+
+function fechaContableDeAutorizacion(fecha: Date) {
+  const fechaContable = new Date(fecha);
+  if (esUltimoDiaDelMes(fecha)) {
+    fechaContable.setDate(fechaContable.getDate() + 1);
+  }
+  return fechaContable;
+}
+
 /**
  * GET /api/prestamos/solicitudes
  * Bandeja de solicitudes de préstamo para evaluación del supervisor (ModuloPrestamos.tsx).
@@ -55,39 +67,6 @@ prestamosRouter.get('/solicitudes', async (_req: Request, res: Response) => {
       };
     });
 
-    if (resultado.length === 0) {
-      return res.json([
-        {
-          id: '1',
-          folio: 'SOL-2026-001',
-          cliente: 'Juan Pérez',
-          rfc: 'PEJU900515ABC',
-          producto: 'Préstamo Personal Tradicional',
-          montoSolicitado: 35000,
-          plazoMeses: 24,
-          estado: 'UNDER_REVIEW',
-          esDudoso: false,
-          ingresosComprobados: 18000,
-          gastosDeclarados: 6500,
-          fechaSolicitud: '2026-10-30'
-        },
-        {
-          id: '2',
-          folio: 'SOL-2026-002',
-          cliente: 'Roberto Sánchez Díaz',
-          rfc: 'SADR880714EF3',
-          producto: 'Préstamo de Emergencia',
-          montoSolicitado: 80000,
-          plazoMeses: 36,
-          estado: 'UNDER_REVIEW',
-          esDudoso: true,
-          ingresosComprobados: 12000,
-          gastosDeclarados: 9500,
-          fechaSolicitud: '2026-10-31'
-        }
-      ]);
-    }
-
     res.json(serializeData(resultado));
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -120,6 +99,7 @@ prestamosRouter.post('/:id/autorizar', async (req: Request, res: Response) => {
     const appUserId = supervisorId ? BigInt(supervisorId) : BigInt(1);
     const decision = aprobada ? 'APPROVED' : 'REJECTED';
     const status = aprobada ? 'APPROVED' : 'REJECTED';
+    const decisionAt = new Date();
 
     const approval = await prisma.loan_approvals.create({
       data: {
@@ -134,7 +114,7 @@ prestamosRouter.post('/:id/autorizar', async (req: Request, res: Response) => {
       where: { id: solicitudId },
       data: {
         status,
-        decision_at: new Date(),
+        decision_at: decisionAt,
         decision_comment: String(motivo)
       }
     });
@@ -143,7 +123,14 @@ prestamosRouter.post('/:id/autorizar', async (req: Request, res: Response) => {
       serializeData({
         mensaje: `Préstamo ${aprobada ? 'AUTORIZADO' : 'RECHAZADO'} con éxito.`,
         id: approval.id.toString(),
-        estado: status
+        estado: status,
+        desembolsoHabilitado: false,
+        fechaAplicacionContable: aprobada
+          ? fechaContableDeAutorizacion(decisionAt).toISOString().split('T')[0]
+          : null,
+        mensajeDesembolso: aprobada
+          ? 'Autorizado - Pendiente de Desembolso. Los desembolsos físicos están temporalmente restringidos.'
+          : null
       })
     );
   } catch (error: any) {

@@ -46,59 +46,6 @@ productosRouter.get('/', async (_req: Request, res: Response) => {
       };
     });
 
-    if (resultado.length === 0) {
-      return res.json([
-        {
-          id: '1',
-          nombre: 'Cuenta de Ahorro Básica',
-          tipo: 'Ahorro',
-          descripcion: 'Cuenta para administrar y guardar dinero de manera segura.',
-          tasaInteres: 2.5,
-          montoMinimo: 500,
-          plazoMeses: 0,
-          comision: 0,
-          requisitos: 'Identificación oficial y comprobante de domicilio.',
-          estado: 'Activo'
-        },
-        {
-          id: '2',
-          nombre: 'Ahorro Creciente',
-          tipo: 'Ahorro',
-          descripcion: 'Cuenta de ahorro con rendimiento por mantener saldo.',
-          tasaInteres: 4.2,
-          montoMinimo: 1500,
-          plazoMeses: 0,
-          comision: 25,
-          requisitos: 'Identificación oficial, comprobante de domicilio y depósito inicial.',
-          estado: 'Activo'
-        },
-        {
-          id: '3',
-          nombre: 'Inversión Plazo Fijo',
-          tipo: 'Inversión',
-          descripcion: 'Producto de inversión con rendimiento a un plazo establecido.',
-          tasaInteres: 8.5,
-          montoMinimo: 10000,
-          plazoMeses: 12,
-          comision: 0,
-          requisitos: 'Identificación oficial, comprobante fiscal y cuenta de depósito activa.',
-          estado: 'Activo'
-        },
-        {
-          id: '4',
-          nombre: 'Convocatoria Productiva Otoño 2026',
-          tipo: 'Inversión',
-          descripcion: 'Convocatoria especial con beneficios fijos y tasa preferencial de retorno.',
-          tasaInteres: 10.2,
-          montoMinimo: 25000,
-          plazoMeses: 18,
-          comision: 0,
-          requisitos: 'Constancia de situación fiscal, proyecto productivo y comprobantes de ingreso.',
-          estado: 'Activo'
-        }
-      ]);
-    }
-
     res.json(serializeData(resultado));
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -154,6 +101,31 @@ productosRouter.patch('/:id/estado', async (req: Request, res: Response) => {
     const actualizado = await prisma.financial_products.update({
       where: { id },
       data: { is_active: !prod.is_active }
+    });
+
+    productosRouter.patch('/:id', async (req: Request, res: Response) => {
+      try {
+        const id = BigInt(req.params.id);
+        const { nombre, tipo, descripcion, tasaInteres, montoMinimo } = req.body;
+        if (!nombre) {
+          return res.status(400).json({ error: 'El nombre del producto es obligatorio.' });
+        }
+
+        const actualizado = await prisma.financial_products.update({
+          where: { id },
+          data: {
+            name: nombre,
+            product_type: tipo === 'Inversión' ? 'INVESTMENT' : 'DEPOSIT_ACCOUNT',
+            description: descripcion || '',
+            minimum_amount: montoMinimo === undefined ? undefined : montoMinimo,
+            default_annual_rate: tasaInteres === undefined ? undefined : Number(tasaInteres) / 100,
+          },
+        });
+
+        res.json(serializeData(actualizado));
+      } catch (error: any) {
+        res.status(500).json({ error: error.message });
+      }
     });
 
     res.json(serializeData(actualizado));

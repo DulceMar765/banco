@@ -1,11 +1,10 @@
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ArrowLeft,
   Award,
   Gift,
   Coins,
-  Percent,
   Plus,
   Trash2,
   ShoppingBag,
@@ -60,14 +59,7 @@ export default function ModuloLealtad({ onVolver }: Props) {
   const [puntosProducto, setPuntosProducto] = useState(20)
   const [ajusteInteres, setAjusteInteres] = useState(0)
 
-  const [mostrarCliente, setMostrarCliente] = useState(false)
   const [mostrarProducto, setMostrarProducto] = useState(false)
-
-  const [nuevoCliente, setNuevoCliente] = useState({
-    nombre: '',
-    ahorroMensual: '',
-    estadoDeuda: 'Al corriente',
-  })
 
   const [nuevoProducto, setNuevoProducto] = useState({
     nombre: '',
@@ -77,6 +69,43 @@ export default function ModuloLealtad({ onVolver }: Props) {
   })
 
   const [mensaje, setMensaje] = useState('')
+
+  useEffect(() => {
+    let activo = true
+
+    Promise.all([
+      fetch('http://localhost:3001/api/lealtad/clientes'),
+      fetch('http://localhost:3001/api/lealtad/resumen'),
+    ])
+      .then(async ([clientesRespuesta, resumenRespuesta]) => {
+        if (!clientesRespuesta.ok || !resumenRespuesta.ok) {
+          throw new Error('No fue posible consultar la información de lealtad.')
+        }
+        return Promise.all([clientesRespuesta.json(), resumenRespuesta.json()])
+      })
+      .then(([clientesReales, resumen]) => {
+        if (!activo) return
+        setClientes(
+          clientesReales.map((cliente: { id: string; nombre: string; puntos: string; estado: string }) => ({
+            id: Number(cliente.id),
+            nombre: cliente.nombre,
+            puntos: Number(cliente.puntos),
+            ahorroMensual: 0,
+            estadoDeuda: cliente.estado,
+            elegible: cliente.estado === 'ACTIVE',
+          }))
+        )
+        setPuntosAhorro(resumen.metricas.puntosPorAhorro)
+        setPuntosProducto(resumen.metricas.puntosPorAbono)
+      })
+      .catch((error: Error) => {
+        if (activo) setMensaje(error.message)
+      })
+
+    return () => {
+      activo = false
+    }
+  }, [])
 
   const totalPuntos = clientes.reduce(
     (total, cliente) => total + cliente.puntos,
@@ -88,38 +117,6 @@ export default function ModuloLealtad({ onVolver }: Props) {
   const clientesElegibles = clientes.filter(
     (cliente) => cliente.elegible
   ).length
-
-  const agregarCliente = () => {
-    if (!nuevoCliente.nombre.trim() || !nuevoCliente.ahorroMensual) {
-      setMensaje('Completa el nombre y el ahorro mensual.')
-      return
-    }
-
-    const ahorro = Number(nuevoCliente.ahorroMensual)
-
-    if (ahorro <= 0 || !Number.isFinite(ahorro)) {
-      setMensaje('El ahorro mensual debe ser mayor que cero.')
-      return
-    }
-
-    const cliente: Cliente = {
-      id: Date.now(),
-      nombre: nuevoCliente.nombre.trim(),
-      puntos: 0,
-      ahorroMensual: ahorro,
-      estadoDeuda: nuevoCliente.estadoDeuda,
-      elegible: nuevoCliente.estadoDeuda === 'Sin deuda',
-    }
-
-    setClientes((actuales) => [...actuales, cliente])
-    setNuevoCliente({
-      nombre: '',
-      ahorroMensual: '',
-      estadoDeuda: 'Al corriente',
-    })
-    setMostrarCliente(false)
-    setMensaje('Cliente agregado correctamente.')
-  }
 
   const agregarProducto = () => {
     if (
@@ -158,62 +155,9 @@ export default function ModuloLealtad({ onVolver }: Props) {
     setMensaje('Producto agregado correctamente.')
   }
 
-  const acumularPuntos = (clienteId: number, concepto: string) => {
-    const cantidad =
-      concepto === 'Ahorro mensual' ? puntosAhorro : puntosProducto
-
-    setClientes((actuales) =>
-      actuales.map((cliente) =>
-        cliente.id === clienteId
-          ? { ...cliente, puntos: cliente.puntos + cantidad }
-          : cliente
-      )
-    )
-
-    const cliente = clientes.find((c) => c.id === clienteId)
-
-    if (cliente) {
-      setMovimientos((actuales) => [
-        {
-          id: Date.now(),
-          cliente: cliente.nombre,
-          concepto,
-          puntos: cantidad,
-          fecha: new Date().toLocaleDateString('es-MX'),
-        },
-        ...actuales,
-      ])
-    }
-
-    setMensaje(`${cantidad} puntos acumulados correctamente.`)
-  }
-
-  const actualizarEstadoDeuda = (
-    clienteId: number,
-    estado: string
-  ) => {
-    setClientes((actuales) =>
-      actuales.map((cliente) => {
-        if (cliente.id !== clienteId) return cliente
-
-        return {
-          ...cliente,
-          estadoDeuda: estado,
-          elegible: estado === 'Sin deuda',
-        }
-      })
-    )
-  }
-
   const eliminarProducto = (id: number) => {
     setProductos((actuales) =>
       actuales.filter((producto) => producto.id !== id)
-    )
-  }
-
-  const eliminarCliente = (id: number) => {
-    setClientes((actuales) =>
-      actuales.filter((cliente) => cliente.id !== id)
     )
   }
 
@@ -253,43 +197,6 @@ export default function ModuloLealtad({ onVolver }: Props) {
     ])
 
     setMensaje('Canje realizado correctamente.')
-  }
-
-  const aplicarBeneficioInteres = (clienteId: number) => {
-    const cliente = clientes.find((c) => c.id === clienteId)
-
-    if (!cliente || cliente.puntos < 100) {
-      setMensaje('Se necesitan al menos 100 puntos para solicitar el beneficio.')
-      return
-    }
-
-    if (!cliente.elegible) {
-      setMensaje('El cliente debe estar sin deuda para solicitar este beneficio.')
-      return
-    }
-
-    setClientes((actuales) =>
-      actuales.map((c) =>
-        c.id === clienteId
-          ? { ...c, puntos: c.puntos - 100 }
-          : c
-      )
-    )
-
-    setMovimientos((actuales) => [
-      {
-        id: Date.now(),
-        cliente: cliente.nombre,
-        concepto: 'Canje por beneficio de interés',
-        puntos: -100,
-        fecha: new Date().toLocaleDateString('es-MX'),
-      },
-      ...actuales,
-    ])
-
-    setMensaje(
-      `Beneficio solicitado. Ajuste configurado: ${ajusteInteres}%`
-    )
   }
 
   return (
@@ -469,96 +376,14 @@ export default function ModuloLealtad({ onVolver }: Props) {
             <p>Consulta los puntos y administra los beneficios disponibles.</p>
           </div>
 
-          <button
-            type="button"
-            className="ml-boton-principal"
-            onClick={() => setMostrarCliente(!mostrarCliente)}
-          >
-            <Plus size={17} />
-            Agregar cliente
-          </button>
         </div>
-
-        {mostrarCliente && (
-          <div className="ml-formulario">
-            <h3>Registrar cliente</h3>
-
-            <div className="ml-form-grid">
-              <label>
-                Nombre del cliente
-                <input
-                  value={nuevoCliente.nombre}
-                  onChange={(e) =>
-                    setNuevoCliente({
-                      ...nuevoCliente,
-                      nombre: e.target.value,
-                    })
-                  }
-                  placeholder="Nombre completo"
-                />
-              </label>
-
-              <label>
-                Ahorro mensual
-                <input
-                  type="number"
-                  min="1"
-                  value={nuevoCliente.ahorroMensual}
-                  onChange={(e) =>
-                    setNuevoCliente({
-                      ...nuevoCliente,
-                      ahorroMensual: e.target.value,
-                    })
-                  }
-                  placeholder="Ej. 1500"
-                />
-              </label>
-
-              <label>
-                Estado de deuda
-                <select
-                  value={nuevoCliente.estadoDeuda}
-                  onChange={(e) =>
-                    setNuevoCliente({
-                      ...nuevoCliente,
-                      estadoDeuda: e.target.value,
-                    })
-                  }
-                >
-                  <option>Al corriente</option>
-                  <option>Deuda próxima a finalizar</option>
-                  <option>Con deuda pendiente</option>
-                  <option>Sin deuda</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="ml-form-acciones">
-              <button
-                type="button"
-                className="ml-boton-secundario"
-                onClick={() => setMostrarCliente(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="ml-boton-principal"
-                onClick={agregarCliente}
-              >
-                Guardar cliente
-              </button>
-            </div>
-          </div>
-        )}
 
         {clientes.length === 0 ? (
           <div className="ml-vacio">
             <Users size={35} />
-            <h3>No hay clientes registrados</h3>
+            <h3>No hay clientes con cuenta registrada</h3>
             <p>
-              Agrega clientes para comenzar a administrar sus puntos
-              y beneficios.
+              Los clientes se incorporan automáticamente al abrir una cuenta.
             </p>
           </div>
         ) : (
@@ -571,7 +396,6 @@ export default function ModuloLealtad({ onVolver }: Props) {
                   <th>Ahorro mensual</th>
                   <th>Estado de deuda</th>
                   <th>Beneficio</th>
-                  <th>Acciones</th>
                 </tr>
               </thead>
 
@@ -583,59 +407,11 @@ export default function ModuloLealtad({ onVolver }: Props) {
                     <td>
                       ${cliente.ahorroMensual.toLocaleString('es-MX')}
                     </td>
-                    <td>
-                      <select
-                        className="ml-estado-select"
-                        value={cliente.estadoDeuda}
-                        onChange={(e) =>
-                          actualizarEstadoDeuda(cliente.id, e.target.value)
-                        }
-                      >
-                        <option>Al corriente</option>
-                        <option>Deuda próxima a finalizar</option>
-                        <option>Con deuda pendiente</option>
-                        <option>Sin deuda</option>
-                      </select>
-                    </td>
+                    <td>{cliente.estadoDeuda}</td>
                     <td>
                       <span className={cliente.elegible ? 'ml-estado ml-estado--activo' : 'ml-estado ml-estado--pendiente'}>
                         {cliente.elegible ? 'Elegible' : 'En revisión'}
                       </span>
-                    </td>
-                    <td>
-                      <div className="ml-acciones-tabla">
-                        <button
-                          type="button"
-                          title="Acumular puntos por ahorro"
-                          onClick={() => acumularPuntos(cliente.id, 'Ahorro mensual')}
-                        >
-                          <Coins size={16} />
-                        </button>
-
-                        <button
-                          type="button"
-                          title="Acumular puntos por producto"
-                          onClick={() => acumularPuntos(cliente.id, 'Uso de productos')}
-                        >
-                          <Plus size={16} />
-                        </button>
-
-                        <button
-                          type="button"
-                          title="Canjear por beneficio de interés"
-                          onClick={() => aplicarBeneficioInteres(cliente.id)}
-                        >
-                          <Percent size={16} />
-                        </button>
-
-                        <button
-                          type="button"
-                          title="Eliminar cliente"
-                          onClick={() => eliminarCliente(cliente.id)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
                     </td>
                   </tr>
                 ))}

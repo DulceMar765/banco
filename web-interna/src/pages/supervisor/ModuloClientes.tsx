@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
   Search,
@@ -69,111 +69,7 @@ type Edicion = {
 
 const SUPERVISOR_ACTUAL = 'Carlos Ramírez';
 
-const clientesIniciales: Cliente[] = [
-  {
-    id: 1,
-    nombre: 'Juan Pérez',
-    rfc: 'PEJU900515ABC',
-    correo: 'juan.perez@email.com',
-    telefono: '833 123 4567',
-    fechaRegistro: '2025-03-12',
-    ingresos: 18000,
-    gastos: 6500,
-    otrasDeudas: 2000,
-    estado: 'Activo',
-    productos: [
-      {
-        id: 101,
-        tipo: 'Cuenta bancaria',
-        nombre: 'Cuenta de nómina',
-        saldo: 12500,
-        estado: 'Activa',
-      },
-      {
-        id: 102,
-        tipo: 'Ahorro',
-        nombre: 'Ahorro personal',
-        saldo: 8500,
-        estado: 'Activo',
-      },
-      {
-        id: 103,
-        tipo: 'Préstamo',
-        nombre: 'Préstamo personal',
-        saldo: 32000,
-        pagoMensual: 2500,
-        tasa: 18,
-        frecuencia: 'Mensual',
-        fechaPago: '2026-11-15',
-        estado: 'Al corriente',
-      },
-    ],
-  },
-  {
-    id: 2,
-    nombre: 'María González',
-    rfc: 'GOMM950820XYZ',
-    correo: 'maria.gonzalez@email.com',
-    telefono: '833 456 7890',
-    fechaRegistro: '2025-05-20',
-    ingresos: 14000,
-    gastos: 7000,
-    otrasDeudas: 1500,
-    estado: 'Activo',
-    productos: [
-      {
-        id: 201,
-        tipo: 'Cuenta bancaria',
-        nombre: 'Cuenta de débito',
-        saldo: 9200,
-        estado: 'Activa',
-      },
-      {
-        id: 202,
-        tipo: 'Préstamo',
-        nombre: 'Crédito de consumo',
-        saldo: 18500,
-        pagoMensual: 1800,
-        tasa: 20,
-        frecuencia: 'Quincenal',
-        fechaPago: '2026-11-05',
-        estado: 'Al corriente',
-      },
-    ],
-  },
-  {
-    id: 3,
-    nombre: 'Roberto Sánchez',
-    rfc: 'SARO880310DEF',
-    correo: 'roberto.sanchez@email.com',
-    telefono: '833 789 0123',
-    fechaRegistro: '2025-01-08',
-    ingresos: 11000,
-    gastos: 6500,
-    otrasDeudas: 3000,
-    estado: 'Atrasado',
-    productos: [
-      {
-        id: 301,
-        tipo: 'Ahorro',
-        nombre: 'Ahorro programado',
-        saldo: 2500,
-        estado: 'Activo',
-      },
-      {
-        id: 302,
-        tipo: 'Préstamo',
-        nombre: 'Préstamo personal',
-        saldo: 27000,
-        pagoMensual: 2800,
-        tasa: 22,
-        frecuencia: 'Mensual',
-        fechaPago: '2026-10-20',
-        estado: 'Con atraso',
-      },
-    ],
-  },
-];
+const clientesIniciales: Cliente[] = [];
 
 const moneda = (cantidad: number) =>
   cantidad.toLocaleString('es-MX', {
@@ -194,6 +90,7 @@ export default function ModuloClientes({
   onVolver: () => void;
 }) {
   const [clientes, setClientes] = useState<Cliente[]>(clientesIniciales);
+  const [errorCarga, setErrorCarga] = useState('');
   const [busqueda, setBusqueda] = useState('');
   const [clienteSeleccionado, setClienteSeleccionado] =
     useState<number | null>(null);
@@ -202,6 +99,50 @@ export default function ModuloClientes({
   const [mostrarEdicion, setMostrarEdicion] = useState(false);
   const [mostrarHistorial, setMostrarHistorial] = useState(false);
   const [historial, setHistorial] = useState<Modificacion[]>([]);
+
+  useEffect(() => {
+    let activo = true;
+
+    fetch('http://localhost:3001/api/clientes')
+      .then(async (respuesta) => {
+        if (!respuesta.ok) throw new Error('No fue posible consultar los clientes.');
+        return respuesta.json();
+      })
+      .then((datos: Array<Record<string, unknown>>) => {
+        if (!activo) return;
+        setClientes(
+          datos.map((dato) => ({
+            id: Number(dato.id),
+            nombre: String(dato.nombre || ''),
+            rfc: String(dato.rfc || ''),
+            correo: String(dato.correo || ''),
+            telefono: String(dato.telefono || ''),
+            fechaRegistro: String(dato.fechaRegistro || ''),
+            ingresos: Number(dato.ingresos || 0),
+            gastos: Number(dato.gastos || 0),
+            otrasDeudas: Number(dato.otrasDeudas || 0),
+            estado: dato.estado === 'Atrasado' || dato.estado === 'En revisión'
+              ? dato.estado
+              : 'Activo',
+            productos: Array.isArray(dato.productos)
+              ? dato.productos.map((producto) => ({
+                  ...(producto as Producto),
+                  id: Number((producto as Producto).id),
+                  saldo: Number((producto as Producto).saldo || 0),
+                }))
+              : [],
+          }))
+        );
+        setErrorCarga('');
+      })
+      .catch((error: Error) => {
+        if (activo) setErrorCarga(error.message);
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   const [edicion, setEdicion] = useState<Edicion>({
     ingresos: '',
@@ -471,7 +412,7 @@ export default function ModuloClientes({
             Volver al panel
           </button>
 
-          <h1>Administración de clientes</h1>
+          <h1>Administración de Clientes</h1>
           <p>
             Consulta la información financiera y administra las
             condiciones de los productos de cada cliente.
@@ -491,6 +432,7 @@ export default function ModuloClientes({
 
       {!cliente && (
         <>
+          {errorCarga && <p role="alert" className="mc-empty">{errorCarga}</p>}
           <div className="mc-stats">
             <div className="mc-stat-card">
               <div className="mc-stat-icon blue">

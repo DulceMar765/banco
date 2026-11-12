@@ -21,8 +21,7 @@ reportesRouter.get('/operaciones', async (_req: Request, res: Response) => {
           }
         }
       },
-      orderBy: { created_at: 'desc' },
-      take: 50
+      orderBy: { created_at: 'desc' }
     });
 
     const resultado = turnos.map((t) => {
@@ -48,33 +47,6 @@ reportesRouter.get('/operaciones', async (_req: Request, res: Response) => {
       };
     });
 
-    // Si la BD aún no tiene histórico acumulado, proveer la base de operaciones reales de muestra
-    if (resultado.length === 0) {
-      const operacionesSemilla = [
-        { id: '1', empleado: 'Ana Torres', puesto: 'Escritorio', actividad: 'Registro de cliente', cliente: 'Juan Pérez', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 0 },
-        { id: '2', empleado: 'Ana Torres', puesto: 'Escritorio', actividad: 'Asignación de producto', cliente: 'María López', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 0 },
-        { id: '3', empleado: 'Ana Torres', puesto: 'Escritorio', actividad: 'Atención', cliente: 'Roberto Sánchez', tipoPersona: 'Cliente', fecha: '2026-10-28', resultado: 'Completado', importe: 0 },
-        { id: '4', empleado: 'Ana Torres', puesto: 'Escritorio', actividad: 'Atención externa', cliente: 'Persona externa', tipoPersona: 'Externo', fecha: '2026-10-28', resultado: 'Completado', importe: 0 },
-        { id: '5', empleado: 'Luis Pérez', puesto: 'Escritorio', actividad: 'Registro de cliente', cliente: 'Carlos Méndez', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 0 },
-        { id: '6', empleado: 'Luis Pérez', puesto: 'Escritorio', actividad: 'Asignación de producto', cliente: 'Laura Gómez', tipoPersona: 'Cliente', fecha: '2026-10-27', resultado: 'Completado', importe: 0 },
-        { id: '7', empleado: 'Luis Pérez', puesto: 'Escritorio', actividad: 'Actualización de datos', cliente: 'Pedro Ruiz', tipoPersona: 'Cliente', fecha: '2026-10-26', resultado: 'Completado', importe: 0 },
-        { id: '8', empleado: 'María Ruiz', puesto: 'Escritorio', actividad: 'Registro de cliente', cliente: 'Sofía Díaz', tipoPersona: 'Cliente', fecha: '2026-10-25', resultado: 'Completado', importe: 0 },
-        { id: '9', empleado: 'María Ruiz', puesto: 'Escritorio', actividad: 'Asignación de producto', cliente: 'Miguel Flores', tipoPersona: 'Cliente', fecha: '2026-10-24', resultado: 'Completado', importe: 0 },
-        { id: '10', empleado: 'María Ruiz', puesto: 'Escritorio', actividad: 'Atención externa', cliente: 'Persona externa', tipoPersona: 'Externo', fecha: '2026-10-23', resultado: 'Completado', importe: 0 },
-        { id: '11', empleado: 'Pedro López', puesto: 'Caja', actividad: 'Pago de deuda', cliente: 'Juan Pérez', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 1500 },
-        { id: '12', empleado: 'Pedro López', puesto: 'Caja', actividad: 'Abono de préstamo', cliente: 'María López', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 850 },
-        { id: '13', empleado: 'Pedro López', puesto: 'Caja', actividad: 'Pago de deuda', cliente: 'Roberto Sánchez', tipoPersona: 'Cliente', fecha: '2026-10-28', resultado: 'Completado', importe: 1200 },
-        { id: '14', empleado: 'Pedro López', puesto: 'Caja', actividad: 'Atención externa', cliente: 'Persona externa', tipoPersona: 'Externo', fecha: '2026-10-27', resultado: 'Completado', importe: 0 },
-        { id: '15', empleado: 'Laura Díaz', puesto: 'Caja', actividad: 'Pago de préstamo', cliente: 'Carlos Méndez', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 2000 },
-        { id: '16', empleado: 'Laura Díaz', puesto: 'Caja', actividad: 'Abono de deuda', cliente: 'Laura Gómez', tipoPersona: 'Cliente', fecha: '2026-10-28', resultado: 'Completado', importe: 750 },
-        { id: '17', empleado: 'Laura Díaz', puesto: 'Caja', actividad: 'Pago de deuda', cliente: 'Pedro Ruiz', tipoPersona: 'Cliente', fecha: '2026-10-26', resultado: 'Completado', importe: 950 },
-        { id: '18', empleado: 'Laura Díaz', puesto: 'Caja', actividad: 'Atención externa', cliente: 'Persona externa', tipoPersona: 'Externo', fecha: '2026-10-25', resultado: 'Completado', importe: 0 },
-        { id: '19', empleado: 'Pedro López', puesto: 'Caja', actividad: 'Pago de deuda', cliente: 'Sofía Díaz', tipoPersona: 'Cliente', fecha: '2026-10-24', resultado: 'Pendiente', importe: 600 }
-      ];
-
-      return res.json(operacionesSemilla);
-    }
-
     res.json(serializeData(resultado));
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -87,31 +59,44 @@ reportesRouter.get('/operaciones', async (_req: Request, res: Response) => {
  */
 reportesRouter.get('/resumen', async (_req: Request, res: Response) => {
   try {
+    const [turnos, pagos] = await Promise.all([
+      prisma.service_turns.findMany({
+        include: { app_users: { include: { employees: true } } }
+      }),
+      prisma.financial_transactions.findMany({
+        where: { status: 'POSTED', transaction_type: 'LOAN_PAYMENT' },
+        select: { amount: true, customer_id: true }
+      })
+    ]);
+    const escritorio = turnos.filter((turno) => turno.app_users?.employees?.job_title !== 'CAJERO');
+    const caja = turnos.filter((turno) => turno.app_users?.employees?.job_title === 'CAJERO');
+    const importePagos = pagos.reduce((total, pago) => total + Number(pago.amount), 0);
+
     res.json({
       general: {
-        clientesNuevos: 15,
-        clientesAtendidos: 57,
-        personasExternas: 13,
-        productosAsignados: 12,
-        pagosRecibidos: 48,
-        montoTotalRecibido: 34500,
-        operacionesTotales: 70
+        clientesNuevos: 0,
+        clientesAtendidos: turnos.filter((turno) => Boolean(turno.customer_id)).length,
+        personasExternas: turnos.filter((turno) => !turno.customer_id).length,
+        productosAsignados: 0,
+        pagosRecibidos: pagos.length,
+        montoTotalRecibido: importePagos,
+        operacionesTotales: turnos.length + pagos.length
       },
       escritorio: {
-        clientesNuevos: 15,
-        clientesAtendidos: 32,
-        productosAsignados: 12,
-        tramitesRealizados: 28,
-        actualizacionesDatos: 9,
-        personasExternas: 5
+        clientesNuevos: 0,
+        clientesAtendidos: escritorio.filter((turno) => Boolean(turno.customer_id)).length,
+        productosAsignados: 0,
+        tramitesRealizados: escritorio.length,
+        actualizacionesDatos: 0,
+        personasExternas: escritorio.filter((turno) => !turno.customer_id).length
       },
       caja: {
-        pagosRecibidos: 48,
-        clientesPagadores: 35,
-        montoTotalEfectivo: 34500,
-        operacionesCaja: 52,
-        clientesAtendidos: 25,
-        personasExternas: 8
+        pagosRecibidos: pagos.length,
+        clientesPagadores: new Set(pagos.map((pago) => pago.customer_id.toString())).size,
+        montoTotalEfectivo: importePagos,
+        operacionesCaja: caja.length + pagos.length,
+        clientesAtendidos: caja.filter((turno) => Boolean(turno.customer_id)).length,
+        personasExternas: caja.filter((turno) => !turno.customer_id).length
       }
     });
   } catch (error: any) {

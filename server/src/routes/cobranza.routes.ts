@@ -42,8 +42,8 @@ cobranzaRouter.get('/', async (req: Request, res: Response) => {
         : 'Cliente no identificado';
       const rfcCliente = cliente?.rfc || '';
 
-      const esVencida = c.business_days_overdue > 40 || c.classification === 'NON_RECOVERABLE';
-      const susceptibleVenta = c.business_days_overdue > 60;
+      const esVencida = c.classification === 'NON_RECOVERABLE' || c.business_days_overdue > 60;
+      const susceptibleVenta = c.sale_eligibility === 'ELIGIBLE' || c.business_days_overdue > 60;
 
       return {
         id: c.id.toString(),
@@ -52,7 +52,7 @@ cobranzaRouter.get('/', async (req: Request, res: Response) => {
         rfc: rfcCliente,
         prestamo: loan?.contract_number || `PRE-${c.id}`,
         saldo: Number(loan?.principal_balance || 0),
-        fechaVencimiento: loan?.maturity_date ? loan.maturity_date.toISOString().split('T')[0] : '2026-10-31',
+        fechaVencimiento: loan?.maturity_date ? loan.maturity_date.toISOString().split('T')[0] : '',
         ultimoPago: c.last_contact_at ? c.last_contact_at.toISOString().split('T')[0] : 'Sin registro',
         diasHabilesAtraso: c.business_days_overdue,
         clasificacion: esVencida ? 'Vencida' : 'Recuperable',
@@ -62,60 +62,6 @@ cobranzaRouter.get('/', async (req: Request, res: Response) => {
         observaciones: c.notes || `Caso en gestión de cobranza (${c.business_days_overdue} días hábiles en mora).`
       };
     });
-
-    // Si la base de datos está recién inicializada y vacía, entregar catálogo semilla estructurado
-    if (resultado.length === 0) {
-      return res.json([
-        {
-          id: '1',
-          prestamoId: '101',
-          cliente: 'Juan Pérez Hernández',
-          rfc: 'PEHJ900512AB1',
-          prestamo: 'PRE-2026-001',
-          saldo: 18500,
-          fechaVencimiento: '2026-08-28',
-          ultimoPago: '2026-08-15',
-          diasHabilesAtraso: 45,
-          clasificacion: 'Vencida',
-          susceptibleVenta: true,
-          decision: 'Pendiente',
-          fechaPlazo: '',
-          observaciones: 'Sin respuesta a los últimos avisos de cobranza.'
-        },
-        {
-          id: '2',
-          prestamoId: '102',
-          cliente: 'María González López',
-          rfc: 'GOLM950322CD2',
-          prestamo: 'PRE-2026-002',
-          saldo: 8200,
-          fechaVencimiento: '2026-09-20',
-          ultimoPago: '2026-09-10',
-          diasHabilesAtraso: 24,
-          clasificacion: 'Recuperable',
-          susceptibleVenta: false,
-          decision: 'Pendiente',
-          fechaPlazo: '',
-          observaciones: 'Cliente manifestó interés en regularizar sus pagos.'
-        },
-        {
-          id: '3',
-          prestamoId: '103',
-          cliente: 'Roberto Sánchez Díaz',
-          rfc: 'SADR880714EF3',
-          prestamo: 'PRE-2026-003',
-          saldo: 32400,
-          fechaVencimiento: '2026-07-15',
-          ultimoPago: '2026-06-30',
-          diasHabilesAtraso: 68,
-          clasificacion: 'Vencida',
-          susceptibleVenta: true,
-          decision: 'Pendiente',
-          fechaPlazo: '',
-          observaciones: 'Caso crítico con más de 60 días hábiles en mora; apto para cesión de cartera.'
-        }
-      ]);
-    }
 
     res.json(serializeData(resultado));
   } catch (error: any) {
@@ -136,15 +82,30 @@ cobranzaRouter.post('/:id/decision', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Se requiere decisión y motivo justificado.' });
     }
 
+    const caso = await prisma.collection_cases.findUnique({ where: { id: casoId } });
+    if (!caso) {
+      return res.status(404).json({ error: 'Caso de cobranza no encontrado.' });
+    }
+
+    await prisma.collection_cases.update({
+      where: { id: casoId },
+      data: {
+        classification: decision === 'Venta autorizada' ? 'SOLD' : decision === 'No autorizada' ? 'NON_RECOVERABLE' : caso.classification,
+        sale_eligibility: decision === 'Venta autorizada' ? 'ELIGIBLE' : decision === 'No autorizada' ? 'NOT_ELIGIBLE' : caso.sale_eligibility,
+        next_action_at: fechaPlazo ? new Date(fechaPlazo) : null,
+        notes: motivo,
+      },
+    });
+
     // Registrar en auditoría
     await prisma.audit_logs.create({
       data: {
-        actor_user_id: supervisorId ? BigInt(supervisorId) : BigInt(1),
         entity_name: 'collection_cases',
         entity_pk: casoId.toString(),
         action: 'AUTHORIZE',
         new_data: JSON.stringify({ decision, fechaPlazo, motivo }),
-        connection_id: BigInt(1)
+        connection_id: BigInt(1),
+        ...(supervisorId ? { actor_user_id: BigInt(supervisorId) } : {})
       }
     });
 
@@ -163,21 +124,34 @@ cobranzaRouter.post('/:id/decision', async (req: Request, res: Response) => {
  */
 cobranzaRouter.get('/exportar', async (_req: Request, res: Response) => {
   try {
+    const casos = await prisma.collection_cases.findMany({
+      where: { classification: { in: ['NON_RECOVERABLE', 'SOLD'] } },
+      include: {
+        loans: {
+          include: {
+            loan_applications: { include: { customers: true } }
+          }
+        }
+      },
+      orderBy: { business_days_overdue: 'desc' }
+    });
+
     res.json({
       periodo: new Date().toISOString().substring(0, 7),
       fechaGeneracion: new Date().toISOString(),
       formato: 'XLSX_COMPLIANT',
-      registros: [
-        {
-          folio: 'PRE-2026-003',
-          titular: 'Roberto Sánchez Díaz',
-          rfc: 'SADR880714EF3',
-          diasMoraHabiles: 68,
-          capitalVencido: 32400.0,
-          calificacion: 'NO_RECUPERABLE',
-          estatusCesion: 'APTO_VENTA'
-        }
-      ]
+      registros: casos.map((caso) => {
+        const customer = caso.loans.loan_applications.customers;
+        return {
+          folio: caso.loans.contract_number,
+          titular: [customer.first_name, customer.middle_name, customer.paternal_surname].filter(Boolean).join(' '),
+          rfc: customer.rfc,
+          diasMoraHabiles: caso.business_days_overdue,
+          capitalVencido: caso.loans.principal_balance,
+          calificacion: caso.classification === 'SOLD' ? 'VENDIDA' : 'NO_RECUPERABLE',
+          estatusCesion: caso.sale_eligibility === 'ELIGIBLE' ? 'APTO_VENTA' : 'EN_REVISION'
+        };
+      })
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
