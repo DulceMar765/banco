@@ -111,14 +111,24 @@ authRouter.post('/login', async (req: Request, res: Response) => {
 
     // Validar existencia y estado activo
     if (!user || !user.is_enabled) {
-      registrarFallo(credencial);
+      const estado = registrarFallo(credencial);
+      if (estado.intentos >= PROJECT_PARAMETERS.SECURITY.MAX_LOGIN_ATTEMPTS) {
+        return res.status(429).json({
+          error: `Cuenta bloqueada temporalmente por seguridad. Intenta en ${PROJECT_PARAMETERS.SECURITY.ACCOUNT_LOCK_MINUTES} minutos.`
+        });
+      }
       return res.status(401).json({ error: 'Credenciales inválidas o cuenta deshabilitada.' });
     }
 
     // Validación de contraseña
     const passwordValida = user.password_hash === clave;
     if (!passwordValida) {
-      registrarFallo(credencial);
+      const estado = registrarFallo(credencial);
+      if (estado.intentos >= PROJECT_PARAMETERS.SECURITY.MAX_LOGIN_ATTEMPTS) {
+        return res.status(429).json({
+          error: `Cuenta bloqueada temporalmente por seguridad. Intenta en ${PROJECT_PARAMETERS.SECURITY.ACCOUNT_LOCK_MINUTES} minutos.`
+        });
+      }
       return res.status(401).json({ error: 'Credenciales inválidas.' });
     }
 
@@ -168,4 +178,5 @@ function registrarFallo(credencial: string) {
   }
 
   intentosFallidos.set(credencial, actual);
+  return actual;
 }

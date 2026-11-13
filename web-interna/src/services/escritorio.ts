@@ -93,3 +93,24 @@ export async function registrarSolicitudApi(
   }
 }
 
+export type ActividadItem = {
+  id: string;
+  tipo: "atencion" | "registro" | "solicitud";
+  descripcion: string;
+  cliente: string;
+  fecha: string;
+  hora: string;
+  detalle: string;
+};
+
+export async function fetchActividades(): Promise<ActividadItem[]> {
+  try {
+    const res = await fetch(`${API_BASE}/actividad`);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (error) {
+    console.warn('Backend desconectado para /actividad:', error);
+    return [];
+  }
+}
+

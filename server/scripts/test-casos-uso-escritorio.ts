@@ -344,7 +344,10 @@ async function runSuite() {
 }
 
 runSuite().catch((err) => {
-  console.error('Fallo no controlado en la suite de pruebas:', err);
+  console.error('Fallo no controlado en la suite de pruebas:', err?.message || err);
+  if (err?.message?.includes('fetch failed')) {
+    console.error('💡 CONSEJO: Asegúrate de que el servidor backend esté corriendo en http://localhost:3001 con "npm run dev" antes de ejecutar las pruebas.');
+  }
   process.exit(1);
 });
 

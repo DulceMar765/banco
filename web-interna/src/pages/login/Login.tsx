@@ -12,10 +12,12 @@ type Props = {
 
 export default function Login({ onLoginSuccess }: Props) {
   const [mensaje, setMensaje] = useState('')
+  const [cargando, setCargando] = useState(false)
 
-  function manejarEnvio(event: FormEvent<HTMLFormElement>) {
+  async function manejarEnvio(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setMensaje('')
+    setCargando(true)
 
     const formulario = event.currentTarget
     const datos = new FormData(formulario)
@@ -23,14 +25,20 @@ export default function Login({ onLoginSuccess }: Props) {
     const correo = String(datos.get('correo') || '')
     const contrasena = String(datos.get('contrasena') || '')
 
-    const usuario = iniciarSesion(correo, contrasena)
+    try {
+      const res = await iniciarSesion(correo, contrasena)
 
-    if (!usuario) {
-      setMensaje('Correo o contraseña incorrectos.')
-      return
+      if (!res.ok || !res.usuario) {
+        setMensaje(res.error || 'Correo o contraseña incorrectos.')
+        return
+      }
+
+      onLoginSuccess(res.usuario)
+    } catch {
+      setMensaje('Error al intentar iniciar sesión. Inténtalo nuevamente.')
+    } finally {
+      setCargando(false)
     }
-
-    onLoginSuccess(usuario)
   }
 
   return (
@@ -184,8 +192,9 @@ export default function Login({ onLoginSuccess }: Props) {
             <button
               type="submit"
               className="login-btn login-btn--naranja"
+              disabled={cargando}
             >
-              Entrar
+              {cargando ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
         </section>

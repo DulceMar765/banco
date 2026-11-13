@@ -144,6 +144,40 @@ export default function ModuloClientes({
     };
   }, []);
 
+  // Cargar historial acumulativo persistido cuando se selecciona un cliente
+  useEffect(() => {
+    if (!clienteSeleccionado) return;
+    let activo = true;
+
+    fetch(`http://localhost:3001/api/clientes/${clienteSeleccionado}/modificaciones`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: any[]) => {
+        if (!activo || !Array.isArray(data)) return;
+        const nombreSocio = clientes.find((c) => c.id === clienteSeleccionado)?.nombre || 'Socio';
+        const mapeados: Modificacion[] = data.map((d, idx) => ({
+          id: Number(d.id) || idx + 1,
+          clienteId: Number(d.clienteId) || clienteSeleccionado,
+          cliente: nombreSocio,
+          campo: d.campo || 'Condición de pago',
+          anterior: d.anterior || '—',
+          nuevo: d.nuevo || '—',
+          supervisor: d.supervisor || SUPERVISOR_ACTUAL,
+          fecha: d.fecha || fechaActual(),
+          motivo: d.motivo || 'Ajuste contractual autorizado',
+        }));
+        if (mapeados.length > 0) {
+          setHistorial(mapeados);
+        }
+      })
+      .catch((err) => {
+        console.warn('No se pudo cargar el historial persistido:', err);
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, [clienteSeleccionado, clientes]);
+
   const [edicion, setEdicion] = useState<Edicion>({
     ingresos: '',
     gastos: '',
@@ -390,6 +424,24 @@ export default function ModuloClientes({
 
     setHistorial((anterior) => [...cambios, ...anterior]);
     setMostrarEdicion(false);
+
+    // Persistencia inmutable en la base de datos (audit_logs)
+    cambios.forEach((c) => {
+      fetch(`http://localhost:3001/api/clientes/${cliente.id}/modificaciones`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          campo: c.campo,
+          anterior: c.anterior,
+          nuevo: c.nuevo,
+          motivo: c.motivo,
+          supervisorNombre: SUPERVISOR_ACTUAL,
+          supervisorId: '1',
+        }),
+      }).catch((err) => {
+        console.warn('Error al persistir modificación en el backend:', err);
+      });
+    });
 
     alert(
       `Se guardaron ${cambios.length} modificación(es) en el historial.`

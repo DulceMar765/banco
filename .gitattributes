@@ -1,0 +1,19 @@
+# Normalización automática de saltos de línea para todo el equipo de desarrollo
+# Evita diffs espurios entre Windows (CRLF) y Linux/macOS (LF)
+* text=auto eol=lf
+
+# Scripts de shell para Windows
+*.bat eol=crlf
+*.cmd eol=crlf
+*.ps1 eol=crlf
+
+# Archivos binarios que no deben tocarse
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+

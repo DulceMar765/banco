@@ -271,7 +271,11 @@ escritorioRouter.post('/clientes', async (req: Request, res: Response) => {
     }
 
     const { first_name, paternal_surname, maternal_surname } = parseNombreCompleto(nombre);
-    const userId = ejecutivoUserId ? BigInt(ejecutivoUserId) : BigInt(1);
+    let userId = ejecutivoUserId ? BigInt(ejecutivoUserId) : null;
+    if (!userId) {
+      const execUser = await prisma.app_users.findFirst({ where: { username: 'ejecutivo' } });
+      userId = execUser ? execUser.id : BigInt(2);
+    }
 
     // Ejecución atómica de la apertura en una transacción
     const resultadoCliente = await prisma.$transaction(async (tx) => {
@@ -598,7 +602,11 @@ escritorioRouter.post('/solicitudes', async (req: Request, res: Response) => {
       ratioEndeudamiento > PROJECT_PARAMETERS.LOANS.MAX_DEBT_TO_INCOME_RATIO ||
       montoNum > PROJECT_PARAMETERS.LOANS.SUPERVISOR_APPROVAL_THRESHOLD;
 
-    const userId = ejecutivoUserId ? BigInt(ejecutivoUserId) : BigInt(1);
+    let userId = ejecutivoUserId ? BigInt(ejecutivoUserId) : null;
+    if (!userId) {
+      const execUser = await prisma.app_users.findFirst({ where: { username: 'ejecutivo' } });
+      userId = execUser ? execUser.id : BigInt(2);
+    }
 
     const nuevaSolicitud = await prisma.loan_applications.create({
       data: {
@@ -633,6 +641,46 @@ escritorioRouter.post('/solicitudes', async (req: Request, res: Response) => {
         motivo: motivo || 'Solicitud de financiamiento'
       })
     );
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/escritorio/productos
+ * Catálogo oficial de productos financieros activos (Productos.tsx).
+ */
+escritorioRouter.get('/productos', async (_req: Request, res: Response) => {
+  try {
+    const productos = await prisma.financial_products.findMany({
+      where: { is_active: true },
+      orderBy: { id: 'asc' }
+    });
+
+    const mapeados = productos.map((p) => {
+      let categoria: 'Préstamos' | 'Inversiones' | 'Ahorro' = 'Préstamos';
+      if (p.product_type === 'DEPOSIT_ACCOUNT') categoria = 'Ahorro';
+      if (p.product_type === 'INVESTMENT') categoria = 'Inversiones';
+
+      return {
+        id: Number(p.id),
+        nombre: p.name,
+        categoria,
+        descripcion: p.description || '',
+        montoMinimo: Number(p.minimum_amount || 0),
+        montoMaximo: Number(p.maximum_amount || 150000),
+        tasa: `${(Number(p.default_annual_rate || 0.12) * 100).toFixed(0)}% anual`,
+        plazo: p.product_type === 'LOAN' ? '6 a 36 meses' : 'Disponible',
+        beneficios: [
+          'Sin comisiones ocultas',
+          'Atención personalizada en sucursal',
+          'Generación de puntos de lealtad'
+        ],
+        destacado: p.code === 'PRE-TRAD-01'
+      };
+    });
+
+    res.json(serializeData(mapeados));
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

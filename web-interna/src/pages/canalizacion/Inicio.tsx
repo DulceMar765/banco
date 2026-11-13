@@ -25,63 +25,6 @@ type InicioProps = {
   onNavigate: (modulo: Modulo) => void;
 };
 
-const solicitudesDemo: Solicitud[] = [
-  {
-    id: 1001,
-    cliente: "María Fernanda López",
-    producto: "Préstamo personal",
-    monto: 25000,
-    plazo: "24 meses",
-    fecha: "06/11/2026",
-    estado: "Enviada a supervisión",
-  },
-  {
-    id: 1002,
-    cliente: "Carlos Eduardo Pérez",
-    producto: "Préstamo personal",
-    monto: 15000,
-    plazo: "12 meses",
-    fecha: "05/11/2026",
-    estado: "En revisión",
-  },
-  {
-    id: 1003,
-    cliente: "Ana Sofía Martínez",
-    producto: "Cuenta de ahorro",
-    monto: 5000,
-    plazo: "Disponible",
-    fecha: "04/11/2026",
-    estado: "Documentos pendientes",
-  },
-];
-
-const clientesDemo: Cliente[] = [
-  {
-    id: 1,
-    nombre: "María Fernanda López",
-    correo: "maria@email.com",
-    telefono: "833 123 4567",
-    cuenta: "BAN-0001",
-    estado: "Activo",
-  },
-  {
-    id: 2,
-    nombre: "Carlos Eduardo Pérez",
-    correo: "carlos@email.com",
-    telefono: "833 456 7890",
-    cuenta: "BAN-0002",
-    estado: "Activo",
-  },
-  {
-    id: 3,
-    nombre: "Ana Sofía Martínez",
-    correo: "ana@email.com",
-    telefono: "833 987 6543",
-    cuenta: "BAN-0003",
-    estado: "Pendiente de documentos",
-  },
-];
-
 function formatearMoneda(cantidad: number) {
   return cantidad.toLocaleString("es-MX", {
     style: "currency",
@@ -104,11 +47,8 @@ function Inicio({
   solicitudes,
   onNavigate,
 }: InicioProps) {
-  // Información de ejemplo mientras no existan registros.
-  const listaClientes = clientes.length > 0 ? clientes : clientesDemo;
-
-  const listaSolicitudes =
-    solicitudes.length > 0 ? solicitudes : solicitudesDemo;
+  const listaClientes = clientes;
+  const listaSolicitudes = solicitudes;
 
   const solicitudesPendientes = listaSolicitudes.filter(
     (solicitud) =>
@@ -414,6 +354,90 @@ function Inicio({
             <h3>No hay solicitudes registradas</h3>
             <p>
               Cuando se capturen solicitudes, aparecerán en este apartado.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Socios incorporados recientemente */}
+      <div className="es-card es-table-card inicio-recent-card" style={{ marginTop: '1.5rem' }}>
+        <div className="es-table-heading">
+          <div>
+            <h2>Socios incorporados recientemente</h2>
+            <p>Directorio de nuevos socios dados de alta en la cooperativa.</p>
+          </div>
+
+          <button
+            className="es-btn es-btn-secondary"
+            onClick={() => onNavigate("Clientes")}
+          >
+            Ver todos
+            <ArrowUpRight size={15} />
+          </button>
+        </div>
+
+        <div className="es-table-wrap">
+          <table className="es-table">
+            <thead>
+              <tr>
+                <th>Socio</th>
+                <th>Cuenta</th>
+                <th>Teléfono</th>
+                <th>RFC</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {listaClientes.slice(0, 5).map((cliente) => (
+                <tr key={cliente.id}>
+                  <td>
+                    <div className="inicio-client-cell">
+                      <div className="inicio-client-avatar">
+                        {cliente.nombre.charAt(0)}
+                      </div>
+
+                      <div>
+                        <strong>{cliente.nombre}</strong>
+                        <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{cliente.correo}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{cliente.cuenta}</span>
+                  </td>
+
+                  <td>{cliente.telefono || 'Sin teléfono'}</td>
+
+                  <td>{cliente.rfc || '—'}</td>
+
+                  <td>
+                    <span
+                      className={`es-status ${
+                        cliente.estado.toLowerCase().includes("activo")
+                          ? "inicio-status-sent"
+                          : "inicio-status-pending"
+                      }`}
+                    >
+                      {cliente.estado}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {listaClientes.length === 0 && (
+          <div className="es-empty-state">
+            <div className="es-empty-icon">
+              <Users size={24} />
+            </div>
+
+            <h3>No hay socios registrados</h3>
+            <p>
+              Los socios dados de alta aparecerán en este directorio.
             </p>
           </div>
         )}

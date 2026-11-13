@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Search,
+  LogOut,
 } from "lucide-react";
 
 import Inicio from "./Inicio";
@@ -34,8 +35,8 @@ import "./Escritorio.css";
 
 export type Modulo =
   | "Inicio"
-  | "Clientes"
   | "Registrar cliente"
+  | "Clientes"
   | "Solicitudes"
   | "Productos"
   | "Seguimiento"
@@ -79,12 +80,12 @@ const menuPrincipal = [
     icono: LayoutDashboard,
   },
   {
-    nombre: "Clientes" as Modulo,
-    icono: Users,
-  },
-  {
     nombre: "Registrar cliente" as Modulo,
     icono: UserPlus,
+  },
+  {
+    nombre: "Clientes" as Modulo,
+    icono: Users,
   },
   {
     nombre: "Solicitudes" as Modulo,
@@ -104,7 +105,11 @@ const menuPrincipal = [
   },
 ];
 
-function Escritorio() {
+type EscritorioProps = {
+  onLogout?: () => void;
+};
+
+function Escritorio({ onLogout }: EscritorioProps = {}) {
   const [moduloActual, setModuloActual] = useState<Modulo>("Inicio");
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState("");
@@ -124,8 +129,8 @@ function Escritorio() {
         ]);
 
         if (montado) {
-          if (listaClientes.length > 0) setClientes(listaClientes);
-          if (listaSolicitudes.length > 0) setSolicitudes(listaSolicitudes);
+          setClientes(listaClientes);
+          setSolicitudes(listaSolicitudes);
         }
       } catch (err) {
         console.warn("No se pudieron cargar datos iniciales del backend:", err);
@@ -138,14 +143,17 @@ function Escritorio() {
     };
   }, []);
 
-  const [productoInicial, setProductoInicial] = useState(
-    "Préstamo personal"
-  );
+  const [productoInicial, setProductoInicial] = useState("");
+  const [clienteInicial, setClienteInicial] = useState<Cliente | null>(null);
+  const [abrirModalDirecto, setAbrirModalDirecto] = useState(false);
 
   const cambiarModulo = (modulo: Modulo) => {
     setModuloActual(modulo);
     setBusqueda("");
     setMenuAbierto(false);
+    setAbrirModalDirecto(false);
+    setProductoInicial("");
+    setClienteInicial(null);
   };
 
   const registrarCliente = async (
@@ -197,10 +205,24 @@ function Escritorio() {
     cambiarModulo("Solicitudes");
   };
 
-  // Recibe el producto seleccionado desde el catálogo.
+  // Recibe el producto seleccionado desde el catálogo y abre el modal directamente
   const abrirSolicitud = (producto: ProductoFinanciero) => {
     setProductoInicial(producto.nombre);
-    cambiarModulo("Solicitudes");
+    setClienteInicial(null);
+    setAbrirModalDirecto(true);
+    setModuloActual("Solicitudes");
+    setBusqueda("");
+    setMenuAbierto(false);
+  };
+
+  // Abre la solicitud preseleccionando un socio desde el directorio
+  const abrirSolicitudParaCliente = (cliente: Cliente) => {
+    setClienteInicial(cliente);
+    setProductoInicial("Préstamo Personal Tradicional");
+    setAbrirModalDirecto(true);
+    setModuloActual("Solicitudes");
+    setBusqueda("");
+    setMenuAbierto(false);
   };
 
   const renderizarModulo = () => {
@@ -220,6 +242,7 @@ function Escritorio() {
             clientes={clientes}
             busqueda={busqueda}
             onRegistrar={() => cambiarModulo("Registrar cliente")}
+            onIniciarSolicitud={abrirSolicitudParaCliente}
           />
         );
 
@@ -238,6 +261,8 @@ function Escritorio() {
             solicitudes={solicitudes}
             busqueda={busqueda}
             productoInicial={productoInicial}
+            clienteInicial={clienteInicial}
+            abrirModalDirecto={abrirModalDirecto}
             onRegistrar={registrarSolicitud}
           />
         );
@@ -340,6 +365,31 @@ function Escritorio() {
               <span className="es-version-dot" />
               BANUAT · Sistema interno
             </div>
+
+            {onLogout && (
+              <button
+                type="button"
+                className="es-nav-item"
+                onClick={onLogout}
+                style={{
+                  marginTop: "10px",
+                  color: "#ef4444",
+                  background: "transparent",
+                  border: "none",
+                  width: "100%",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "10px 14px",
+                  borderRadius: "8px",
+                  fontWeight: 500,
+                }}
+              >
+                <LogOut size={19} />
+                <span>Cerrar sesión</span>
+              </button>
+            )}
           </div>
         </aside>
 
@@ -409,6 +459,33 @@ function Escritorio() {
                   <span>Escritorio</span>
                 </div>
               </div>
+
+              {onLogout && (
+                <button
+                  type="button"
+                  className="es-logout-btn"
+                  title="Cerrar sesión"
+                  aria-label="Cerrar sesión"
+                  onClick={onLogout}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "8px 14px",
+                    background: "#fef2f2",
+                    border: "1px solid #fecaca",
+                    borderRadius: "8px",
+                    color: "#dc2626",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: "13px",
+                    marginLeft: "8px",
+                  }}
+                >
+                  <LogOut size={16} />
+                  <span>Salir</span>
+                </button>
+              )}
             </div>
           </header>
 

@@ -140,6 +140,57 @@ async function seed() {
     console.log('✓ Producto préstamo tradicional creado.');
   }
 
+  let prodEmp = await prisma.financial_products.findFirst({ where: { code: 'PRE-EMP-01' } });
+  if (!prodEmp) {
+    prodEmp = await prisma.financial_products.create({
+      data: {
+        code: 'PRE-EMP-01',
+        name: 'Préstamo Empresarial',
+        product_type: 'LOAN',
+        description: 'Apoyo financiero para impulsar pequeños negocios y actividades comerciales.',
+        minimum_amount: 10000.0,
+        maximum_amount: 150000.0,
+        default_annual_rate: 0.14,
+        is_active: true
+      }
+    });
+    console.log('✓ Producto préstamo empresarial creado.');
+  }
+
+  let prodEmer = await prisma.financial_products.findFirst({ where: { code: 'PRE-EMER-01' } });
+  if (!prodEmer) {
+    prodEmer = await prisma.financial_products.create({
+      data: {
+        code: 'PRE-EMER-01',
+        name: 'Préstamo de Emergencia',
+        product_type: 'LOAN',
+        description: 'Alternativa de financiamiento para atender imprevistos y urgencias.',
+        minimum_amount: 3000.0,
+        maximum_amount: 25000.0,
+        default_annual_rate: 0.10,
+        is_active: true
+      }
+    });
+    console.log('✓ Producto préstamo de emergencia creado.');
+  }
+
+  let prodInv = await prisma.financial_products.findFirst({ where: { code: 'INV-CREC-01' } });
+  if (!prodInv) {
+    prodInv = await prisma.financial_products.create({
+      data: {
+        code: 'INV-CREC-01',
+        name: 'Inversión Creciente',
+        product_type: 'INVESTMENT',
+        description: 'Producto diseñado para generar rendimientos a plazo fijo.',
+        minimum_amount: 10000.0,
+        maximum_amount: 200000.0,
+        default_annual_rate: 0.08,
+        is_active: true
+      }
+    });
+    console.log('✓ Producto inversión creciente creado.');
+  }
+
   // 5. Clientes de prueba
   let customer1 = await prisma.customers.findFirst({ where: { rfc: 'PEJU900515ABC' } });
   if (!customer1) {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   ArrowLeft,
   Wallet,
@@ -39,68 +39,6 @@ type SolicitudPrestamo = {
   fechaSolicitud: string
 }
 
-const SOLICITUDES_INICIALES: SolicitudPrestamo[] = [
-  {
-    id: 1,
-    folio: 'SOL-2026-001',
-    cliente: 'Juan Pérez Hernández',
-    rfc: 'PEJU900515ABC',
-    producto: 'Préstamo Personal Tradicional',
-    montoSolicitado: 35000,
-    plazoMeses: 24,
-    tasaPropuesta: 15.0,
-    ingresoComprobado: 18000,
-    gastosDeclarados: 6500,
-    cuotaEstimada: 1780,
-    deudasActuales: 2000,
-    scoreRiesgo: 72,
-    nivelRiesgo: 'bajo',
-    esDudoso: false,
-    estado: 'PENDIENTE',
-    fechaSolicitud: '2026-10-30',
-  },
-  {
-    id: 2,
-    folio: 'SOL-2026-002',
-    cliente: 'Roberto Sánchez Díaz',
-    rfc: 'SADR880714EF3',
-    producto: 'Préstamo de Emergencia',
-    montoSolicitado: 80000,
-    plazoMeses: 36,
-    tasaPropuesta: 18.0,
-    ingresoComprobado: 12000,
-    gastosDeclarados: 8500,
-    cuotaEstimada: 2890,
-    deudasActuales: 3500,
-    scoreRiesgo: 38,
-    nivelRiesgo: 'alto',
-    esDudoso: true,
-    motivoDudoso: 'El monto excede el 40% de capacidad libre mensual. Requiere autorización facultada.',
-    estado: 'PENDIENTE',
-    fechaSolicitud: '2026-10-31',
-  },
-  {
-    id: 3,
-    folio: 'SOL-2026-003',
-    cliente: 'María López Morales',
-    rfc: 'LOMM920418GH2',
-    producto: 'Préstamo Productivo Convocatoria',
-    montoSolicitado: 25000,
-    plazoMeses: 12,
-    tasaPropuesta: 12.5,
-    ingresoComprobado: 22000,
-    gastosDeclarados: 7000,
-    cuotaEstimada: 2310,
-    deudasActuales: 1500,
-    scoreRiesgo: 85,
-    nivelRiesgo: 'bajo',
-    esDudoso: false,
-    estado: 'APROBADO',
-    motivoDecision: 'Socio con excelente solvencia y proyecto productivo comprobado.',
-    fechaSolicitud: '2026-10-28',
-  },
-]
-
 const dinero = (c: number) =>
   c.toLocaleString('es-MX', {
     style: 'currency',
@@ -113,13 +51,73 @@ export default function ModuloPrestamos({
 }: {
   onVolver: () => void
 }) {
-  const [solicitudes, setSolicitudes] = useState<SolicitudPrestamo[]>(SOLICITUDES_INICIALES)
-  const [seleccionadaId, setSeleccionadaId] = useState<number>(2) // Selecciona el préstamo dudoso por defecto
+  const [solicitudes, setSolicitudes] = useState<SolicitudPrestamo[]>([])
+  const [seleccionadaId, setSeleccionadaId] = useState<number | null>(null)
   const [filtro, setFiltro] = useState<Filtro>('todas')
   const [tasaEditada, setTasaEditada] = useState<number>(18.0)
   const [motivoDecision, setMotivoDecision] = useState<string>('')
   const [mensajeResultado, setMensajeResultado] = useState<{ tipo: 'aprobado' | 'rechazado'; texto: string } | null>(null)
   const [errorValidacion, setErrorValidacion] = useState<string>('')
+
+  // Carga reactiva de solicitudes de préstamo reales desde el backend
+  useEffect(() => {
+    let activo = true
+    fetch('http://localhost:3001/api/prestamos/solicitudes')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: any[]) => {
+        if (!activo || !Array.isArray(data) || data.length === 0) return
+        const mapeadas: SolicitudPrestamo[] = data.map((d, index) => {
+          const montoSolicitado = Number(d.montoSolicitado || 35000)
+          const ingreso = Number(d.ingresosComprobados || 18000)
+          const gastos = Number(d.gastosDeclarados || 5000)
+          const deudas = 2000
+          const tasa = Number(d.tasaPropuesta || 15.0)
+          const cuota = Math.round((montoSolicitado * (1 + tasa / 100)) / (d.plazoMeses || 12))
+          const ratio = ingreso > 0 ? (gastos + deudas + cuota) / ingreso : 1
+          const esDudoso = Boolean(d.esDudoso || ratio > 0.4 || montoSolicitado > 50000)
+
+          let estadoNorm: EstadoSolicitud = 'PENDIENTE'
+          if (d.estado === 'APPROVED') estadoNorm = 'APROBADO'
+          if (d.estado === 'REJECTED') estadoNorm = 'RECHAZADO'
+
+          return {
+            id: Number(d.id) || index + 1,
+            folio: d.folio || `SOL-2026-${String(d.id).padStart(3, '0')}`,
+            cliente: d.cliente || 'Socio Solicitante',
+            rfc: d.rfc || '',
+            producto: d.producto || 'Préstamo Personal',
+            montoSolicitado,
+            plazoMeses: Number(d.plazoMeses) || 12,
+            tasaPropuesta: tasa,
+            ingresoComprobado: ingreso,
+            gastosDeclarados: gastos,
+            cuotaEstimada: cuota,
+            deudasActuales: deudas,
+            scoreRiesgo: esDudoso ? 42 : 78,
+            nivelRiesgo: esDudoso ? 'alto' : 'bajo',
+            esDudoso,
+            motivoDudoso: esDudoso
+              ? 'El monto o la capacidad libre mensual excede los parámetros estándar. Requiere autorización facultada.'
+              : undefined,
+            estado: estadoNorm,
+            fechaSolicitud: d.fechaSolicitud || new Date().toISOString().split('T')[0],
+          }
+        })
+
+        setSolicitudes(mapeadas)
+        if (mapeadas.length > 0) {
+          setSeleccionadaId(mapeadas[0].id)
+          setTasaEditada(mapeadas[0].tasaPropuesta)
+        }
+      })
+      .catch((err) => {
+        console.warn('Backend no disponible para /api/prestamos/solicitudes:', err)
+      })
+
+    return () => {
+      activo = false
+    }
+  }, [])
 
   const solicitudesFiltradas = useMemo(() => {
     return solicitudes.filter((s) => {
@@ -192,11 +190,22 @@ export default function ModuloPrestamos({
   }
 
   // Cálculos de capacidad
-  const ingresoNeto = seleccionada.ingresoComprobado - seleccionada.gastosDeclarados - seleccionada.deudasActuales
-  const porcentajeCapacidad = Math.min(
-    100,
-    Math.round(((seleccionada.gastosDeclarados + seleccionada.deudasActuales + seleccionada.cuotaEstimada) / seleccionada.ingresoComprobado) * 100)
-  )
+  const ingresoNeto = seleccionada
+    ? seleccionada.ingresoComprobado - seleccionada.gastosDeclarados - seleccionada.deudasActuales
+    : 0;
+  const porcentajeCapacidad =
+    seleccionada && seleccionada.ingresoComprobado > 0
+      ? Math.min(
+          100,
+          Math.round(
+            ((seleccionada.gastosDeclarados +
+              seleccionada.deudasActuales +
+              seleccionada.cuotaEstimada) /
+              seleccionada.ingresoComprobado) *
+              100
+          )
+        )
+      : 0;
 
   return (
     <main className="mp">
@@ -287,6 +296,16 @@ export default function ModuloPrestamos({
         </section>
 
         {/* DETALLE DEL PRÉSTAMO */}
+        {!seleccionada ? (
+          <section className="mp-detalle">
+            <div className="mp-card" style={{ padding: '3rem', textAlign: 'center' }}>
+              <ClipboardList size={32} />
+              <p style={{ marginTop: '0.75rem', color: '#6b7280' }}>
+                No hay solicitudes para mostrar en este filtro o la lista está vacía.
+              </p>
+            </div>
+          </section>
+        ) : (
         <section className="mp-detalle">
           {/* INFORMACIÓN DEL CLIENTE Y SOLICITUD */}
           <article className="mp-card mp-cliente">
@@ -570,6 +589,11 @@ export default function ModuloPrestamos({
                       Justificación: "{seleccionada.motivoDecision}"
                     </p>
                   )}
+                  {seleccionada.estado === 'APROBADO' && (
+                    <p style={{ margin: '0.4rem 0 0', color: '#b45309', fontWeight: 600 }}>
+                      ⚠️ Autorizado - Pendiente de Desembolso (Desembolsos temporalmente no disponibles)
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -586,6 +610,7 @@ export default function ModuloPrestamos({
             )}
           </article>
         </section>
+        )}
       </div>
     </main>
   )

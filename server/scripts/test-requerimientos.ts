@@ -31,7 +31,10 @@ async function main() {
   clientes = clientesResponse.data as Array<Record<string, unknown>>;
   assert(clientes.length > 0, 'Hay datos de prueba para validar los flujos');
 
-  const cliente = clientes[0];
+  const cliente = clientes.find((item) =>
+    Array.isArray(item.productos) &&
+    (item.productos as Array<Record<string, unknown>>).some((p) => p.tipo === 'Cuenta bancaria')
+  ) || clientes[0];
   const clienteId = String(cliente.id);
   const productos = Array.isArray(cliente.productos) ? cliente.productos : [];
   assert(
@@ -164,6 +167,9 @@ async function main() {
 main()
   .catch((error) => {
     console.error(`\n❌ Prueba backend fallida: ${error.message}`);
+    if (error.message.includes('fetch failed')) {
+      console.error('💡 CONSEJO: Asegúrate de que el servidor backend esté corriendo en http://localhost:3001 con "npm run dev" antes de ejecutar las pruebas.');
+    }
     process.exitCode = 1;
   })
   .finally(() => prisma.$disconnect());

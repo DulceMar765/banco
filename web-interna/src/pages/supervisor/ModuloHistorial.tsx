@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   ArrowLeft,
   Search,
@@ -26,104 +26,7 @@ type Operacion = {
   referencia: string;
 };
 
-const operacionesIniciales: Operacion[] = [
-  {
-    id: 1,
-    fecha: '2026-10-29',
-    hora: '10:35',
-    modulo: 'Préstamos',
-    operacion: 'Préstamo autorizado',
-    descripcion: 'Se autorizó un préstamo personal por $25,000.',
-    usuario: 'Carlos Ramírez',
-    cliente: 'Juan Pérez',
-    resultado: 'Completada',
-    referencia: 'PRE-001',
-  },
-  {
-    id: 2,
-    fecha: '2026-10-29',
-    hora: '11:10',
-    modulo: 'Clientes',
-    operacion: 'Modificación de tasa',
-    descripcion: 'La tasa de interés cambió de 18% a 15%.',
-    usuario: 'Carlos Ramírez',
-    cliente: 'Juan Pérez',
-    resultado: 'Completada',
-    referencia: 'CLI-001',
-  },
-  {
-    id: 3,
-    fecha: '2026-10-28',
-    hora: '09:20',
-    modulo: 'Pagos',
-    operacion: 'Pago registrado',
-    descripcion: 'Se registró un abono de $1,500.',
-    usuario: 'María López',
-    cliente: 'María González',
-    resultado: 'Completada',
-    referencia: 'PAG-001',
-  },
-  {
-    id: 4,
-    fecha: '2026-10-28',
-    hora: '12:45',
-    modulo: 'Promociones',
-    operacion: 'Promoción creada',
-    descripcion: 'Se creó una promoción de temporada.',
-    usuario: 'Carlos Ramírez',
-    cliente: 'General',
-    resultado: 'Completada',
-    referencia: 'PRO-001',
-  },
-  {
-    id: 5,
-    fecha: '2026-10-27',
-    hora: '14:30',
-    modulo: 'Lealtad',
-    operacion: 'Canje de puntos',
-    descripcion: 'Se canjearon 500 puntos por un producto.',
-    usuario: 'María López',
-    cliente: 'Roberto Sánchez',
-    resultado: 'Completada',
-    referencia: 'LEA-001',
-  },
-  {
-    id: 6,
-    fecha: '2026-10-27',
-    hora: '16:00',
-    modulo: 'Préstamos',
-    operacion: 'Solicitud pendiente',
-    descripcion: 'La solicitud requiere revisión de capacidad de pago.',
-    usuario: 'Carlos Ramírez',
-    cliente: 'Roberto Sánchez',
-    resultado: 'Pendiente',
-    referencia: 'PRE-002',
-  },
-  {
-    id: 7,
-    fecha: '2026-10-26',
-    hora: '11:15',
-    modulo: 'Proveedores',
-    operacion: 'Proveedor actualizado',
-    descripcion: 'Se actualizaron los datos de contacto del proveedor.',
-    usuario: 'Carlos Ramírez',
-    cliente: 'Proveedor Comercial del Norte',
-    resultado: 'Completada',
-    referencia: 'PROV-001',
-  },
-  {
-    id: 8,
-    fecha: '2026-10-26',
-    hora: '13:40',
-    modulo: 'Préstamos',
-    operacion: 'Solicitud rechazada',
-    descripcion: 'La solicitud no cumplió los criterios de capacidad de pago.',
-    usuario: 'Carlos Ramírez',
-    cliente: 'Pedro Hernández',
-    resultado: 'Rechazada',
-    referencia: 'PRE-003',
-  },
-];
+const operacionesIniciales: Operacion[] = [];
 
 const modulos = [
   'Todos',
@@ -143,8 +46,37 @@ export default function ModuloHistorial({
 }: {
   onVolver: () => void;
 }) {
-  const [operaciones] = useState<Operacion[]>(operacionesIniciales);
+  const [operaciones, setOperaciones] = useState<Operacion[]>(operacionesIniciales);
   const [busqueda, setBusqueda] = useState('');
+
+  useEffect(() => {
+    let activo = true;
+    fetch('http://localhost:3001/api/reportes/operaciones')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: any[]) => {
+        if (!activo || !Array.isArray(data)) return;
+        const mapeadas: Operacion[] = data.map((d, idx) => ({
+          id: Number(d.id) || idx + 1,
+          fecha: d.fecha || new Date().toISOString().split('T')[0],
+          hora: '12:00',
+          modulo: d.puesto === 'Caja' ? 'Caja' : 'Escritorio',
+          operacion: d.actividad || 'Atención a socio',
+          descripcion: `${d.actividad || 'Operación'} para ${d.cliente || 'socio'}.`,
+          usuario: d.empleado || 'Carlos Ramírez',
+          cliente: d.cliente || 'Persona atendida',
+          resultado: d.resultado === 'Pendiente' ? 'Pendiente' : 'Completada',
+          referencia: `OP-${String(d.id || idx + 1).padStart(3, '0')}`,
+        }));
+        setOperaciones(mapeadas);
+      })
+      .catch((err) => {
+        console.warn('Backend desconectado para historial:', err);
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, []);
   const [modulo, setModulo] = useState('Todos');
   const [resultado, setResultado] = useState('Todos');
   const [fechaInicio, setFechaInicio] = useState('');

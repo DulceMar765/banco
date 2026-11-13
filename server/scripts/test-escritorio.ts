@@ -161,7 +161,10 @@ async function runTests() {
 }
 
 runTests().catch((err) => {
-  console.error('Error fatal al ejecutar pruebas:', err);
+  console.error('Error fatal al ejecutar pruebas:', err?.message || err);
+  if (err?.message?.includes('fetch failed')) {
+    console.error('💡 CONSEJO: Asegúrate de que el servidor backend esté corriendo en http://localhost:3001 con "npm run dev" antes de ejecutar las pruebas.');
+  }
   process.exit(1);
 });
 

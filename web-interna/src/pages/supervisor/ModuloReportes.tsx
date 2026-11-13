@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   ArrowLeft,
   BarChart3,
@@ -35,28 +35,7 @@ type ModuloReportesProps = {
   onVolver?: () => void
 }
 
-const operacionesIniciales: Operacion[] = [
-  { id: 1, empleado: 'Ana Torres', puesto: 'Escritorio', actividad: 'Registro de cliente', cliente: 'Juan Pérez', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 0 },
-  { id: 2, empleado: 'Ana Torres', puesto: 'Escritorio', actividad: 'Asignación de producto', cliente: 'María López', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 0 },
-  { id: 3, empleado: 'Ana Torres', puesto: 'Escritorio', actividad: 'Atención', cliente: 'Roberto Sánchez', tipoPersona: 'Cliente', fecha: '2026-10-28', resultado: 'Completado', importe: 0 },
-  { id: 4, empleado: 'Ana Torres', puesto: 'Escritorio', actividad: 'Atención externa', cliente: 'Persona externa', tipoPersona: 'Externo', fecha: '2026-10-28', resultado: 'Completado', importe: 0 },
-  { id: 5, empleado: 'Luis Pérez', puesto: 'Escritorio', actividad: 'Registro de cliente', cliente: 'Carlos Méndez', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 0 },
-  { id: 6, empleado: 'Luis Pérez', puesto: 'Escritorio', actividad: 'Asignación de producto', cliente: 'Laura Gómez', tipoPersona: 'Cliente', fecha: '2026-10-27', resultado: 'Completado', importe: 0 },
-  { id: 7, empleado: 'Luis Pérez', puesto: 'Escritorio', actividad: 'Actualización de datos', cliente: 'Pedro Ruiz', tipoPersona: 'Cliente', fecha: '2026-10-26', resultado: 'Completado', importe: 0 },
-  { id: 8, empleado: 'María Ruiz', puesto: 'Escritorio', actividad: 'Registro de cliente', cliente: 'Sofía Díaz', tipoPersona: 'Cliente', fecha: '2026-10-25', resultado: 'Completado', importe: 0 },
-  { id: 9, empleado: 'María Ruiz', puesto: 'Escritorio', actividad: 'Asignación de producto', cliente: 'Miguel Flores', tipoPersona: 'Cliente', fecha: '2026-10-24', resultado: 'Completado', importe: 0 },
-  { id: 10, empleado: 'María Ruiz', puesto: 'Escritorio', actividad: 'Atención externa', cliente: 'Persona externa', tipoPersona: 'Externo', fecha: '2026-10-23', resultado: 'Completado', importe: 0 },
-
-  { id: 11, empleado: 'Pedro López', puesto: 'Caja', actividad: 'Pago de deuda', cliente: 'Juan Pérez', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 1500 },
-  { id: 12, empleado: 'Pedro López', puesto: 'Caja', actividad: 'Abono de préstamo', cliente: 'María López', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 850 },
-  { id: 13, empleado: 'Pedro López', puesto: 'Caja', actividad: 'Pago de deuda', cliente: 'Roberto Sánchez', tipoPersona: 'Cliente', fecha: '2026-10-28', resultado: 'Completado', importe: 1200 },
-  { id: 14, empleado: 'Pedro López', puesto: 'Caja', actividad: 'Atención externa', cliente: 'Persona externa', tipoPersona: 'Externo', fecha: '2026-10-27', resultado: 'Completado', importe: 0 },
-  { id: 15, empleado: 'Laura Díaz', puesto: 'Caja', actividad: 'Pago de préstamo', cliente: 'Carlos Méndez', tipoPersona: 'Cliente', fecha: '2026-10-29', resultado: 'Completado', importe: 2000 },
-  { id: 16, empleado: 'Laura Díaz', puesto: 'Caja', actividad: 'Abono de deuda', cliente: 'Laura Gómez', tipoPersona: 'Cliente', fecha: '2026-10-28', resultado: 'Completado', importe: 750 },
-  { id: 17, empleado: 'Laura Díaz', puesto: 'Caja', actividad: 'Pago de deuda', cliente: 'Pedro Ruiz', tipoPersona: 'Cliente', fecha: '2026-10-26', resultado: 'Completado', importe: 950 },
-  { id: 18, empleado: 'Laura Díaz', puesto: 'Caja', actividad: 'Atención externa', cliente: 'Persona externa', tipoPersona: 'Externo', fecha: '2026-10-25', resultado: 'Completado', importe: 0 },
-  { id: 19, empleado: 'Pedro López', puesto: 'Caja', actividad: 'Pago de deuda', cliente: 'Sofía Díaz', tipoPersona: 'Cliente', fecha: '2026-10-24', resultado: 'Pendiente', importe: 600 },
-]
+const operacionesIniciales: Operacion[] = []
 
 const dinero = (cantidad: number) =>
   cantidad.toLocaleString('es-MX', {
@@ -77,8 +56,35 @@ export default function ModuloReportes({ onVolver }: ModuloReportesProps) {
   const [periodo, setPeriodo] = useState('mes')
   const [empleado, setEmpleado] = useState('todos')
   const [busqueda, setBusqueda] = useState('')
+  const [operaciones, setOperaciones] = useState<Operacion[]>(operacionesIniciales)
 
-  const operaciones = operacionesIniciales
+  useEffect(() => {
+    let activo = true
+    fetch('http://localhost:3001/api/reportes/operaciones')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: any[]) => {
+        if (!activo || !Array.isArray(data)) return
+        const mapeadas: Operacion[] = data.map((d, idx) => ({
+          id: Number(d.id) || idx + 1,
+          empleado: d.empleado || 'Personal de Sucursal',
+          puesto: d.puesto === 'Caja' ? 'Caja' : 'Escritorio',
+          actividad: d.actividad || 'Operación en sucursal',
+          cliente: d.cliente || 'Persona atendida',
+          tipoPersona: d.tipoPersona === 'Externo' ? 'Externo' : 'Cliente',
+          fecha: d.fecha || new Date().toISOString().split('T')[0],
+          resultado: d.resultado || 'Completado',
+          importe: Number(d.importe) || 0,
+        }))
+        setOperaciones(mapeadas)
+      })
+      .catch((err) => {
+        console.warn('Backend desconectado para reportes:', err)
+      })
+
+    return () => {
+      activo = false
+    }
+  }, [])
 
   const empleados = useMemo(
     () => [...new Set(operaciones.map((op) => op.empleado))].sort(),

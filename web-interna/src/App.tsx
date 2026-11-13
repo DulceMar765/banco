@@ -8,16 +8,20 @@ import type { Usuario } from './services/auth'
 function App() {
   const [usuario, setUsuario] = useState<Usuario | null>(null)
 
+  const handleLogout = () => {
+    setUsuario(null)
+  }
+
   if (!usuario) {
     return <Login onLoginSuccess={setUsuario} />
   }
 
   if (usuario.rol === 'supervisor') {
-    return <PanelSupervisor />
+    return <PanelSupervisor onLogout={handleLogout} />
   }
 
   if (usuario.rol === 'canalizacion' || usuario.rol === 'ejecutivo') {
-    return <Escritorio />
+    return <Escritorio onLogout={handleLogout} />
   }
 
   return (

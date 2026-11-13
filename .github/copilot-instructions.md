@@ -1,16 +1,16 @@
 # GitHub Copilot Instructions · Cooperativa Financiera BANUAT
 
 > Instrucciones del sistema aplicadas automáticamente para GitHub Copilot (Education, Chat, Edits y Workspace).
-> Basado en las Historias de Usuario (HU-01 a HU-56) y la **Bitácora de Levantamiento de Requerimientos (04/11/2026)**.
+> Basado en las Historias de Usuario (HU-01 a HU-56), la **Bitácora de Levantamiento de Requerimientos (04/11/2026)** y la **Guía Operativa del Rol Ejecutivo**.
 
 ## 1. Contexto del Proyecto y Reglas Maestras
-Este repositorio implementa el sistema de gestión bancaria para **Cooperativa Financiera / BancoMex (BANUAT)**. Consulta siempre el archivo maestro [`AGENTS.md`](file:///c:/Users/CESAR/Desktop/Clem%20Dumpster/BancoMex-CdS/banco/AGENTS.md) para detalles completos de negocio, arquitectura y bitácoras.
+Este repositorio implementa el sistema de gestión bancaria para **Cooperativa Financiera / BancoMex (BANUAT)**. Consulta siempre el archivo maestro [`AGENTS.md`](../AGENTS.md) para detalles completos de negocio, arquitectura y bitácoras.
 
 ## 2. Restricciones Críticas de Código (Anti-Alucinaciones)
 
 1. **Base de Datos y Modelos Prisma:**
-   * La base de datos es MySQL 8.0 (`cooperativa_financiera`).
-   * Los modelos de Prisma están definidos en inglés en [`server/prisma/schema.prisma`](file:///c:/Users/CESAR/Desktop/Clem%20Dumpster/BancoMex-CdS/banco/server/prisma/schema.prisma).
+   * La base de datos es MySQL 8.0 / MariaDB 10.4+ (`cooperativa_financiera`).
+   * Los modelos de Prisma están definidos en inglés en [`banco/server/prisma/schema.prisma`](../server/prisma/schema.prisma).
    * **NUNCA inventes nombres de tablas en español**.
      * Correcto: `prisma.app_users`, `prisma.accounts`, `prisma.customers`, `prisma.employees`, `prisma.financial_transactions`, `prisma.audit_logs`.
      * Incorrecto: `prisma.usuario`, `prisma.cuenta`, `prisma.cliente`.
@@ -38,10 +38,26 @@ Este repositorio implementa el sistema de gestión bancaria para **Cooperativa F
    * **Cobranza:** Cómputo de cartera vencida en **días hábiles** (`business_calendar`). Cartera recuperable ($\le 60$ días) vs. vencida crítica/venta de cartera (> 60 días).
    * **Trazabilidad:** Toda operación debe guardar el usuario/empleado que atendió (`app_user_id`), puesto, fecha y resultado.
 
-5. **Frontend (Vite + React 19 + TypeScript):**
-   * Ubicado en [`web-interna`](file:///c:/Users/CESAR/Desktop/Clem%20Dumpster/BancoMex-CdS/banco/web-interna).
+5. **Flujo Cronológico del Rol Ejecutivo (`Escritorio.tsx`):**
+   * El ejecutivo de escritorio (`ejecutivo@banuat.local` / `Ejecutivo123!`) atiende al socio siguiendo **7 pasos cronológicos**:
+     1. **Inicio – Escritorio:** Resumen general, clientes en espera y accesos rápidos.
+     2. **Registrar cliente:** Captura obligatoria de datos generales, RFC, CURP único (18 caracteres), domicilio, ingresos comprobados/declarados y egresos. Envía al supervisor para autorización.
+     3. **Clientes:** Directorio oficial de socios con datos de contacto, cuenta bancaria y estado de autorización.
+     4. **Solicitudes:** Auditoría del estado de las solicitudes de registro de nuevos clientes (`Pendientes`, `En revisión`, `Aprobadas`, `Rechazadas`, `Con correcciones`).
+     5. **Productos:** Catálogo de productos disponibles (**Préstamos**, **Inversiones**, **Ahorro**). Selecciona producto y genera solicitud vinculada que se envía a supervisión.
+     6. **Seguimiento:** Consulta del resultado y observaciones de solicitudes de productos financieros emitidas por supervisión.
+     7. **Actividad:** Historial inmutable con fecha y hora (`timestamp`) de cada operación realizada por el ejecutivo.
+
+6. **Frontend (Vite + React 19 + TypeScript):**
+   * Ubicado en [`banco/web-interna`](../web-interna).
    * Los iconos deben importarse desde `lucide-react`.
    * La Web Interna es para uso de personal interno; no crear pantallas de auto-registro público.
    * **Administración de Clientes:** Mantener el título oficial "Administración de Clientes", visualizador del total de clientes registrados y la bitácora de auditoría acumulativa de condiciones de pago.
    * **Reportes:** Métricas diferenciadas por puesto (Escritorio vs. Caja), con filtros temporales y basadas en operaciones reales.
    * **Resolución y Paneles:** Diseñar con buena ergonomía visual para resoluciones estándar de sucursal (1080p / 768p) con scroll interno contenido.
+
+7. **Compatibilidad Multi-Entorno (MySQL 8 vs MariaDB 10.4 / XAMPP):**
+   * Usar siempre collation `utf8mb4_unicode_ci` (evitar `utf8mb4_0900_ai_ci`).
+   * Evitar funciones exclusivas no portables como `JSON_TABLE()`; usar `JSON_EXTRACT` y bucles iterativos.
+   * La base de datos es SIEMPRE `cooperativa_financiera`.
+   * Las suites de pruebas HTTP (`npm run test:all`) requieren tener el servidor encendido previamente con `npm run dev`.

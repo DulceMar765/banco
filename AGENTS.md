@@ -20,44 +20,48 @@ El sistema comprende dos frentes:
 ## 2. Arquitectura de Repositorio y Stack Tecnológico
 
 ```
-banco/
+BancoMex-CdS/
 ├── .github/
 │   └── copilot-instructions.md # Instrucciones automáticas para GitHub Copilot
 ├── AGENTS.md                    # Este archivo maestro de directrices
-├── web-interna/                 # Frontend React 19 + TypeScript + Vite + Lucide Icons
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── login/           # Login interno (correo/cuenta + contraseña)
-│   │   │   └── supervisor/      # Módulos: Administración de Clientes, Reportes, Préstamos, Cobranza, etc.
-│   │   ├── services/            # Servicios de autenticación y conexión API
-│   │   └── App.tsx
-│   └── package.json
-└── server/                      # Backend API Node.js + Express + TypeScript + Prisma + MySQL 8.0
-    ├── .env                     # Configuración de puerto y DATABASE_URL
-    ├── cooperativa_financiera_mysql.sql # Esquema maestro DDL (56 tablas, vistas, triggers, SPs)
-    ├── prisma/
-    │   └── schema.prisma        # Modelos ORM sincronizados con MySQL (tablas en inglés)
-    ├── scripts/
-    │   ├── init-db.mjs          # Inicializador automatizado de BD
-    │   ├── seed-test-data.ts    # Seeder con datos de prueba
-    │   └── test-endpoints.ts    # Suite de validación de endpoints
-    ├── src/
-    │   ├── config/              # Parámetros y constantes de negocio centralizadas (parameters.ts)
-    │   ├── lib/                 # Singleton de Prisma Client
-    │   ├── routes/              # Routers REST modulares (auth, clientes, prestamos, etc.)
-    │   ├── utils/               # Serializador BigInt y Decimal (serializer.ts)
-    │   └── index.ts             # Servidor Express y montaje de rutas
-    └── package.json
+├── banco/
+│   ├── .github/
+│   │   └── copilot-instructions.md # Réplica para Copilot en workspace interno
+│   ├── AGENTS.md                # Réplica maestra para navegación interna
+│   ├── web-interna/             # Frontend React 19 + TypeScript + Vite + Lucide Icons
+│   │   ├── src/
+│   │   │   ├── pages/
+│   │   │   │   ├── login/       # Login interno (correo/cuenta + contraseña)
+│   │   │   │   └── supervisor/  # Módulos: Administración de Clientes, Reportes, Préstamos, Cobranza, etc.
+│   │   │   ├── services/        # Servicios de autenticación y conexión API
+│   │   │   └── App.tsx
+│   │   └── package.json
+│   └── server/                  # Backend API Node.js + Express + TypeScript + Prisma + MySQL 8.0
+│       ├── .env                 # Configuración de puerto y DATABASE_URL
+│       ├── cooperativa_financiera_mysql.sql # Esquema maestro DDL (56 tablas, vistas, triggers, SPs)
+│       ├── prisma/
+│       │   └── schema.prisma    # Modelos ORM sincronizados con MySQL (tablas en inglés)
+│       ├── scripts/
+│       │   ├── init-db.mjs      # Inicializador automatizado de BD
+│       │   ├── seed-test-data.ts# Seeder con datos de prueba
+│       │   └── test-endpoints.ts# Suite de validación de endpoints
+│       ├── src/
+│       │   ├── config/          # Parámetros y constantes de negocio centralizadas (parameters.ts)
+│       │   ├── lib/             # Singleton de Prisma Client
+│       │   ├── routes/          # Routers REST modulares (auth, clientes, prestamos, etc.)
+│       │   ├── utils/           # Serializador BigInt y Decimal (serializer.ts)
+│       │   └── index.ts         # Servidor Express y montaje de rutas
+│       └── package.json
 ```
 
 ### Comandos de Operación Obligatorios
-* **Frontend:** `npm run dev` en `web-interna` (puerto `5173`).
-* **Backend:** `npm run dev` en `server` (puerto `3001`).
-* **Compilación Frontend:** `npm run build` en `web-interna` (`tsc -b && vite build`).
-* **Compilación Backend:** `npm run build` en `server` (`tsc`).
-* **Inicializar BD local:** `npm run db:init` en `server`.
-* **Ejecutar Suite de Pruebas de Endpoints:** `npx tsx scripts/test-endpoints.ts` en `server`.
-* **Panel visual de BD:** `npx prisma studio` en `server` (puerto `5555`).
+* **Frontend:** `npm run dev` en `banco/web-interna` (puerto `5173`).
+* **Backend:** `npm run dev` en `banco/server` (puerto `3001`).
+* **Compilación Frontend:** `npm run build` en `banco/web-interna` (`tsc -b && vite build`).
+* **Compilación Backend:** `npm run build` en `banco/server` (`tsc`).
+* **Inicializar BD local:** `npm run db:init` en `banco/server`.
+* **Ejecutar Suite de Pruebas de Endpoints:** `npx tsx scripts/test-endpoints.ts` en `banco/server`.
+* **Panel visual de BD:** `npx prisma studio` en `banco/server` (puerto `5555`).
 
 ---
 
@@ -67,7 +71,7 @@ banco/
 | :--- | :--- | :--- |
 | **Cliente / Socio** | `CLIENTE` | Consulta de saldo, movimientos, rendimientos, número de cuenta; visualización clara de pagos de crédito, aportaciones y beneficios de la cooperativa; recepción de notificaciones; agenda de eventos de ahorro; canje de puntos. |
 | **Personal de canalización** | `CANALIZACION` | Recepción en puerta, asignación y revisión de turnos con prioridad ponderada, derivación al área correspondiente (ventanilla, escritorio o caja), asistencia en el primer acceso a la app. |
-| **Ejecutivo de escritorio** | `EJECUTIVO` | Alta de clientes y expediente digital en 1 sesión; captura de ingresos declarados/comprobados; evaluación integral de capacidad de pago (ingresos vs. compromisos actuales); propuesta de préstamos, inversiones y seguros; actualización de expedientes. |
+| **Ejecutivo de escritorio** | `EJECUTIVO` | Flujo cronológico de 7 módulos en `Escritorio.tsx`: Inicio, Alta de cliente en 1 sesión (datos, RFC, CURP de 18 caracteres, ingresos vs egresos), Directorio de socios, Visor de Solicitudes en supervisión, Catálogo de Productos (Préstamos, Inversiones, Ahorro), Seguimiento de resoluciones y Bitácora de Actividad con fecha/hora. |
 | **Cajero** | `CAJERO` | Apertura/cierre de sesión de caja con arqueo por denominación de billetes y monedas; recepción de depósitos y retiros en efectivo; recepción y registro de abonos a préstamos (generando puntos por abono); emisión de comprobantes con folio y cajero que atendió. |
 | **Supervisor** | `SUPERVISOR` | Autorización/rechazo de préstamos dudosos (con justificación obligatoria y nota de riesgo); resolución de excepciones; modificación autorizada de condiciones de pago con historial inmutable; consulta de reportes de productividad diferenciados por puesto. |
 | **Cobranza** | `COBRANZA` | Gestión de cartera vencida calculada en días hábiles (1-2 meses recuperable vs. > 60 días no recuperable/crítica); registro de llamadas y acuerdos de pago; exportación mensual a Excel para despacho externo. |
@@ -197,6 +201,33 @@ Permite evaluar el rendimiento de la sucursal diferenciando estrictamente las fu
 
 ---
 
+### 5.5. Módulo y Flujo Cronológico del Ejecutivo de Escritorio (`Escritorio.tsx`) — Rol EJECUTIVO
+El Ejecutivo de Escritorio opera bajo un **flujo estructurado de 7 pasos cronológicos**, delimitando con precisión su función frente al Supervisor:
+
+```mermaid
+flowchart LR
+    P1["1. Inicio - Escritorio\n(Panel principal)"] --> P2["2. Registrar cliente\n(Captura del socio)"]
+    P2 --> P3["3. Clientes\n(Directorio oficial)"]
+    P3 --> P4["4. Solicitudes\n(Revisión supervisor)"]
+    P4 --> P5["5. Productos\n(Préstamos/Ahorro/Inv)"]
+    P5 --> P6["6. Seguimiento\n(Resultado supervisor)"]
+    P6 --> P7["7. Actividad\n(Historial cronológico)"]
+```
+
+1. **Inicio – Escritorio (`Inicio.tsx`):** Primera pantalla tras iniciar sesión (`ejecutivo@banuat.local` / `Ejecutivo123!`). Presenta el resumen general del día, métricas consolidadas (socios en espera, solicitudes activas, total registrados) y accesos rápidos a las funciones operativas.
+2. **Registrar cliente (`RegistrarCliente.tsx`):** Captura obligatoria de los datos del nuevo socio: Nombre completo, Correo electrónico, Teléfono, RFC, CURP único (18 caracteres), Domicilio, Ingreso mensual comprobado/declarado y Egresos reportados. Al guardar, se genera la solicitud de registro y se envía al supervisor para su revisión y autorización.
+3. **Clientes (`Clientes.tsx`):** Consulta del directorio oficial de socios registrados. Permite revisar datos de contacto, número de cuenta bancaria (`BAN-XXXX` / `ACC-XXXX`) y estado de autorización (`Activo`, `Pendiente de documentos`, etc.).
+4. **Solicitudes (`Solicitudes.tsx`):** Visor específico para auditar el estado de los expedientes de registro de nuevos socios enviados al supervisor (`Pendientes`, `En revisión`, `Aprobadas`, `Rechazadas`, `Con correcciones`).
+5. **Productos (`Productos.tsx`):** Catálogo de productos financieros disponibles clasificados en 3 categorías:
+   - **Préstamos:** Personal, empresarial, etc.
+   - **Inversiones:** A plazo fijo, rendimientos crecientes.
+   - **Ahorro:** Cuentas tradicionales, ahorro programado.
+   El ejecutivo selecciona un producto, captura el monto y plazo para el socio, valida preliminarmente la capacidad de pago ($\le 40\%$) y genera la solicitud formal que se envía al supervisor.
+6. **Seguimiento (`Seguimiento.tsx`):** Consulta del estado y resolución final de las solicitudes de productos financieros enviadas al supervisor, visualizando observaciones, notas de riesgo, autorizaciones o rechazos.
+7. **Actividad (`Actividad.tsx`):** Historial inmutable de auditoría con la cronología de todas las operaciones realizadas por el ejecutivo (atención a clientes, registro de expedientes, solicitudes enviadas) con su correspondiente fecha y hora (`timestamp`).
+
+---
+
 ## 6. Parámetros del Sistema (`parameters.ts`)
 
 Centralizados en [`banco/server/src/config/parameters.ts`](file:///c:/Users/CESAR/Desktop/Clem%20Dumpster/BancoMex-CdS/banco/server/src/config/parameters.ts):
@@ -272,6 +303,13 @@ Centralizados en [`banco/server/src/config/parameters.ts`](file:///c:/Users/CESA
    * Todo endpoint que realice una mutación en base de datos debe identificar el `app_user_id` del usuario autenticado y pasarlo al contexto de auditoría (`@app_user_id` o registro en `audit_logs`).
 
 5. **Consistencia de Frontend y UI/UX:**
-   * En `web-interna`, los iconos se importan desde `lucide-react`.
+   * En `banco/web-interna`, los iconos se importan desde `lucide-react`.
    * Diseña pensando en **accesibilidad para socios mayores**: contraste tipográfico claro, botones con buen área táctil, estados de carga visibles y manejo de errores explicativo.
-   * No recrees flujos de auto-registro en la web interna; respeta la sesión preconfigurada de supervisor (`supervisor@banuat.local` / `Banuat123!`) o las APIs de autenticación de personal.
+   * No recrees flujos de auto-registro en la web interna; respeta la sesión preconfigurada de supervisor (`supervisor@banuat.local` / `Banuat123!`), ejecutivo (`ejecutivo@banuat.local` / `Ejecutivo123!`) o canalización (`canalizacion@banuat.local` / `Canalizacion123!`).
+
+6. **Mitigación de Discrepancias y Compatibilidad Multi-Entorno (MySQL 8 vs MariaDB/XAMPP):**
+   * **Collation y Codificación:** Utiliza siempre `utf8mb4_unicode_ci` tanto en scripts DDL como en tablas. No utilices collations exclusivas de MySQL 8 recientes (`utf8mb4_0900_ai_ci`) para asegurar que el código funcione sin errores en MariaDB 10.4+ (XAMPP).
+   * **Funciones SQL:** NUNCA utilices funciones exclusivas de MySQL 8 no portables como `JSON_TABLE()`. Emplea `JSON_EXTRACT` y bucles iterativos `WHILE` para garantizar compatibilidad con XAMPP.
+   * **Nombre Oficial de la BD:** La base de datos SIEMPRE se llama `cooperativa_financiera`. Verifica que tu archivo `.env` apunte a `cooperativa_financiera` y no a nombres antiguos como `bancomex`.
+   * **Normalización de Saltos de Línea:** Todos los repositorios deben incluir `.gitattributes` para forzar `eol=lf` y prevenir conflictos masivos de `\r\n` vs `\n`.
+   * **Ejecución de Suites de Pruebas:** Las suites de pruebas de integración HTTP (`npm run test:all`, `npm run test:requerimientos`, `npm run test:escritorio`) requieren que el servidor backend esté encendido previamente en `http://localhost:3001` (`npm run dev`).

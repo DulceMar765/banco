@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   ArrowLeft,
   BookOpen,
@@ -86,48 +86,7 @@ const promocionesIniciales: Promocion[] = [
   },
 ]
 
-const catalogosIniciales: Catalogo[] = [
-  {
-    id: 1,
-    nombre: 'Promociones de Navidad 2026',
-    descripcion: 'Beneficios especiales para nuestros clientes durante la temporada navideña.',
-    temporada: 'Navidad',
-    inicio: '2026-12-01',
-    fin: '2026-12-31',
-    estado: 'Publicado',
-    portada: 'navidad',
-    promociones: [
-      { ...promocionesIniciales[0], seleccionada: true },
-      { ...promocionesIniciales[1], seleccionada: true },
-    ],
-  },
-  {
-    id: 2,
-    nombre: 'Regreso a clases',
-    descripcion: 'Promociones y beneficios para apoyar a las familias.',
-    temporada: 'Regreso a clases',
-    inicio: '2026-08-01',
-    fin: '2026-09-15',
-    estado: 'Inactivo',
-    portada: 'escuela',
-    promociones: [
-      { ...promocionesIniciales[3], seleccionada: true },
-    ],
-  },
-  {
-    id: 3,
-    nombre: 'Campaña de verano',
-    descripcion: 'Opciones especiales y beneficios de temporada.',
-    temporada: 'Verano',
-    inicio: '2026-07-01',
-    fin: '2026-07-31',
-    estado: 'En preparación',
-    portada: 'verano',
-    promociones: [
-      { ...promocionesIniciales[2], seleccionada: true },
-    ],
-  },
-]
+const catalogosIniciales: Catalogo[] = []
 
 const estadoClase = (estado: EstadoCatalogo) => {
   if (estado === 'Publicado') return 'mcatalogo-estado publicado'
@@ -138,6 +97,34 @@ const estadoClase = (estado: EstadoCatalogo) => {
 export default function ModuloCatalogos({ onVolver }: ModuloCatalogosProps) {
   const [catalogos, setCatalogos] = useState<Catalogo[]>(catalogosIniciales)
   const promociones = promocionesIniciales
+
+  useEffect(() => {
+    let activo = true
+    fetch('http://localhost:3001/api/catalogos/temporadas')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: any[]) => {
+        if (!activo || !Array.isArray(data)) return
+        const mapeados: Catalogo[] = data.map((d, idx) => ({
+          id: Number(d.id) || idx + 1,
+          nombre: d.nombre || 'Catálogo de Temporada',
+          descripcion: d.descripcion || 'Beneficios para socios',
+          temporada: d.temporada || 'General',
+          inicio: d.inicio || '2026-11-01',
+          fin: d.fin || '2026-12-31',
+          estado: (d.estado as EstadoCatalogo) || 'Publicado',
+          portada: 'navidad',
+          promociones: promocionesIniciales.slice(0, 2),
+        }))
+        setCatalogos(mapeados)
+      })
+      .catch((err) => {
+        console.warn('Backend desconectado para catalogos:', err)
+      })
+
+    return () => {
+      activo = false
+    }
+  }, [])
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('Todos')
   const [catalogoSeleccionado, setCatalogoSeleccionado] = useState<number | null>(null)

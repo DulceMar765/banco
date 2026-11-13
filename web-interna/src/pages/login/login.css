@@ -251,18 +251,6 @@
   background: var(--gris);
 }
 
-.login-formulario__punto::after {
-  content: '';
-  position: absolute;
-  top: 46px;
-  left: 210px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 3px solid var(--naranja);
-  background: rgba(255, 122, 26, 0.12);
-}
-
 .login-formulario__hojas {
   position: absolute;
   top: 16px;

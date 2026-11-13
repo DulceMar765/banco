@@ -486,6 +486,89 @@ export default function Seguimiento({
 
                                 <p>{observaciones}</p>
                               </div>
+
+                              {/* Desglose Financiero y Cuota */}
+                              {typeof solicitud.monto === "number" && (
+                                <div
+                                  style={{
+                                    marginTop: "14px",
+                                    padding: "14px",
+                                    background: "#f9fafb",
+                                    borderRadius: "10px",
+                                    border: "1px solid #e5e7eb",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "8px",
+                                    fontSize: "12.5px"
+                                  }}
+                                >
+                                  <strong style={{ color: "#374151" }}>Desglose de Amortización y Pagos Estimados:</strong>
+                                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px" }}>
+                                    <div>
+                                      <span style={{ color: "#6b7280" }}>Cuota mensual aproximada:</span>
+                                      <strong style={{ display: "block", color: "#166534" }}>
+                                        ${Number((solicitud.monto * 1.15 / 12).toFixed(2)).toLocaleString("es-MX")} / mes
+                                      </strong>
+                                    </div>
+                                    <div>
+                                      <span style={{ color: "#6b7280" }}>Amortización mensual a capital:</span>
+                                      <strong style={{ display: "block", color: "#1f2937" }}>
+                                        ${Number((solicitud.monto / 12).toFixed(2)).toLocaleString("es-MX")}
+                                      </strong>
+                                    </div>
+                                    <div>
+                                      <span style={{ color: "#6b7280" }}>Intereses mensuales devengados:</span>
+                                      <strong style={{ display: "block", color: "#d97706" }}>
+                                        ${Number((solicitud.monto * 0.15 / 12).toFixed(2)).toLocaleString("es-MX")}
+                                      </strong>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Aviso de restricción de desembolso para autorizadas */}
+                              {solicitud.estadoNormalizado === "autorizada" && (
+                                <div
+                                  style={{
+                                    marginTop: "12px",
+                                    padding: "12px 14px",
+                                    background: "#fef3c7",
+                                    border: "1px solid #f59e0b",
+                                    borderRadius: "8px",
+                                    color: "#92400e",
+                                    fontSize: "12px",
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: "8px"
+                                  }}
+                                >
+                                  <AlertCircle size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
+                                  <div>
+                                    <strong>Aviso Operativo de Desembolso:</strong> Préstamo autorizado por supervisión. El estatus se mantendrá en <em>"Autorizado - Pendiente de Desembolso"</em> dado que los desembolsos físicos y dispersiones inmediatas están temporalmente restringidos en el sistema.
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Aviso de regla de fin de mes */}
+                              <div
+                                style={{
+                                  marginTop: "8px",
+                                  padding: "10px 14px",
+                                  background: "#f0fdf4",
+                                  border: "1px solid #86efac",
+                                  borderRadius: "8px",
+                                  color: "#166534",
+                                  fontSize: "11.5px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px"
+                                }}
+                              >
+                                <CalendarDays size={15} />
+                                <span>
+                                  <strong>Regla de fin de mes:</strong> De acuerdo con la normativa de BANUAT, cualquier crédito autorizado el último día de mes comenzará a reflejar movimientos financieros e intereses a partir del día 1 del siguiente mes.
+                                </span>
+                              </div>
                             </div>
                           </td>
                         </tr>

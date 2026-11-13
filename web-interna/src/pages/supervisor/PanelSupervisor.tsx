@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import {
   Bell,
@@ -15,6 +15,7 @@ import {
   Search,
   Wallet,
   Users,
+  LogOut,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -104,8 +105,35 @@ const MODULOS: Modulo[] = [
   },
 ]
 
-export default function PanelSupervisor() {
+type PanelSupervisorProps = {
+  onLogout?: () => void
+}
+
+export default function PanelSupervisor({ onLogout }: PanelSupervisorProps = {}) {
   const [activo, setActivo] = useState('inicio')
+  const [prestamosPendientes, setPrestamosPendientes] = useState<any[]>([])
+
+  useEffect(() => {
+    let activo = true
+    fetch('http://localhost:3001/api/prestamos/solicitudes')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: any[]) => {
+        if (!activo || !Array.isArray(data)) return
+        setPrestamosPendientes(
+          data.filter(
+            (d) =>
+              d.estado === 'SUBMITTED' ||
+              d.estado === 'UNDER_REVIEW' ||
+              d.estado === 'PENDIENTE'
+          )
+        )
+      })
+      .catch(() => {})
+
+    return () => {
+      activo = false
+    }
+  }, [activo])
 
   return (
     <div className="sp-fondo">
@@ -147,6 +175,19 @@ export default function PanelSupervisor() {
                 <Icono size={20} />
               </button>
             ))}
+
+            {onLogout && (
+              <button
+                type="button"
+                className="sp-sidebar__item"
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+                onClick={onLogout}
+                style={{ marginTop: 'auto', color: '#ef4444' }}
+              >
+                <LogOut size={20} />
+              </button>
+            )}
 
           </nav>
         </aside>
@@ -195,6 +236,33 @@ export default function PanelSupervisor() {
 
                 <ChevronDown size={16} aria-hidden="true" />
               </div>
+
+              {onLogout && (
+                <button
+                  type="button"
+                  className="sp-icono-btn sp-logout-btn"
+                  title="Cerrar sesión"
+                  aria-label="Cerrar sesión"
+                  onClick={onLogout}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '8px',
+                    color: '#dc2626',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    marginLeft: '8px',
+                  }}
+                >
+                  <LogOut size={16} />
+                  <span>Salir</span>
+                </button>
+              )}
 
             </div>
           </header>
@@ -268,16 +336,68 @@ export default function PanelSupervisor() {
                   </span>
                 </div>
 
-                <div className="sp-vacio">
-                  <HandCoins size={30} />
-
-                  <p>No hay solicitudes registradas.</p>
-
-                  <small>
-                    Cuando se registren solicitudes de préstamo,
-                    sus cantidades y estados aparecerán aquí.
-                  </small>
-                </div>
+                {prestamosPendientes.length > 0 ? (
+                  <div style={{ padding: '16px 0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', color: '#555' }}>
+                        Tienes <strong>{prestamosPendientes.length}</strong> solicitud(es) de préstamo pendientes de revisión o dudosas.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setActivo('prestamos')}
+                        style={{
+                          padding: '6px 14px',
+                          background: '#1d4ed8',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                        }}
+                      >
+                        Revisar bandeja
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {prestamosPendientes.slice(0, 3).map((sol) => (
+                        <div
+                          key={sol.id}
+                          onClick={() => setActivo('prestamos')}
+                          style={{
+                            padding: '10px 14px',
+                            background: '#f8fafc',
+                            borderRadius: '8px',
+                            border: '1px solid #e2e8f0',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <div>
+                            <strong style={{ fontSize: '13px', color: '#1e293b' }}>{sol.cliente}</strong>
+                            <div style={{ fontSize: '11px', color: '#64748b' }}>
+                              {sol.producto} · {sol.folio}
+                            </div>
+                          </div>
+                          <span style={{ fontWeight: 700, color: '#0f766e', fontSize: '13px' }}>
+                            ${Number(sol.montoSolicitado).toLocaleString('es-MX')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="sp-vacio">
+                    <HandCoins size={30} />
+                    <p>No hay solicitudes pendientes.</p>
+                    <small>
+                      Cuando el personal de escritorio registre solicitudes de préstamo,
+                      aparecerán aquí para tu revisión inmediata.
+                    </small>
+                  </div>
+                )}
               </section>
 
               {/* PERFIL DEL SUPERVISOR */}
@@ -389,12 +509,12 @@ export default function PanelSupervisor() {
                             <span>{descripcion}</span>
                           </span>
 
-                          {pendientes > 0 && (
+                          {((id === 'prestamos' ? prestamosPendientes.length : pendientes) > 0) && (
                             <span
                               className="sp-modulo__badge"
-                              aria-label={`${pendientes} pendientes`}
+                              aria-label={`${id === 'prestamos' ? prestamosPendientes.length : pendientes} pendientes`}
                             >
-                              {pendientes}
+                              {id === 'prestamos' ? prestamosPendientes.length : pendientes}
                             </span>
                           )}
                         </button>

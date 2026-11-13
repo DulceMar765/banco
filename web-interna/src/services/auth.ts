@@ -1,96 +1,87 @@
-export type Rol = 'cliente' | 'supervisor' | 'canalizacion' | 'ejecutivo'
+export type Rol = 'cliente' | 'supervisor' | 'canalizacion' | 'ejecutivo';
 
 export type Usuario = {
-  correo: string
+  correo: string;
+  contrasena?: string;
+  rol: Rol;
+  nombre?: string;
+  token?: string;
+  id?: string;
+};
+
+const CLAVE_SESION = 'banuat_sesion';
+
+export async function iniciarSesion(
+  correo: string,
   contrasena: string
-  rol: Rol
-}
+): Promise<{ ok: boolean; usuario?: Usuario; error?: string; status?: number }> {
+  const email = correo.trim().toLowerCase();
 
-const CLAVE = 'banuat_usuarios'
-
-const SUPERVISOR = {
-  correo: 'supervisor@banuat.local',
-  contrasena: 'Banuat123!',
-  rol: 'supervisor' as const,
-}
-
-const CANALIZACION = {
-  correo: 'canalizacion@banuat.local',
-  contrasena: 'Canalizacion123!',
-  rol: 'canalizacion' as const,
-}
-
-const EJECUTIVO = {
-  correo: 'ejecutivo@banuat.local',
-  contrasena: 'Ejecutivo123!',
-  rol: 'ejecutivo' as const,
-}
-
-function obtenerUsuarios(): Usuario[] {
   try {
-    const usuarios = JSON.parse(
-      localStorage.getItem(CLAVE) || '[]',
-    ) as Usuario[]
+    const res = await fetch('http://localhost:3001/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correo: email, contrasena })
+    });
 
-    let huboCambios = false
+    const data = await res.json().catch(() => ({}));
 
-    if (!usuarios.some(u => u.correo === SUPERVISOR.correo)) {
-      usuarios.push(SUPERVISOR)
-      huboCambios = true
+    if (!res.ok) {
+      if (res.status === 429) {
+        return {
+          ok: false,
+          status: 429,
+          error: data.error || 'Cuenta bloqueada temporalmente por seguridad. Intenta en 15 minutos.'
+        };
+      }
+      return {
+        ok: false,
+        status: res.status,
+        error: data.error || 'Correo o contraseña incorrectos.'
+      };
     }
 
-    if (!usuarios.some(u => u.correo === CANALIZACION.correo)) {
-      usuarios.push(CANALIZACION)
-      huboCambios = true
-    }
+    let rolNormalizado: Rol = 'ejecutivo';
+    const rolRaw = String(data.rol || '').toUpperCase();
+    if (rolRaw === 'SUPERVISOR') rolNormalizado = 'supervisor';
+    else if (rolRaw === 'CANALIZACION') rolNormalizado = 'canalizacion';
+    else if (rolRaw === 'CLIENTE') rolNormalizado = 'cliente';
+    else if (rolRaw === 'EJECUTIVO' || rolRaw === 'EXECUTIVE') rolNormalizado = 'ejecutivo';
 
-    if (!usuarios.some(u => u.correo === EJECUTIVO.correo)) {
-      usuarios.push(EJECUTIVO)
-      huboCambios = true
-    }
+    const usuario: Usuario = {
+      id: data.id ? String(data.id) : undefined,
+      correo: data.correo || email,
+      rol: rolNormalizado,
+      nombre: data.nombre || 'Personal BANUAT'
+    };
 
-    if (huboCambios) {
-      localStorage.setItem(CLAVE, JSON.stringify(usuarios))
-    }
+    localStorage.setItem(CLAVE_SESION, JSON.stringify(usuario));
 
-    return usuarios
-  } catch {
-    const usuarios = [SUPERVISOR, CANALIZACION, EJECUTIVO]
-    localStorage.setItem(CLAVE, JSON.stringify(usuarios))
-    return usuarios
+    return {
+      ok: true,
+      status: 200,
+      usuario
+    };
+  } catch (error) {
+    console.warn('Backend no disponible para login, intentando autenticación local de contingencia:', error);
+    if (email === 'supervisor@banuat.local' && contrasena === 'Banuat123!') {
+      const u: Usuario = { correo: email, rol: 'supervisor', nombre: 'Carlos Ramírez' };
+      localStorage.setItem(CLAVE_SESION, JSON.stringify(u));
+      return { ok: true, usuario: u };
+    }
+    if (email === 'ejecutivo@banuat.local' && contrasena === 'Ejecutivo123!') {
+      const u: Usuario = { correo: email, rol: 'ejecutivo', nombre: 'Laura Mendoza' };
+      localStorage.setItem(CLAVE_SESION, JSON.stringify(u));
+      return { ok: true, usuario: u };
+    }
+    if (email === 'canalizacion@banuat.local' && contrasena === 'Canalizacion123!') {
+      const u: Usuario = { correo: email, rol: 'canalizacion', nombre: 'Pedro Gómez' };
+      localStorage.setItem(CLAVE_SESION, JSON.stringify(u));
+      return { ok: true, usuario: u };
+    }
+    return {
+      ok: false,
+      error: 'No fue posible conectar con el servidor de autenticación.'
+    };
   }
-}
-
-export function registrarUsuario(
-  correo: string,
-  contrasena: string,
-): string | null {
-  const email = correo.trim().toLowerCase()
-  const usuarios = obtenerUsuarios()
-
-  if (usuarios.some(u => u.correo.toLowerCase() === email)) {
-    return 'Este correo ya está registrado.'
-  }
-
-  usuarios.push({
-    correo: email,
-    contrasena,
-    rol: 'cliente',
-  })
-
-  localStorage.setItem(CLAVE, JSON.stringify(usuarios))
-  return null
-}
-
-export function iniciarSesion(
-  correo: string,
-  contrasena: string,
-): Usuario | null {
-  const email = correo.trim().toLowerCase()
-
-  return obtenerUsuarios().find(
-    u =>
-      u.correo.toLowerCase() === email &&
-      u.contrasena === contrasena,
-  ) ?? null
 }

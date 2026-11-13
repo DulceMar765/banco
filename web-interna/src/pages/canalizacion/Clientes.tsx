@@ -12,7 +12,6 @@ import {
   MapPin,
   FileText,
   UserRound,
-  CalendarDays,
 } from "lucide-react";
 
 import type { Cliente } from "./Escritorio";
@@ -23,62 +22,8 @@ type ClientesProps = {
   clientes: Cliente[];
   busqueda: string;
   onRegistrar: () => void;
+  onIniciarSolicitud?: (cliente: Cliente) => void;
 };
-
-const clientesDemo: Cliente[] = [
-  {
-    id: 1,
-    nombre: "María Fernanda López",
-    correo: "maria.lopez@email.com",
-    telefono: "833 123 4567",
-    cuenta: "BAN-0001",
-    estado: "Activo",
-    rfc: "LOMF950315AB1",
-    curp: "LOMF950315MTSXXX01",
-    direccion: "Col. Centro, Tampico, Tamaulipas",
-    ingreso: 18000,
-    tipoIngreso: "Declarado",
-  },
-  {
-    id: 2,
-    nombre: "Carlos Eduardo Pérez",
-    correo: "carlos.perez@email.com",
-    telefono: "833 456 7890",
-    cuenta: "BAN-0002",
-    estado: "Activo",
-    rfc: "PECE900720CD2",
-    curp: "PECE900720HTSXXX02",
-    direccion: "Col. Universidad, Tampico, Tamaulipas",
-    ingreso: 22000,
-    tipoIngreso: "Declarado",
-  },
-  {
-    id: 3,
-    nombre: "Ana Sofía Martínez",
-    correo: "ana.martinez@email.com",
-    telefono: "833 987 6543",
-    cuenta: "BAN-0003",
-    estado: "Pendiente de documentos",
-    rfc: "MASA980412EF3",
-    curp: "MASA980412MTSXXX03",
-    direccion: "Col. Laguna de la Puerta, Tampico, Tamaulipas",
-    ingreso: 14500,
-    tipoIngreso: "Comprobable",
-  },
-  {
-    id: 4,
-    nombre: "Roberto Sánchez García",
-    correo: "roberto.sanchez@email.com",
-    telefono: "833 222 3344",
-    cuenta: "BAN-0004",
-    estado: "En revisión",
-    rfc: "SAGR870908GH4",
-    curp: "SAGR870908HTSXXX04",
-    direccion: "Col. Petrolera, Tampico, Tamaulipas",
-    ingreso: 25000,
-    tipoIngreso: "Declarado",
-  },
-];
 
 function moneda(cantidad?: number) {
   if (cantidad === undefined) return "No registrado";
@@ -94,12 +39,13 @@ function Clientes({
   clientes,
   busqueda,
   onRegistrar,
+  onIniciarSolicitud,
 }: ClientesProps) {
   const [clienteSeleccionado, setClienteSeleccionado] =
     useState<Cliente | null>(null);
 
   const listaClientes = useMemo(() => {
-    const todos = [...clientesDemo, ...clientes];
+    const todos = clientes;
 
     const termino = busqueda.toLowerCase().trim();
 
@@ -144,18 +90,31 @@ function Clientes({
     return (
       <section className="es-section clientes">
 
-        <div className="clientes-detail-heading">
-          <button
-            className="es-btn es-btn-secondary"
-            onClick={() => setClienteSeleccionado(null)}
-          >
-            <ArrowLeft size={16} />
-            Volver a clientes
-          </button>
+        <div className="clientes-detail-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <button
+              className="es-btn es-btn-secondary"
+              onClick={() => setClienteSeleccionado(null)}
+            >
+              <ArrowLeft size={16} />
+              Volver a clientes
+            </button>
 
-          <span className={`es-status ${estadoClase(cliente.estado)}`}>
-            {cliente.estado}
-          </span>
+            <span className={`es-status ${estadoClase(cliente.estado)}`}>
+              {cliente.estado}
+            </span>
+          </div>
+
+          {onIniciarSolicitud && (
+            <button
+              className="es-btn es-btn-primary"
+              onClick={() => onIniciarSolicitud(cliente)}
+              style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
+            >
+              <FileText size={16} />
+              Solicitar Producto / Crédito
+            </button>
+          )}
         </div>
 
         <div className="clientes-profile-card">
@@ -357,13 +316,13 @@ function Clientes({
 
         <div className="es-stat-card">
           <div className="es-stat-icon clientes-stat-purple">
-            <CalendarDays size={21} />
+            <CreditCard size={21} />
           </div>
 
           <div className="es-stat-content">
-            <span>Registros de ejemplo</span>
-            <strong>{clientesDemo.length}</strong>
-            <small>Datos demostrativos</small>
+            <span>Cuentas vinculadas</span>
+            <strong>{listaClientes.filter((c) => Boolean(c.cuenta)).length}</strong>
+            <small>Cuentas activas en BD</small>
           </div>
         </div>
 
@@ -426,7 +385,7 @@ function Clientes({
                     </span>
                   </td>
 
-                  <td>
+                  <td style={{ whiteSpace: "nowrap" }}>
                     <button
                       className="es-action-button"
                       title="Ver expediente"
@@ -434,6 +393,16 @@ function Clientes({
                     >
                       <Eye size={16} />
                     </button>
+                    {onIniciarSolicitud && (
+                      <button
+                        className="es-action-button"
+                        style={{ color: "#d97706", marginLeft: "6px" }}
+                        title="Nueva solicitud financiera para este socio"
+                        onClick={() => onIniciarSolicitud(cliente)}
+                      >
+                        <FileText size={16} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

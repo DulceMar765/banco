@@ -119,6 +119,22 @@ prestamosRouter.post('/:id/autorizar', async (req: Request, res: Response) => {
       }
     });
 
+    await prisma.audit_logs.create({
+      data: {
+        actor_user_id: appUserId,
+        entity_name: 'loan_applications',
+        entity_pk: solicitudId.toString(),
+        action: 'UPDATE',
+        new_data: JSON.stringify({
+          status,
+          decision,
+          comment: String(motivo),
+          decision_at: decisionAt.toISOString()
+        }),
+        connection_id: BigInt(1)
+      }
+    });
+
     res.json(
       serializeData({
         mensaje: `Préstamo ${aprobada ? 'AUTORIZADO' : 'RECHAZADO'} con éxito.`,

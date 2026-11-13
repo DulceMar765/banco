@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Users,
   UserPlus,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import type { Cliente, Solicitud } from "./Escritorio";
+import { fetchActividades } from "../../services/escritorio";
 
 import "./Actividad.css";
 
@@ -97,14 +98,30 @@ const configuracionTipo = {
 
 function Actividad({ clientes, solicitudes }: ActividadProps) {
   const [filtro, setFiltro] = useState("todas");
+  const [actividadesBackend, setActividadesBackend] = useState<ActividadEjecutivo[]>([]);
+
+  useEffect(() => {
+    let activo = true;
+    fetchActividades().then((items) => {
+      if (activo && Array.isArray(items) && items.length > 0) {
+        setActividadesBackend(items as ActividadEjecutivo[]);
+      }
+    });
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   const [actividadSeleccionada, setActividadSeleccionada] =
     useState<ActividadEjecutivo | null>(null);
 
   const fechaHoy = obtenerFechaLocal();
 
-  // Construye el historial usando los registros existentes.
+  // Construye el historial usando los registros reales del backend o los registros existentes
   const actividades = useMemo<ActividadEjecutivo[]>(() => {
+    if (actividadesBackend.length > 0) {
+      return actividadesBackend;
+    }
     const registrosClientes: ActividadEjecutivo[] = clientes.map(
       (cliente) => {
         const fechaRegistro = new Date(cliente.id);
@@ -162,7 +179,7 @@ function Actividad({ clientes, solicitudes }: ActividadProps) {
         return fechaB.localeCompare(fechaA);
       }
     );
-  }, [clientes, solicitudes]);
+  }, [clientes, solicitudes, actividadesBackend]);
 
   // Estadísticas del día.
   const actividadesHoy = actividades.filter(

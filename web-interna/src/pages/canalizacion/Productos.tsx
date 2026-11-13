@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   HandCoins,
   PiggyBank,
@@ -32,107 +32,6 @@ export type ProductoFinanciero = {
 type ProductosProps = {
   onCrearSolicitud: (producto: ProductoFinanciero) => void;
 };
-
-const productos: ProductoFinanciero[] = [
-  {
-    id: 1,
-    nombre: "Préstamo Personal",
-    categoria: "Préstamos",
-    descripcion:
-      "Financiamiento para cubrir gastos personales, proyectos o necesidades familiares.",
-    montoMinimo: 5000,
-    montoMaximo: 50000,
-    tasa: "12% anual",
-    plazo: "6 a 24 meses",
-    beneficios: [
-      "Pagos mensuales fijos",
-      "Plazos flexibles",
-      "Sin destino específico",
-    ],
-    destacado: true,
-  },
-  {
-    id: 2,
-    nombre: "Préstamo Empresarial",
-    categoria: "Préstamos",
-    descripcion:
-      "Apoyo financiero para impulsar pequeños negocios y fortalecer actividades comerciales.",
-    montoMinimo: 10000,
-    montoMaximo: 150000,
-    tasa: "14% anual",
-    plazo: "12 a 36 meses",
-    beneficios: [
-      "Financiamiento para negocios",
-      "Plazos adaptables",
-      "Atención personalizada",
-    ],
-  },
-  {
-    id: 3,
-    nombre: "Préstamo de Emergencia",
-    categoria: "Préstamos",
-    descripcion:
-      "Alternativa de financiamiento para atender gastos imprevistos y situaciones urgentes.",
-    montoMinimo: 3000,
-    montoMaximo: 25000,
-    tasa: "10% anual",
-    plazo: "3 a 12 meses",
-    beneficios: [
-      "Montos accesibles",
-      "Plazos cortos",
-      "Proceso de solicitud sencillo",
-    ],
-  },
-  {
-    id: 4,
-    nombre: "Inversión Creciente",
-    categoria: "Inversiones",
-    descripcion:
-      "Producto diseñado para generar rendimientos mediante una inversión a plazo fijo.",
-    montoMinimo: 10000,
-    montoMaximo: 200000,
-    tasa: "8% anual",
-    plazo: "6 a 12 meses",
-    beneficios: [
-      "Rendimiento establecido",
-      "Plazo definido",
-      "Seguimiento de inversión",
-    ],
-    destacado: true,
-  },
-  {
-    id: 5,
-    nombre: "Inversión Flexible",
-    categoria: "Inversiones",
-    descripcion:
-      "Opción de inversión para clientes que buscan administrar sus recursos a mediano plazo.",
-    montoMinimo: 5000,
-    montoMaximo: 100000,
-    tasa: "6% anual",
-    plazo: "3 a 6 meses",
-    beneficios: [
-      "Inversión accesible",
-      "Rendimientos periódicos",
-      "Diferentes plazos",
-    ],
-  },
-  {
-    id: 6,
-    nombre: "Cuenta de Ahorro",
-    categoria: "Ahorro",
-    descripcion:
-      "Una alternativa para guardar dinero y fomentar el hábito del ahorro.",
-    montoMinimo: 500,
-    montoMaximo: 0,
-    tasa: "3% anual",
-    plazo: "Disponible",
-    beneficios: [
-      "Ahorro constante",
-      "Consulta de movimientos",
-      "Disponibilidad de recursos",
-    ],
-  },
-];
 
 const categorias = [
   "Todos",
@@ -168,13 +67,30 @@ const formatoMoneda = (cantidad: number) => {
 export default function Productos({
   onCrearSolicitud,
 }: ProductosProps) {
+  const [listaProductos, setListaProductos] = useState<ProductoFinanciero[]>([]);
   const [categoriaActiva, setCategoriaActiva] =
     useState<Categoria>("Todos");
 
   const [busqueda, setBusqueda] = useState("");
 
+  useEffect(() => {
+    let activo = true;
+    fetch('http://localhost:3001/api/escritorio/productos')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: any[]) => {
+        if (!activo || !Array.isArray(data)) return;
+        setListaProductos(data);
+      })
+      .catch((err) => {
+        console.warn('Backend desconectado para productos:', err);
+      });
+    return () => {
+      activo = false;
+    };
+  }, []);
+
   const productosFiltrados = useMemo(() => {
-    return productos.filter((producto) => {
+    return listaProductos.filter((producto) => {
       const coincideCategoria =
         categoriaActiva === "Todos" ||
         producto.categoria === categoriaActiva;
@@ -185,17 +101,17 @@ export default function Productos({
 
       return coincideCategoria && coincideBusqueda;
     });
-  }, [categoriaActiva, busqueda]);
+  }, [listaProductos, categoriaActiva, busqueda]);
 
-  const totalPrestamos = productos.filter(
+  const totalPrestamos = listaProductos.filter(
     (p) => p.categoria === "Préstamos"
   ).length;
 
-  const totalInversiones = productos.filter(
+  const totalInversiones = listaProductos.filter(
     (p) => p.categoria === "Inversiones"
   ).length;
 
-  const totalAhorro = productos.filter(
+  const totalAhorro = listaProductos.filter(
     (p) => p.categoria === "Ahorro"
   ).length;
 
@@ -217,7 +133,7 @@ export default function Productos({
             <BriefcaseBusiness size={20} />
           </div>
           <div>
-            <strong>{productos.length}</strong>
+            <strong>{listaProductos.length}</strong>
             <span>Productos disponibles</span>
           </div>
         </div>

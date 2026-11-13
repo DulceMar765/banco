@@ -10,6 +10,10 @@
     "db:init": "node scripts/init-db.mjs",
     "seed:test": "tsx scripts/seed-test-data.ts",
     "test:requerimientos": "tsx scripts/test-requerimientos.ts",
+    "test:escritorio": "tsx scripts/test-escritorio.ts",
+    "test:casos-escritorio": "tsx scripts/test-casos-uso-escritorio.ts",
+    "test:bateria-maestra": "tsx scripts/test-bateria-maestra.ts",
+    "test:all": "tsx scripts/test-requerimientos.ts && tsx scripts/test-escritorio.ts && tsx scripts/test-casos-uso-escritorio.ts && tsx scripts/test-bateria-maestra.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
