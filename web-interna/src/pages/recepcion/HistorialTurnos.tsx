@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   History,
   Search,
@@ -12,9 +12,37 @@ import {
 
 import "./HistorialTurnos.css";
 
+type TurnoItem = {
+  id: string;
+  turno: string;
+  persona: string;
+  tipoPersona: string;
+  tramite: string;
+  fecha: string;
+  hora: string;
+  area: string;
+  estado: string;
+};
+
 const HistorialTurnos = () => {
   const [busqueda, setBusqueda] = useState("");
   const [fecha, setFecha] = useState("");
+  const [turnos, setTurnos] = useState<TurnoItem[]>([]);
+
+  useEffect(() => {
+    let url = "http://localhost:3001/api/turnos";
+    const params = new URLSearchParams();
+    if (fecha) params.append("fecha", fecha);
+    if (busqueda.trim()) params.append("busqueda", busqueda.trim());
+    if (params.toString()) url += `?${params.toString()}`;
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setTurnos(data);
+      })
+      .catch((err) => console.warn("Error al cargar historial de turnos:", err));
+  }, [fecha, busqueda]);
 
   return (
     <div className="ht-container">
@@ -118,22 +146,51 @@ const HistorialTurnos = () => {
             </thead>
 
             <tbody>
-              <tr>
-                <td colSpan={7}>
-                  <div className="ht-empty">
-                    <div className="ht-empty-icon">
-                      <History size={32} />
+              {turnos.length > 0 ? (
+                turnos.map((t) => (
+                  <tr key={t.id}>
+                    <td>
+                      <strong style={{ color: "#d97706" }}>{t.turno}</strong>
+                    </td>
+                    <td>{t.persona}</td>
+                    <td>{t.tipoPersona}</td>
+                    <td>{t.tramite}</td>
+                    <td>{t.fecha}</td>
+                    <td>{t.hora}</td>
+                    <td>
+                      <span
+                        style={{
+                          padding: "3px 8px",
+                          borderRadius: "6px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          backgroundColor: t.area === "Caja" ? "#fff7ed" : "#f0fdf4",
+                          color: t.area === "Caja" ? "#c2410c" : "#15803d",
+                        }}
+                      >
+                        {t.area}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7}>
+                    <div className="ht-empty">
+                      <div className="ht-empty-icon">
+                        <History size={32} />
+                      </div>
+
+                      <h3>No hay turnos registrados</h3>
+
+                      <p>
+                        Cuando se asignen turnos desde recepción,
+                        aparecerán aquí para su consulta.
+                      </p>
                     </div>
-
-                    <h3>No hay turnos registrados</h3>
-
-                    <p>
-                      Cuando se asignen turnos desde recepción,
-                      aparecerán aquí para su consulta.
-                    </p>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

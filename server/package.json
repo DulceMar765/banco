@@ -13,7 +13,8 @@
     "test:escritorio": "tsx scripts/test-escritorio.ts",
     "test:casos-escritorio": "tsx scripts/test-casos-uso-escritorio.ts",
     "test:bateria-maestra": "tsx scripts/test-bateria-maestra.ts",
-    "test:all": "tsx scripts/test-requerimientos.ts && tsx scripts/test-escritorio.ts && tsx scripts/test-casos-uso-escritorio.ts && tsx scripts/test-bateria-maestra.ts",
+    "test:nuevos-roles": "tsx scripts/test-nuevos-roles.ts",
+    "test:all": "tsx scripts/test-requerimientos.ts && tsx scripts/test-escritorio.ts && tsx scripts/test-casos-uso-escritorio.ts && tsx scripts/test-bateria-maestra.ts && tsx scripts/test-nuevos-roles.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"

@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import {
   Ticket,
   ClipboardList,
@@ -22,6 +23,23 @@ type InicioRecepcionProps = {
 export default function InicioRecepcion({
   onCambiarSeccion,
 }: InicioRecepcionProps) {
+  const [resumen, setResumen] = useState({
+    turnosHoy: 0,
+    enEspera: 0,
+    atendidos: 0,
+    tiempoPromedio: "8 min",
+  });
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/turnos/resumen")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.turnosHoy === "number") {
+          setResumen(data);
+        }
+      })
+      .catch((err) => console.warn("Error resumen turnos:", err));
+  }, []);
   return (
     <div className="ir-container">
 
@@ -64,7 +82,7 @@ export default function InicioRecepcion({
 
           <div className="ir-stat-info">
             <span>Turnos asignados</span>
-            <h2>—</h2>
+            <h2>{resumen.turnosHoy}</h2>
             <small>Registro del día</small>
           </div>
         </div>
@@ -75,9 +93,9 @@ export default function InicioRecepcion({
           </div>
 
           <div className="ir-stat-info">
-            <span>Clientes</span>
-            <h2>—</h2>
-            <small>Turnos asignados</small>
+            <span>En espera</span>
+            <h2>{resumen.enEspera}</h2>
+            <small>Turnos pendientes</small>
           </div>
         </div>
 
@@ -87,9 +105,9 @@ export default function InicioRecepcion({
           </div>
 
           <div className="ir-stat-info">
-            <span>Nuevos clientes</span>
-            <h2>—</h2>
-            <small>Turnos asignados</small>
+            <span>Atendidos</span>
+            <h2>{resumen.atendidos}</h2>
+            <small>Turnos completados</small>
           </div>
         </div>
 
@@ -99,9 +117,9 @@ export default function InicioRecepcion({
           </div>
 
           <div className="ir-stat-info">
-            <span>Último turno</span>
-            <h2>—</h2>
-            <small>Sin información disponible</small>
+            <span>Tiempo promedio</span>
+            <h2>{resumen.tiempoPromedio}</h2>
+            <small>Estimación de espera</small>
           </div>
         </div>
 

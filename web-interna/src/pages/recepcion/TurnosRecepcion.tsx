@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Ticket,
   Users,
@@ -27,9 +27,22 @@ export default function TurnosRecepcion() {
     useState("");
 
   const [tramite, setTramite] = useState("");
+  const [areaAtencion, setAreaAtencion] = useState<AreaAtencion>("");
+  const [tramitesCatalogo, setTramitesCatalogo] = useState<Array<{ id: number; nombre: string; area: string }>>([]);
+  const [turnoGenerado, setTurnoGenerado] = useState<string | null>(null);
+  const [mensajeExito, setMensajeExito] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(false);
 
-  const [areaAtencion, setAreaAtencion] =
-    useState<AreaAtencion>("");
+  useEffect(() => {
+    fetch("http://localhost:3001/api/turnos/catalogo-tramites")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setTramitesCatalogo(data);
+        }
+      })
+      .catch((err) => console.warn("Error al cargar trámites:", err));
+  }, []);
 
   const seleccionarTipo = (tipo: TipoPersona) => {
     setTipoPersona(tipo);
@@ -37,17 +50,37 @@ export default function TurnosRecepcion() {
     setAreaAtencion("");
   };
 
-  const generarTurno = () => {
-    if (
-      !nombrePersona.trim() ||
-      !tramite ||
-      !areaAtencion
-    ) {
+  const generarTurno = async () => {
+    if (!nombrePersona.trim() || !tramite || !areaAtencion) {
       return;
     }
 
-    // Aquí se conectará posteriormente la generación real del turno.
-    // No se genera ni almacena información por ahora.
+    try {
+      setCargando(true);
+      const res = await fetch("http://localhost:3001/api/turnos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombrePersona: nombrePersona.trim(),
+          tipoPersona,
+          tramiteId: Number(tramite),
+          areaAtencion,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.turno) {
+        setTurnoGenerado(data.turno);
+        setMensajeExito(data.mensaje || `Turno ${data.turno} asignado correctamente.`);
+        setNombrePersona("");
+        setTramite("");
+        setAreaAtencion("");
+      }
+    } catch (error) {
+      console.error("Error al generar turno:", error);
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
@@ -185,13 +218,22 @@ export default function TurnosRecepcion() {
                 id="tr-tramite"
                 value={tramite}
                 onChange={(e) => {
-                  setTramite(e.target.value);
-                  setAreaAtencion("");
+                  const val = e.target.value;
+                  setTramite(val);
+                  const sel = tramitesCatalogo.find((t) => String(t.id) === val);
+                  if (sel?.area) {
+                    setAreaAtencion(sel.area as AreaAtencion);
+                  }
                 }}
               >
                 <option value="">
                   Selecciona un trámite
                 </option>
+                {tramitesCatalogo.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.nombre}
+                  </option>
+                ))}
               </select>
 
               <ChevronDown
@@ -201,8 +243,7 @@ export default function TurnosRecepcion() {
             </div>
 
             <small className="tr-field-help">
-              Los trámites estarán disponibles cuando el
-              administrador configure el catálogo.
+              Catálogo oficial de trámites sincronizado con base de datos.
             </small>
           </div>
 
@@ -275,10 +316,12 @@ export default function TurnosRecepcion() {
             <div className="tr-preview-info">
               <span>Vista previa de asignación</span>
 
-              <strong>—</strong>
+              <strong>{turnoGenerado || "—"}</strong>
 
               <small>
-                El número se asignará al generar el turno.
+                {turnoGenerado
+                  ? "Turno activo asignado en el sistema."
+                  : "El número se asignará al generar el turno."}
               </small>
 
               <div className="tr-preview-destination">
@@ -301,6 +344,13 @@ export default function TurnosRecepcion() {
             </div>
           </div>
 
+          {mensajeExito && (
+            <div style={{ padding: "10px 14px", backgroundColor: "#ecfdf5", color: "#065f46", borderRadius: "8px", fontSize: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <CheckCircle2 size={18} />
+              <span>{mensajeExito}</span>
+            </div>
+          )}
+
           {/* BOTÓN */}
           <button
             type="button"
@@ -309,11 +359,12 @@ export default function TurnosRecepcion() {
             disabled={
               !nombrePersona.trim() ||
               !tramite ||
-              !areaAtencion
+              !areaAtencion ||
+              cargando
             }
           >
             <Ticket size={18} />
-            Generar turno
+            {cargando ? "Generando turno..." : "Generar turno"}
           </button>
 
           {/* AVISO */}

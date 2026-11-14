@@ -313,3 +313,87 @@ Centralizados en [`banco/server/src/config/parameters.ts`](file:///c:/Users/CESA
    * **Nombre Oficial de la BD:** La base de datos SIEMPRE se llama `cooperativa_financiera`. Verifica que tu archivo `.env` apunte a `cooperativa_financiera` y no a nombres antiguos como `bancomex`.
    * **Normalización de Saltos de Línea:** Todos los repositorios deben incluir `.gitattributes` para forzar `eol=lf` y prevenir conflictos masivos de `\r\n` vs `\n`.
    * **Ejecución de Suites de Pruebas:** Las suites de pruebas de integración HTTP (`npm run test:all`, `npm run test:requerimientos`, `npm run test:escritorio`) requieren que el servidor backend esté encendido previamente en `http://localhost:3001` (`npm run dev`).
+
+---
+
+## 9. Directorio Maestro de Credenciales de Prueba por Rol
+
+Para realizar pruebas simultáneas y validar cada interfaz sin colisiones de sesión ni sobreescritura de datos, se dispone de las siguientes cuentas oficiales activas en MySQL (`cooperativa_financiera`):
+
+| Rol / Módulo | Correo / Identificador | Contraseña | Nombre del Usuario | Identificador | Notas y Datos de Prueba Asociados |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Supervisor** | `supervisor@banuat.local` | `Banuat123!` | Carlos Ramírez | `EMP-001` | Autorización/rechazo de créditos dudosas, modificación de condiciones contractuales, reportes de productividad. |
+| **Ejecutivo (Principal)** | `ejecutivo@banuat.local` | `Ejecutivo123!` | Laura Mendoza | `EMP-002` | Flujo cronológico de 7 pasos: Inicio, Alta de cliente en 1 sesión, Directorio, Solicitudes, Productos con cálculo de ratio $\le 40\%$, Seguimiento y Actividad. |
+| **Ejecutivo (Adicional)** | `ejecutivo2@banuat.local` | `Ejecutivo123!` | Roberto Salazar | `EMP-006` | Cuenta adicional para pruebas de concurrencia y atención en escritorio sin colisión de sesión. |
+| **Cajero (Caja 01 - Principal)** | `cajero@banuat.local` | `Cajero123!` | Marcos Delgado | `EMP-003` | Sesión de caja abierta ($15,000 inicial), depósitos, retiros con validación estricta de saldo disponible, comprobantes con folio. |
+| **Cajero (Caja 02 - Adicional)** | `cajero2@banuat.local` | `Cajero123!` | Elena Vázquez | `EMP-005` | Cuenta adicional para pruebas de múltiples ventanillas de caja y arqueos independientes. |
+| **Recepción (Principal)** | `recepcion@banuat.local` | `Recepcion123!` | Sofía Navarro | `EMP-004` | Asignación y monitor de turnos con prioridad ponderada (Préstamos 10, Cuentas 8, Caja 5, Consultas 3). Alias alterno: `canalizacion@banuat.local` / `Canalizacion123!`. |
+| **Recepción (Adicional)** | `recepcion2@banuat.local` | `Recepcion123!` | Lucía Morales | `EMP-007` | Cuenta adicional para pruebas simultáneas de recepción y canalización de socios. |
+| **Socio (Ahorro y Puntos)** | `cliente@banuat.local` | `Cliente123!` | Juan Pérez Hernández | `CTE-2026-001` | Cuenta de ahorro `0100982341`, 15,300 puntos acumulados ($153 MXN), movimientos en vivo, cálculo de rendimientos mensuales. |
+| **Socia (Préstamo Activo + Cuotas)** | `socio.maria@banuat.local` | `Cliente123!` | María Gómez Treviño | `CTE-2026-003` | Cuenta de ahorro `0200881122`, 25,000 puntos ($250 MXN), préstamo activo `PREST-2026-0002` ($35,000 MXN, saldo $31,500 MXN) y desglose de cuotas de pago. |
+
+---
+
+## 10. Guía de Pruebas y Casos de Uso por Rol para el Equipo
+
+Esta guía permite a cualquier integrante del equipo reproducir y auditar los casos de uso principales del sistema:
+
+### 10.1. Arranque de Servicios
+1. **Base de Datos:** Asegurarse de tener MySQL 8.0 / MariaDB activo en el puerto `3306` con la BD `cooperativa_financiera`.  
+   *(Para re-generar datos limpios en cualquier momento: `cd banco/server && npm run db:init && npx tsx scripts/seed-test-data.ts`)*.
+2. **Backend API:**
+   ```bash
+   cd banco/server
+   npm run dev
+   ```
+   *Escucha en `http://localhost:3001`.*
+3. **Frontend Web Interna:**
+   ```bash
+   cd banco/web-interna
+   npm run dev
+   ```
+   *Disponible en `http://localhost:5173`.*
+
+### 10.2. Batería Automatizada de Pruebas
+Con el backend encendido, ejecutar en una terminal:
+```bash
+cd banco/server
+npx tsx scripts/test-nuevos-roles.ts
+```
+Verifica automáticamente los 15 requerimientos de negocio de Cajero, Recepción, Turnos, Puntos de Lealtad, Validación de Saldo y Portal del Socio.
+
+### 10.3. Flujos Manuales por Pantalla
+
+#### A. Recepción / Canalización (`recepcion@banuat.local` / `Recepcion123!`)
+* **Asignar Turno:** En la pantalla principal, seleccionar el tipo de trámite (Préstamo, Apertura de cuenta, Caja o Consulta). El sistema calcula la prioridad ponderada y genera el ticket correlativo (ej. `E-08`, `C-02`).
+* **Monitor de Turnos:** Visualizar la lista de turnos en espera y cambiar estados (`Llamar`, `En atención`, `Finalizado`).
+* **Requisitos:** Consultar el catálogo de documentos obligatorios según el trámite para orientar al socio en puerta.
+
+#### B. Ejecutivo de Escritorio (`ejecutivo@banuat.local` / `Ejecutivo123!`)
+* **Módulo 1 (Inicio):** Visualizar métricas del día (socios en espera, solicitudes en proceso).
+* **Módulo 2 (Registrar Cliente):** Capturar datos de un nuevo socio en una sola sesión (RFC, CURP de 18 caracteres, ingresos y egresos).
+* **Módulo 3 (Clientes):** Buscar socios en el directorio oficial y consultar sus cuentas bancarias asociadas.
+* **Módulo 4 (Solicitudes):** Consultar el estado de los expedientes de clientes enviados al supervisor.
+* **Módulo 5 (Productos):** Seleccionar un producto de crédito, ingresar monto y plazo. El simulador en vivo calcula la cuota y evalúa la capacidad de pago ($\le 40\%$). Generar la solicitud financiera para el supervisor.
+* **Módulo 6 (Seguimiento):** Auditar la resolución emitida por el supervisor (aprobada, rechazada o con notas de riesgo).
+* **Módulo 7 (Actividad):** Revisar la bitácora cronológica inmutable con fecha y hora de todas las operaciones del ejecutivo.
+
+#### C. Cajero (`cajero@banuat.local` / `Cajero123!`)
+* **Control de Caja:** Verificar el estado de la sesión activa con fondo de apertura ($15,000.00 MXN) y arqueo por denominación.
+* **Depósitos:** Ingresar el número de cuenta (ej. `0100982341`), capturar el monto en efectivo y registrar el depósito. El saldo se actualiza de inmediato en MySQL y se emite folio único `DEP-XXXX`.
+* **Retiros:** Intentar un retiro mayor al saldo disponible para comprobar que el sistema bloquea la operación (regla de no sobregiro). Registrar un retiro válido y validar el decremento en MySQL.
+* **Pagos de Préstamo:** Cobrar abonos a préstamos generando puntos de lealtad inmediatos para el socio.
+
+#### D. Supervisor (`supervisor@banuat.local` / `Banuat123!`)
+* **Administración de Clientes:** Ver el total acumulado de clientes registrados en tiempo real. Consultar expedientes y capacidad de pago neta.
+* **Modificación de Condiciones:** Cambiar tasas o fechas de pago de un socio registrando justificación obligatoria. Comprobar que el historial acumulativo (`audit_logs`) agrega el registro sin sobreescribir los anteriores.
+* **Préstamos:** Evaluar solicitudes dudosas (monto $> \$50,000$ o ratio $> 40\%$). Autorizar o rechazar con nota de riesgo. Notar que los préstamos autorizados mantienen la restricción temporal de desembolso físico.
+* **Reportes:** Filtrar el desempeño de la sucursal diferenciando métricas de personal de escritorio vs. personal de caja por fecha.
+
+#### E. Portal del Socio (`cliente@banuat.local` o `socio.maria@banuat.local` / `Cliente123!`)
+* **Inicio:** Consultar saldo disponible en cuenta de ahorro, saldo de puntos de lealtad (con conversión fija $100\text{ pts} = \$1.00\text{ MXN}$) y rendimientos proyectados.
+* **Productos:** Revisar cuentas de ahorro y préstamos activos asociados al socio.
+* **Movimientos:** Historial real de depósitos, retiros y rendimientos diarios devengados.
+* **Pagos (en cuenta María Gómez):** Visualizar el desglose de cuotas pendientes con detalle transparente de capital amortizado vs. intereses generados y puntos obtenidos por pago.
+* **Beneficios:** Catálogo de ventajas de la cooperativa (tasas preferenciales, 5 segmentos de rendimiento basados en inflación y recompensas).
+* **Notificaciones:** Avisos y comunicaciones oficiales del socio recibidas desde la base de datos.

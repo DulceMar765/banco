@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { getApiUrl } from "../../services/auth";
 import {
   ArrowDownToLine,
   Search,
@@ -12,6 +12,8 @@ import {
   RotateCcw,
   ChevronRight,
   CreditCard,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 
 import "./Depositos.css";
@@ -21,13 +23,85 @@ export default function Depositos() {
   const [titular, setTitular] = useState("");
   const [monto, setMonto] = useState("");
   const [observaciones, setObservaciones] = useState("");
+  const [buscando, setBuscando] = useState(false);
+  const [procesando, setProcesando] = useState(false);
+  const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+
+  const buscarCuenta = async () => {
+    if (!numeroCuenta.trim()) {
+      setMensaje({ tipo: "error", texto: "Ingresa un número de cuenta para buscar." });
+      return;
+    }
+    setBuscando(true);
+    setMensaje(null);
+    try {
+      const res = await fetch(getApiUrl(`/api/caja/consulta-cuenta/${encodeURIComponent(numeroCuenta.trim())}`));
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.cliente) {
+        setTitular("");
+        setMensaje({ tipo: "error", texto: data.message || "No se encontró ninguna cuenta con ese número." });
+      } else {
+        setTitular(data.cliente.nombre);
+        setNumeroCuenta(data.cuenta.numero);
+        setMensaje({ tipo: "ok", texto: `Cuenta verificada: ${data.cliente.nombre} (${data.cuenta.tipo})` });
+      }
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: "Error al consultar la cuenta en el servidor." });
+    } finally {
+      setBuscando(false);
+    }
+  };
+
+  const handleDeposito = async () => {
+    const montoNum = Number(monto);
+    if (!numeroCuenta.trim()) {
+      setMensaje({ tipo: "error", texto: "Indica el número de cuenta de destino." });
+      return;
+    }
+    if (!montoNum || montoNum <= 0) {
+      setMensaje({ tipo: "error", texto: "Ingresa un monto válido mayor a $0.00 MXN." });
+      return;
+    }
+
+    setProcesando(true);
+    setMensaje(null);
+    try {
+      const res = await fetch(getApiUrl("/api/caja/deposito"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          numeroCuenta: numeroCuenta.trim(),
+          monto: montoNum,
+          notas: observaciones.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setMensaje({ tipo: "error", texto: data.message || "Error al procesar el depósito." });
+      } else {
+        setMensaje({
+          tipo: "ok",
+          texto: `¡Depósito completado con éxito! Folio: ${data.folio} | Saldo final: $${Number(data.saldoFinal).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN`,
+        });
+        setMonto("");
+        setObservaciones("");
+      }
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: "Error al conectar con el servidor." });
+    } finally {
+      setProcesando(false);
+    }
+  };
 
   const limpiarCampos = () => {
     setNumeroCuenta("");
     setTitular("");
     setMonto("");
     setObservaciones("");
+    setMensaje(null);
   };
+
+  const puedeContinuar = Boolean(numeroCuenta.trim() && Number(monto) > 0 && !procesando);
 
   return (
     <div className="dp-container">
@@ -51,6 +125,23 @@ export default function Depositos() {
           <ArrowDownToLine size={25} />
         </div>
       </div>
+
+      {mensaje && (
+        <div style={{
+          padding: "12px 16px",
+          borderRadius: "8px",
+          marginBottom: "16px",
+          backgroundColor: mensaje.tipo === "ok" ? "#dcfce7" : "#fee2e2",
+          color: mensaje.tipo === "ok" ? "#166534" : "#991b1b",
+          fontWeight: 500,
+          display: "flex",
+          alignItems: "center",
+          gap: "8px"
+        }}>
+          {mensaje.tipo === "ok" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+          <span>{mensaje.texto}</span>
+        </div>
+      )}
 
       {/* CONTENIDO */}
       <div className="dp-contenido">
@@ -86,9 +177,15 @@ export default function Depositos() {
                 <input
                   id="dp-cuenta"
                   type="text"
-                  placeholder="Ingresa el número de cuenta"
+                  placeholder="Ingresa el número de cuenta (ej. CTA26000000001)"
                   value={numeroCuenta}
                   onChange={(e) => setNumeroCuenta(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      buscarCuenta();
+                    }
+                  }}
                 />
 
                 <button
@@ -96,6 +193,8 @@ export default function Depositos() {
                   className="dp-buscar-btn"
                   aria-label="Buscar cuenta"
                   title="Buscar cuenta"
+                  disabled={buscando}
+                  onClick={buscarCuenta}
                 >
                   <Search size={18} />
                 </button>
@@ -181,16 +280,16 @@ export default function Depositos() {
             <button
               type="button"
               className="dp-btn-principal"
-              disabled
+              disabled={!puedeContinuar}
+              onClick={handleDeposito}
             >
-              Continuar
+              {procesando ? "Procesando..." : "Continuar"}
               <ChevronRight size={18} />
             </button>
           </div>
 
           <p className="dp-pendiente">
-            La operación estará disponible cuando se conecte
-            el proceso de depósitos.
+            Las operaciones se asientan de forma atómica en el libro mayor contable de BANUAT.
           </p>
         </section>
 

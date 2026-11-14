@@ -3,6 +3,9 @@ import { useState } from 'react'
 import Login from './pages/login/Login'
 import PanelSupervisor from './pages/supervisor/PanelSupervisor'
 import Escritorio from './pages/canalizacion/Escritorio'
+import PanelCajero from './pages/cajero/PanelCajero'
+import Recepcion from './pages/recepcion/Recepcion'
+import Cliente from './pages/cliente/Cliente'
 import type { Usuario } from './services/auth'
 
 function App() {
@@ -20,15 +23,26 @@ function App() {
     return <PanelSupervisor onLogout={handleLogout} />
   }
 
-  if (usuario.rol === 'canalizacion' || usuario.rol === 'ejecutivo') {
+  if (usuario.rol === 'ejecutivo') {
     return <Escritorio onLogout={handleLogout} />
+  }
+
+  if (usuario.rol === 'cajero') {
+    return <PanelCajero onLogout={handleLogout} />
+  }
+
+  if (usuario.rol === 'recepcion' || usuario.rol === 'canalizacion') {
+    return <Recepcion onLogout={handleLogout} />
+  }
+
+  if (usuario.rol === 'cliente') {
+    return <Cliente onCerrarSesion={handleLogout} />
   }
 
   return (
     <main style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
       <h1>Bienvenido a BANUAT</h1>
-      <p>Sesión iniciada como cliente: {usuario.correo}</p>
-      <p>El panel del cliente se implementará después.</p>
+      <p>Sesión iniciada como: {usuario.correo}</p>
       <button onClick={() => setUsuario(null)}>
         Cerrar sesión
       </button>

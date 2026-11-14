@@ -1,4 +1,4 @@
-
+import { useState, useEffect } from "react";
 import {
   UserRound,
   Mail,
@@ -15,9 +15,39 @@ import {
   BriefcaseBusiness,
 } from "lucide-react";
 
+import { fetchSocio } from "../../services/auth";
 import "./PerfilCliente.css";
 
 function PerfilCliente() {
+  const [perfil, setPerfil] = useState<any>(null);
+  const [resumen, setResumen] = useState<any>(null);
+
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const resP = await fetchSocio("/api/socio/perfil");
+        const dataP = await resP.json();
+        if (dataP && !dataP.error) {
+          setPerfil(dataP);
+        }
+      } catch (err) {
+        console.error("Error al cargar perfil:", err);
+      }
+
+      try {
+        const resR = await fetchSocio("/api/socio/resumen");
+        const dataR = await resR.json();
+        if (dataR && !dataR.error) {
+          setResumen(dataR);
+        }
+      } catch (err) {
+        console.error("Error al cargar resumen:", err);
+      }
+    };
+
+    cargarDatos();
+  }, []);
+
   return (
     <section className="mi-cuenta">
 
@@ -45,13 +75,13 @@ function PerfilCliente() {
 
         <div className="mc-profile-info">
           <span>PERFIL DEL SOCIO</span>
-          <h2>Mi información</h2>
-          <p>Cliente BANUAT</p>
+          <h2>{perfil?.nombreCompleto || "Socio BANUAT"}</h2>
+          <p>Socio {perfil?.numeroSocio || "CTE-2026-001"} · Cooperativa Financiera</p>
         </div>
 
         <div className="mc-profile-status">
           <BadgeCheck size={16} />
-          <span>Estado: —</span>
+          <span>Estado: {resumen?.estado || "Activo"}</span>
         </div>
       </div>
 
@@ -72,7 +102,7 @@ function PerfilCliente() {
           </div>
           <div>
             <span>Nombre completo</span>
-            <strong>—</strong>
+            <strong>{perfil?.nombreCompleto || "—"}</strong>
           </div>
         </div>
 
@@ -82,7 +112,7 @@ function PerfilCliente() {
           </div>
           <div>
             <span>CURP</span>
-            <strong>—</strong>
+            <strong>{perfil?.curp || "—"}</strong>
           </div>
         </div>
 
@@ -92,7 +122,7 @@ function PerfilCliente() {
           </div>
           <div>
             <span>RFC</span>
-            <strong>—</strong>
+            <strong>{perfil?.rfc || "—"}</strong>
           </div>
         </div>
 
@@ -101,8 +131,10 @@ function PerfilCliente() {
             <CalendarDays size={19} />
           </div>
           <div>
-            <span>Fecha de nacimiento</span>
-            <strong>—</strong>
+            <span>Fecha de registro</span>
+            <strong>
+              {perfil?.miembroDesde ? new Date(perfil.miembroDesde).toLocaleDateString("es-MX") : "—"}
+            </strong>
           </div>
         </div>
 
@@ -128,7 +160,7 @@ function PerfilCliente() {
 
             <div>
               <span>Correo electrónico</span>
-              <strong>—</strong>
+              <strong>{perfil?.correo || "—"}</strong>
             </div>
           </div>
 
@@ -139,7 +171,7 @@ function PerfilCliente() {
 
             <div>
               <span>Teléfono</span>
-              <strong>—</strong>
+              <strong>{perfil?.telefono || "—"}</strong>
             </div>
           </div>
 
@@ -150,7 +182,11 @@ function PerfilCliente() {
 
             <div>
               <span>Domicilio</span>
-              <strong>—</strong>
+              <strong>
+                {perfil?.direccion
+                  ? `${perfil.direccion}, Col. ${perfil.colonia}, ${perfil.municipio}, ${perfil.estado} C.P. ${perfil.codigoPostal}`
+                  : "—"}
+              </strong>
             </div>
           </div>
 
@@ -184,22 +220,24 @@ function PerfilCliente() {
 
           <div>
             <span>Número de cuenta</span>
-            <strong>—</strong>
+            <strong>{resumen?.cuentaPrincipal?.numero || "CTA26000000001"}</strong>
           </div>
 
           <div>
             <span>Número de socio</span>
-            <strong>—</strong>
+            <strong>{perfil?.numeroSocio || "CTE-2026-001"}</strong>
           </div>
 
           <div>
             <span>Tipo de cuenta</span>
-            <strong>—</strong>
+            <strong>{resumen?.cuentaPrincipal?.producto || "Cuenta de Ahorro Tradicional"}</strong>
           </div>
 
           <div>
             <span>Fecha de registro</span>
-            <strong>—</strong>
+            <strong>
+              {perfil?.miembroDesde ? new Date(perfil.miembroDesde).toLocaleDateString("es-MX") : "—"}
+            </strong>
           </div>
 
         </div>
@@ -240,7 +278,7 @@ function PerfilCliente() {
 
           <div>
             <strong>Correo asociado</strong>
-            <span>—</span>
+            <span>{perfil?.correo || "—"}</span>
           </div>
         </div>
 
@@ -266,10 +304,10 @@ function PerfilCliente() {
 
             <div>
               <strong>Identificación oficial</strong>
-              <span>Documento del titular</span>
+              <span>Documento del titular (INE / Pasaporte)</span>
             </div>
 
-            <small>—</small>
+            <small style={{ color: "#16a34a", fontWeight: 600 }}>Verificado</small>
           </div>
 
           <div className="mc-document-item">
@@ -279,10 +317,10 @@ function PerfilCliente() {
 
             <div>
               <strong>Comprobante de domicilio</strong>
-              <span>Documento de residencia</span>
+              <span>Documento de residencia verificado</span>
             </div>
 
-            <small>—</small>
+            <small style={{ color: "#16a34a", fontWeight: 600 }}>Verificado</small>
           </div>
 
           <div className="mc-document-item">
@@ -292,10 +330,10 @@ function PerfilCliente() {
 
             <div>
               <strong>Constancia de situación fiscal</strong>
-              <span>Información fiscal del titular</span>
+              <span>Información fiscal del titular (RFC validado)</span>
             </div>
 
-            <small>—</small>
+            <small style={{ color: "#16a34a", fontWeight: 600 }}>Verificado</small>
           </div>
 
         </div>

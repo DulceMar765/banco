@@ -61,3 +61,14 @@ Este repositorio implementa el sistema de gestión bancaria para **Cooperativa F
    * Evitar funciones exclusivas no portables como `JSON_TABLE()`; usar `JSON_EXTRACT` y bucles iterativos.
    * La base de datos es SIEMPRE `cooperativa_financiera`.
    * Las suites de pruebas HTTP (`npm run test:all`) requieren tener el servidor encendido previamente con `npm run dev`.
+
+## 8. Directorio de Cuentas de Prueba por Rol
+* **Supervisor:** `supervisor@banuat.local` / `Banuat123!` (Carlos Ramírez, `EMP-001`)
+* **Ejecutivo (Principal):** `ejecutivo@banuat.local` / `Ejecutivo123!` (Laura Mendoza, `EMP-002`)
+* **Ejecutivo (Adicional):** `ejecutivo2@banuat.local` / `Ejecutivo123!` (Roberto Salazar, `EMP-006`)
+* **Cajero (Caja 01 - Principal):** `cajero@banuat.local` / `Cajero123!` (Marcos Delgado, `EMP-003`)
+* **Cajero (Caja 02 - Adicional):** `cajero2@banuat.local` / `Cajero123!` (Elena Vázquez, `EMP-005`)
+* **Recepción (Principal):** `recepcion@banuat.local` / `Recepcion123!` (Sofía Navarro, `EMP-004`)
+* **Recepción (Adicional):** `recepcion2@banuat.local` / `Recepcion123!` (Lucía Morales, `EMP-007`)
+* **Socio (Ahorro + Puntos):** `cliente@banuat.local` / `Cliente123!` (Juan Pérez, `CTE-2026-001`, Cuenta `0100982341`)
+* **Socia (Préstamo Activo + Cuotas):** `socio.maria@banuat.local` / `Cliente123!` (María Gómez, `CTE-2026-003`, Cuenta `0200881122`)

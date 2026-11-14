@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MessageCircle,
   CalendarDays,
@@ -43,6 +43,19 @@ function AtencionCliente() {
 
   const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [citas, setCitas] = useState<Cita[]>([]);
+
+  useEffect(() => {
+    setConsultas([
+      {
+        id: 1,
+        asunto: "Atención Institucional BANUAT",
+        categoria: "Ahorro e Inversión",
+        mensaje: "Estimado socio, ponemos a su disposición nuestros canales de atención en sucursal y turnos digitales con prioridad ponderada.",
+        fecha: new Date().toLocaleDateString("es-MX"),
+        estado: "Resuelta",
+      },
+    ]);
+  }, []);
 
   const [mostrarConsulta, setMostrarConsulta] = useState(false);
   const [mostrarCita, setMostrarCita] = useState(false);

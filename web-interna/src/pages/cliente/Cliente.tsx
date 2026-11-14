@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   UserRound,
@@ -26,6 +26,7 @@ import BeneficiosCliente from "./BeneficiosCliente";
 import NotificacionesCliente from "./NotificacionesCliente";
 import AtencionCliente from "./AtencionCliente";
 
+import { fetchSocio } from "../../services/auth";
 import "./Cliente.css";
 
 
@@ -62,6 +63,18 @@ export default function Cliente({
   const [activo, setActivo] = useState("inicio");
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [nombreCliente, setNombreCliente] = useState("Juan Pérez");
+
+  useEffect(() => {
+    fetchSocio("/api/socio/resumen")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.nombre) {
+          setNombreCliente(data.nombre);
+        }
+      })
+      .catch((err) => console.error("Error al cargar nombre socio:", err));
+  }, []);
 
   const renderContenido = () => {
     switch (activo) {
@@ -229,8 +242,8 @@ export default function Cliente({
               </div>
 
               <div>
-                <strong>Mi cuenta</strong>
-                <span>Cliente</span>
+                <strong>{nombreCliente}</strong>
+                <span>Socio BANUAT</span>
               </div>
             </div>
 

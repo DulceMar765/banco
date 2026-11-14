@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getApiUrl } from "../../services/auth";
 import {
   LayoutDashboard,
   ArrowDownToLine,
@@ -97,6 +98,54 @@ export default function PanelCajero({
 
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+
+  const [resumen, setResumen] = useState<{
+    cajero: string;
+    caja: string;
+    estadoCaja: string;
+    fondoInicial: number;
+    totalEntradas: number;
+    totalSalidas: number;
+    saldoEfectivo: number;
+    operaciones: { total: number; depositos: number; retiros: number; pagos: number };
+  }>({
+    cajero: "Marcos Delgado",
+    caja: "Caja 01 - Principal",
+    estadoCaja: "ABIERTA",
+    fondoInicial: 15000,
+    totalEntradas: 0,
+    totalSalidas: 0,
+    saldoEfectivo: 15000,
+    operaciones: { total: 0, depositos: 0, retiros: 0, pagos: 0 },
+  });
+
+  const [movimientos, setMovimientos] = useState<any[]>([]);
+
+  const cargarDatos = async () => {
+    try {
+      const res = await fetch(getApiUrl("/api/caja/resumen"));
+      const data = await res.json();
+      if (data.success && data.resumen) {
+        setResumen(data.resumen);
+      }
+    } catch (err) {
+      console.error("Error al cargar resumen de caja:", err);
+    }
+
+    try {
+      const resMov = await fetch(getApiUrl("/api/caja/movimientos"));
+      const dataMov = await resMov.json();
+      if (dataMov.success && Array.isArray(dataMov.movimientos)) {
+        setMovimientos(dataMov.movimientos);
+      }
+    } catch (err) {
+      console.error("Error al cargar movimientos de caja:", err);
+    }
+  };
+
+  useEffect(() => {
+    cargarDatos();
+  }, [moduloActivo]);
 
   const seleccionarModulo = (modulo: ModuloCajero) => {
     setModuloActivo(modulo);
@@ -258,7 +307,7 @@ export default function PanelCajero({
                         <Receipt size={19} />
                       </div>
                       <div>
-                        <strong>—</strong>
+                        <strong>{resumen.operaciones.total}</strong>
                         <span>Operaciones</span>
                       </div>
                     </div>
@@ -268,7 +317,7 @@ export default function PanelCajero({
                         <ArrowDownToLine size={19} />
                       </div>
                       <div>
-                        <strong>—</strong>
+                        <strong>{resumen.operaciones.depositos}</strong>
                         <span>Depósitos</span>
                       </div>
                     </div>
@@ -278,7 +327,7 @@ export default function PanelCajero({
                         <ArrowUpFromLine size={19} />
                       </div>
                       <div>
-                        <strong>—</strong>
+                        <strong>{resumen.operaciones.retiros}</strong>
                         <span>Retiros</span>
                       </div>
                     </div>
@@ -288,7 +337,7 @@ export default function PanelCajero({
                         <HandCoins size={19} />
                       </div>
                       <div>
-                        <strong>—</strong>
+                        <strong>{resumen.operaciones.pagos}</strong>
                         <span>Pagos y abonos</span>
                       </div>
                     </div>
@@ -304,7 +353,7 @@ export default function PanelCajero({
 
                   <span className="cj-perfil__estado">
                     <span />
-                    Información de caja
+                    {resumen.caja}
                   </span>
 
                   <h2>Caja asignada</h2>
@@ -312,12 +361,12 @@ export default function PanelCajero({
 
                   <div className="cj-perfil__dato">
                     <span>Usuario</span>
-                    <strong>—</strong>
+                    <strong>{resumen.cajero}</strong>
                   </div>
 
                   <div className="cj-perfil__dato">
                     <span>Estado</span>
-                    <strong>—</strong>
+                    <strong>{resumen.estadoCaja}</strong>
                   </div>
                 </div>
               </section>
@@ -333,7 +382,7 @@ export default function PanelCajero({
                     </div>
                   </div>
 
-                  <strong>—</strong>
+                  <strong>${Number(resumen.totalEntradas).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</strong>
                   <small>Depósitos y pagos recibidos</small>
                 </div>
 
@@ -345,7 +394,7 @@ export default function PanelCajero({
                     </div>
                   </div>
 
-                  <strong>—</strong>
+                  <strong>${Number(resumen.totalSalidas).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</strong>
                   <small>Retiros realizados</small>
                 </div>
 
@@ -357,7 +406,7 @@ export default function PanelCajero({
                     </div>
                   </div>
 
-                  <strong>—</strong>
+                  <strong>${Number(resumen.saldoEfectivo).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</strong>
                   <small>Saldo disponible en caja</small>
                 </div>
 
@@ -398,11 +447,25 @@ export default function PanelCajero({
                       </thead>
 
                       <tbody>
-                        <tr>
-                          <td colSpan={5} className="cj-tabla-vacia">
-                            No hay operaciones para mostrar.
-                          </td>
-                        </tr>
+                        {movimientos.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="cj-tabla-vacia">
+                              No hay operaciones para mostrar.
+                            </td>
+                          </tr>
+                        ) : (
+                          movimientos.slice(0, 5).map((m: any) => (
+                            <tr key={m.id}>
+                              <td>{new Date(m.fecha).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}</td>
+                              <td><strong>{m.tipo}</strong></td>
+                              <td>{m.descripcion}</td>
+                              <td style={{ color: m.direccion === "CREDIT" ? "#16a34a" : "#dc2626", fontWeight: 600 }}>
+                                {m.direccion === "CREDIT" ? "+" : "-"}${Number(m.monto).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                              </td>
+                              <td><span style={{ fontSize: "0.8rem", padding: "2px 8px", borderRadius: "4px", backgroundColor: "#f3f4f6" }}>{m.estado}</span></td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>

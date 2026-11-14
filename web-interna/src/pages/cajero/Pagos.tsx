@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import { getApiUrl } from "../../services/auth";
 import {
   Wallet,
   Search,
@@ -13,6 +13,8 @@ import {
   CreditCard,
   Receipt,
   HandCoins,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 
 import "./Pagos.css";
@@ -24,6 +26,89 @@ export default function Pagos() {
   const [tipoMovimiento, setTipoMovimiento] = useState("pago");
   const [monto, setMonto] = useState("");
   const [observaciones, setObservaciones] = useState("");
+  const [buscando, setBuscando] = useState(false);
+  const [procesando, setProcesando] = useState(false);
+  const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+
+  const buscarCuentaOPrestamo = async () => {
+    const termino = numeroCuenta.trim() || referenciaPrestamo.trim();
+    if (!termino) {
+      setMensaje({ tipo: "error", texto: "Ingresa un número de cuenta o referencia para buscar." });
+      return;
+    }
+
+    setBuscando(true);
+    setMensaje(null);
+    try {
+      const res = await fetch(getApiUrl(`/api/caja/consulta-cuenta/${encodeURIComponent(termino)}`));
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.cliente) {
+        setTitular("");
+        setMensaje({ tipo: "error", texto: data.message || "No se encontró el registro indicado." });
+      } else {
+        setTitular(data.cliente.nombre);
+        setNumeroCuenta(data.cuenta.numero);
+        if (Array.isArray(data.prestamos) && data.prestamos.length > 0) {
+          const p = data.prestamos[0];
+          setReferenciaPrestamo(p.contract_number);
+          setMensaje({
+            tipo: "ok",
+            texto: `Cliente: ${data.cliente.nombre} | Préstamo detectado: ${p.contract_number} (Saldo pendiente: $${Number(p.principal_balance).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN)`,
+          });
+        } else {
+          setMensaje({
+            tipo: "ok",
+            texto: `Cliente: ${data.cliente.nombre} | Sin préstamos activos en esta cuenta.`,
+          });
+        }
+      }
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: "Error al consultar en el servidor." });
+    } finally {
+      setBuscando(false);
+    }
+  };
+
+  const handlePago = async () => {
+    const montoNum = Number(monto);
+    if (!referenciaPrestamo.trim()) {
+      setMensaje({ tipo: "error", texto: "Ingresa la referencia o contrato del préstamo a pagar." });
+      return;
+    }
+    if (!montoNum || montoNum <= 0) {
+      setMensaje({ tipo: "error", texto: "Ingresa un monto válido mayor a $0.00 MXN." });
+      return;
+    }
+
+    setProcesando(true);
+    setMensaje(null);
+    try {
+      const res = await fetch(getApiUrl("/api/caja/pago-prestamo"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          referenciaPrestamo: referenciaPrestamo.trim(),
+          monto: montoNum,
+          notas: observaciones.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setMensaje({ tipo: "error", texto: data.message || "Error al registrar el pago." });
+      } else {
+        setMensaje({
+          tipo: "ok",
+          texto: `¡Pago registrado exitosamente! Folio: ${data.folio} | Nuevo saldo de préstamo: $${Number(data.saldoRestante).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN | Puntos de lealtad otorgados: +${data.puntosGanados} pts.`,
+        });
+        setMonto("");
+        setObservaciones("");
+      }
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: "Error al conectar con el servidor." });
+    } finally {
+      setProcesando(false);
+    }
+  };
 
   const limpiarCampos = () => {
     setNumeroCuenta("");
@@ -32,6 +117,7 @@ export default function Pagos() {
     setTipoMovimiento("pago");
     setMonto("");
     setObservaciones("");
+    setMensaje(null);
   };
 
   const formatoMonto = monto
@@ -40,6 +126,8 @@ export default function Pagos() {
         currency: "MXN",
       })
     : "$0.00";
+
+  const puedeContinuar = Boolean(referenciaPrestamo.trim() && Number(monto) > 0 && !procesando);
 
   return (
     <div className="pg-contenedor">
@@ -57,6 +145,23 @@ export default function Pagos() {
           <HandCoins size={27} />
         </div>
       </div>
+
+      {mensaje && (
+        <div style={{
+          padding: "12px 16px",
+          borderRadius: "8px",
+          marginBottom: "16px",
+          backgroundColor: mensaje.tipo === "ok" ? "#dcfce7" : "#fee2e2",
+          color: mensaje.tipo === "ok" ? "#166534" : "#991b1b",
+          fontWeight: 500,
+          display: "flex",
+          alignItems: "center",
+          gap: "8px"
+        }}>
+          {mensaje.tipo === "ok" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+          <span>{mensaje.texto}</span>
+        </div>
+      )}
 
       <div className="pg-contenido">
         <section className="pg-tarjeta pg-formulario">
@@ -86,9 +191,15 @@ export default function Pagos() {
                 <input
                   id="pg-cuenta"
                   type="text"
-                  placeholder="Ingresa el número de cuenta"
+                  placeholder="Ingresa el número de cuenta (ej. CTA26000000001)"
                   value={numeroCuenta}
                   onChange={(e) => setNumeroCuenta(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      buscarCuentaOPrestamo();
+                    }
+                  }}
                 />
 
                 <button
@@ -96,6 +207,8 @@ export default function Pagos() {
                   className="pg-boton-buscar"
                   title="Buscar cuenta"
                   aria-label="Buscar cuenta"
+                  disabled={buscando}
+                  onClick={buscarCuentaOPrestamo}
                 >
                   <Search size={18} />
                 </button>
@@ -138,9 +251,15 @@ export default function Pagos() {
                 <input
                   id="pg-referencia"
                   type="text"
-                  placeholder="Ingresa la referencia del préstamo"
+                  placeholder="Ingresa la referencia (ej. PREST-2026-0001)"
                   value={referenciaPrestamo}
                   onChange={(e) => setReferenciaPrestamo(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      buscarCuentaOPrestamo();
+                    }
+                  }}
                 />
               </div>
             </div>
@@ -213,9 +332,10 @@ export default function Pagos() {
             <button
               type="button"
               className="pg-boton-continuar"
-              disabled
+              disabled={!puedeContinuar}
+              onClick={handlePago}
             >
-              Continuar
+              {procesando ? "Registrando..." : "Continuar"}
               <ChevronRight size={18} />
             </button>
           </div>
@@ -264,8 +384,7 @@ export default function Pagos() {
             <div className="pg-resumen-nota">
               <Info size={17} />
               <p>
-                Este resumen es únicamente informativo. No representa un
-                pago realizado ni modifica el saldo del préstamo.
+                Los abonos a préstamos generan puntos de lealtad automáticos conforme a la regla BANUAT (100 pts = $1 MXN).
               </p>
             </div>
           </div>

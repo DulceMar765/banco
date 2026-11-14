@@ -1,5 +1,5 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getApiUrl } from "../../services/auth";
 import {
   Search,
   History,
@@ -19,10 +19,42 @@ type TipoMovimiento = "todos" | "deposito" | "retiro" | "pago";
 
 export default function Historial() {
   const [busqueda, setBusqueda] = useState("");
-  const [tipoMovimiento, setTipoMovimiento] =
-    useState<TipoMovimiento>("todos");
+  const [tipoMovimiento, setTipoMovimiento] = useState<TipoMovimiento>("todos");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
+
+  const [movimientos, setMovimientos] = useState<any[]>([]);
+  const [resumen, setResumen] = useState<{
+    operaciones: { total: number; depositos: number; retiros: number; pagos: number };
+  }>({
+    operaciones: { total: 0, depositos: 0, retiros: 0, pagos: 0 },
+  });
+
+  const cargarHistorial = async () => {
+    try {
+      const res = await fetch(getApiUrl("/api/caja/movimientos"));
+      const data = await res.json();
+      if (data.success && Array.isArray(data.movimientos)) {
+        setMovimientos(data.movimientos);
+      }
+    } catch (err) {
+      console.error("Error al cargar historial:", err);
+    }
+
+    try {
+      const resR = await fetch(getApiUrl("/api/caja/resumen"));
+      const dataR = await resR.json();
+      if (dataR.success && dataR.resumen) {
+        setResumen(dataR.resumen);
+      }
+    } catch (err) {
+      console.error("Error al cargar resumen:", err);
+    }
+  };
+
+  useEffect(() => {
+    cargarHistorial();
+  }, []);
 
   const limpiarFiltros = () => {
     setBusqueda("");
@@ -30,6 +62,33 @@ export default function Historial() {
     setFechaInicio("");
     setFechaFin("");
   };
+
+  const movimientosFiltrados = movimientos.filter((m) => {
+    const texto = `${m.folio || ""} ${m.descripcion || ""} ${m.tipo || ""}`.toLowerCase();
+    const coincideBusqueda = !busqueda.trim() || texto.includes(busqueda.toLowerCase());
+
+    let coincideTipo = true;
+    if (tipoMovimiento === "deposito") {
+      coincideTipo = m.tipo.toLowerCase().includes("depósito") || m.tipo.toLowerCase().includes("deposito");
+    } else if (tipoMovimiento === "retiro") {
+      coincideTipo = m.tipo.toLowerCase().includes("retiro");
+    } else if (tipoMovimiento === "pago") {
+      coincideTipo = m.tipo.toLowerCase().includes("pago") || m.tipo.toLowerCase().includes("abono");
+    }
+
+    let coincideFecha = true;
+    const mFecha = new Date(m.fecha);
+    if (fechaInicio) {
+      coincideFecha = coincideFecha && mFecha >= new Date(fechaInicio);
+    }
+    if (fechaFin) {
+      const fin = new Date(fechaFin);
+      fin.setHours(23, 59, 59, 999);
+      coincideFecha = coincideFecha && mFecha <= fin;
+    }
+
+    return coincideBusqueda && coincideTipo && coincideFecha;
+  });
 
   return (
     <div className="hi-container">
@@ -56,7 +115,7 @@ export default function Historial() {
           </div>
           <div>
             <span>Total de movimientos</span>
-            <h2>—</h2>
+            <h2>{resumen.operaciones.total}</h2>
             <small>Registros disponibles</small>
           </div>
         </div>
@@ -67,7 +126,7 @@ export default function Historial() {
           </div>
           <div>
             <span>Depósitos</span>
-            <h2>—</h2>
+            <h2>{resumen.operaciones.depositos}</h2>
             <small>Operaciones registradas</small>
           </div>
         </div>
@@ -78,7 +137,7 @@ export default function Historial() {
           </div>
           <div>
             <span>Retiros</span>
-            <h2>—</h2>
+            <h2>{resumen.operaciones.retiros}</h2>
             <small>Operaciones registradas</small>
           </div>
         </div>
@@ -89,7 +148,7 @@ export default function Historial() {
           </div>
           <div>
             <span>Pagos y abonos</span>
-            <h2>—</h2>
+            <h2>{resumen.operaciones.pagos}</h2>
             <small>Operaciones registradas</small>
           </div>
         </div>
@@ -187,7 +246,7 @@ export default function Historial() {
 
           <div className="hi-record-count">
             <FileText size={16} />
-            <span>Sin registros</span>
+            <span>{movimientosFiltrados.length} {movimientosFiltrados.length === 1 ? "registro" : "registros"}</span>
           </div>
         </div>
 
@@ -197,32 +256,49 @@ export default function Historial() {
               <tr>
                 <th>Referencia</th>
                 <th>Tipo de operación</th>
-                <th>Cuenta</th>
-                <th>Cliente</th>
                 <th>Monto</th>
                 <th>Fecha</th>
-                <th>Atención</th>
                 <th>Detalle</th>
+                <th>Estado</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr>
-                <td colSpan={8}>
-                  <div className="hi-empty">
-                    <div className="hi-empty-icon">
-                      <History size={27} />
+              {movimientosFiltrados.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>
+                    <div className="hi-empty">
+                      <div className="hi-empty-icon">
+                        <History size={27} />
+                      </div>
+
+                      <h3>No hay movimientos disponibles</h3>
+
+                      <p>
+                        Cuando existan operaciones registradas con los filtros seleccionados,
+                        podrás consultarlas desde este apartado.
+                      </p>
                     </div>
-
-                    <h3>No hay movimientos disponibles</h3>
-
-                    <p>
-                      Cuando existan operaciones registradas,
-                      podrás consultarlas desde este apartado.
-                    </p>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                </tr>
+              ) : (
+                movimientosFiltrados.map((m: any) => (
+                  <tr key={m.id}>
+                    <td><code>{m.folio}</code></td>
+                    <td><strong>{m.tipo}</strong></td>
+                    <td style={{ color: m.direccion === "CREDIT" ? "#16a34a" : "#dc2626", fontWeight: 700 }}>
+                      {m.direccion === "CREDIT" ? "+" : "-"}${Number(m.monto).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN
+                    </td>
+                    <td>{new Date(m.fecha).toLocaleString("es-MX")}</td>
+                    <td>{m.descripcion}</td>
+                    <td>
+                      <span style={{ fontSize: "0.8rem", padding: "2px 8px", borderRadius: "4px", backgroundColor: "#f3f4f6" }}>
+                        {m.estado}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

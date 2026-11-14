@@ -1,26 +1,59 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowDownLeft,
   ArrowUpRight,
   ArrowLeftRight,
   Search,
   CalendarDays,
-  Wallet,
   ReceiptText,
   Filter,
-  CircleHelp,
 } from "lucide-react";
 
+import { fetchSocio } from "../../services/auth";
 import "./MovimientosCliente.css";
 
 type TipoMovimiento = "Todos" | "Depósitos" | "Retiros" | "Pagos" | "Transferencias";
 
 export default function MovimientosCliente() {
-  const [filtroActivo, setFiltroActivo] =
-    useState<TipoMovimiento>("Todos");
-
+  const [filtroActivo, setFiltroActivo] = useState<TipoMovimiento>("Todos");
   const [busqueda, setBusqueda] = useState("");
+  const [movimientos, setMovimientos] = useState<any[]>([]);
+
+  useEffect(() => {
+    const cargarMovimientos = async () => {
+      try {
+        const res = await fetchSocio("/api/socio/movimientos");
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          const mapeados = data.map((m: any) => {
+            let catFiltro: TipoMovimiento = "Depósitos";
+            if (m.tipo === "WITHDRAWAL") catFiltro = "Retiros";
+            else if (m.tipo === "LOAN_PAYMENT") catFiltro = "Pagos";
+            else if (m.tipo === "TRANSFER") catFiltro = "Transferencias";
+
+            return {
+              id: m.id,
+              concepto: m.tipoLabel || m.tipo,
+              descripcion: `Folio / Ref: ${m.referencia} · Cuenta: ${m.cuenta}`,
+              fecha: `${m.fecha} ${m.hora}`,
+              tipo: catFiltro,
+              esEntrada: m.esEntrada,
+              montoRaw: Number(m.monto),
+              monto: `${m.esEntrada ? "+" : "-"}$${Number(m.monto).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN`,
+              icono: m.esEntrada ? ArrowDownLeft : ArrowUpRight,
+              clase: m.esEntrada ? "verde" : "morado",
+              estado: "Aplicado",
+            };
+          });
+          setMovimientos(mapeados);
+        }
+      } catch (err) {
+        console.error("Error al cargar movimientos:", err);
+      }
+    };
+
+    cargarMovimientos();
+  }, []);
 
   const filtros: TipoMovimiento[] = [
     "Todos",
@@ -30,16 +63,13 @@ export default function MovimientosCliente() {
     "Transferencias",
   ];
 
-  const movimientos: {
-    id: number;
-    concepto: string;
-    descripcion: string;
-    fecha: string;
-    tipo: string;
-    monto: string;
-    icono: typeof Wallet;
-    clase: string;
-  }[] = [];
+  const totalEntradas = movimientos
+    .filter((m) => m.esEntrada)
+    .reduce((acc, m) => acc + m.montoRaw, 0);
+
+  const totalSalidas = movimientos
+    .filter((m) => !m.esEntrada)
+    .reduce((acc, m) => acc + m.montoRaw, 0);
 
   const movimientosFiltrados = movimientos.filter((movimiento) => {
     const coincideBusqueda =
@@ -80,7 +110,7 @@ export default function MovimientosCliente() {
           </div>
           <div>
             <span>Movimientos registrados</span>
-            <strong>—</strong>
+            <strong>{movimientos.length}</strong>
             <small>Operaciones de tu cuenta</small>
           </div>
         </article>
@@ -91,7 +121,7 @@ export default function MovimientosCliente() {
           </div>
           <div>
             <span>Entradas de dinero</span>
-            <strong>—</strong>
+            <strong>+${totalEntradas.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</strong>
             <small>Depósitos y otros ingresos</small>
           </div>
         </article>
@@ -102,7 +132,7 @@ export default function MovimientosCliente() {
           </div>
           <div>
             <span>Salidas de dinero</span>
-            <strong>—</strong>
+            <strong>-${totalSalidas.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</strong>
             <small>Retiros y pagos realizados</small>
           </div>
         </article>
@@ -192,14 +222,14 @@ export default function MovimientosCliente() {
                     </td>
 
                     <td>
-                      <strong className="moc-monto">
+                      <strong className="moc-monto" style={{ color: movimiento.esEntrada ? "#16a34a" : "#dc2626" }}>
                         {movimiento.monto}
                       </strong>
                     </td>
 
                     <td>
                       <span className="moc-estado">
-                        —
+                        {movimiento.estado}
                       </span>
                     </td>
                   </tr>
@@ -222,33 +252,11 @@ export default function MovimientosCliente() {
 
               <p>
                 {busqueda
-                  ? "Intenta buscar con otro concepto."
-                  : "Cuando realices operaciones en BANUAT, podrás consultar aquí su información."}
+                  ? "Intenta con otro término o limpia los filtros."
+                  : "Cuando realices depósitos, retiros o abonos, los verás registrados aquí."}
               </p>
             </div>
           )}
-        </div>
-
-        <div className="moc-pie-tabla">
-          <span>
-            Mostrando {movimientosFiltrados.length} movimientos
-          </span>
-          <span>Historial de cuenta</span>
-        </div>
-      </div>
-
-      <div className="moc-informacion">
-        <div className="moc-informacion-icono">
-          <CircleHelp size={22} />
-        </div>
-
-        <div>
-          <strong>Información sobre tus movimientos</strong>
-          <p>
-            En este apartado podrás consultar las operaciones
-            realizadas en tu cuenta, revisar sus detalles y conocer
-            el estado de cada movimiento.
-          </p>
         </div>
       </div>
     </section>

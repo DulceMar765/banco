@@ -1,22 +1,63 @@
-
+import { useState, useEffect } from "react";
 import {
   Wallet,
   CreditCard,
   FileText,
   TrendingUp,
   ArrowUpRight,
- 
   Bell,
   PiggyBank,
   HandCoins,
   Clock3,
-  CircleDollarSign,
   Activity,
 } from "lucide-react";
 
+import { fetchSocio } from "../../services/auth";
 import "./InicioCliente.css";
 
 function InicioCliente() {
+  const [resumen, setResumen] = useState<any>(null);
+  const [movimientos, setMovimientos] = useState<any[]>([]);
+  const [notificaciones, setNotificaciones] = useState<any[]>([]);
+
+  useEffect(() => {
+    const cargarInicio = async () => {
+      try {
+        const resR = await fetchSocio("/api/socio/resumen");
+        const dataR = await resR.json();
+        if (dataR && !dataR.error) {
+          setResumen(dataR);
+        }
+      } catch (err) {
+        console.error("Error al cargar resumen de socio:", err);
+      }
+
+      try {
+        const resM = await fetchSocio("/api/socio/movimientos");
+        const dataM = await resM.json();
+        if (Array.isArray(dataM)) {
+          setMovimientos(dataM);
+        }
+      } catch (err) {
+        console.error("Error al cargar movimientos:", err);
+      }
+
+      try {
+        const resN = await fetchSocio("/api/socio/notificaciones");
+        const dataN = await resN.json();
+        if (Array.isArray(dataN)) {
+          setNotificaciones(dataN);
+        }
+      } catch (err) {
+        console.error("Error al cargar notificaciones:", err);
+      }
+    };
+
+    cargarInicio();
+  }, []);
+
+  const totalProductos = (resumen?.cuentaPrincipal ? 1 : 0) + (resumen?.prestamosActivos || 0);
+
   return (
     <section className="inicio-cliente">
 
@@ -24,10 +65,11 @@ function InicioCliente() {
       <div className="ic-welcome">
         <div>
           <span className="ic-eyebrow">BANUAT · ÁREA DE CLIENTES</span>
-          <h1>Bienvenido a BANUAT</h1>
+          <h1>Bienvenido{resumen?.nombre ? `, ${resumen.nombre}` : " a BANUAT"}</h1>
           <p>
-            Consulta tus productos, revisa tus solicitudes
-            y mantente al día con tu actividad financiera.
+            {resumen?.numeroSocio
+              ? `Socio ${resumen.numeroSocio} · Consulta tus productos, ahorros y beneficios de la cooperativa.`
+              : "Consulta tus productos, revisa tus solicitudes y mantente al día con tu actividad financiera."}
           </p>
         </div>
 
@@ -54,8 +96,8 @@ function InicioCliente() {
             <span className="ic-stat-label">Mis productos</span>
           </div>
 
-          <strong>—</strong>
-          <small>Productos contratados</small>
+          <strong>{totalProductos}</strong>
+          <small>{totalProductos === 1 ? "1 producto contratado" : `${totalProductos} productos contratados`}</small>
         </div>
 
         <div className="ic-stat-card">
@@ -63,11 +105,11 @@ function InicioCliente() {
             <div className="ic-stat-icon ic-green">
               <FileText size={21} />
             </div>
-            <span className="ic-stat-label">Solicitudes</span>
+            <span className="ic-stat-label">Puntos de lealtad</span>
           </div>
 
-          <strong>—</strong>
-          <small>Solicitudes en proceso</small>
+          <strong>{resumen?.puntos ? Number(resumen.puntos.saldo).toLocaleString("es-MX") : "0"} pts</strong>
+          <small>{resumen?.puntos ? `Valor: $${Number(resumen.puntos.equivalenciaMxn).toFixed(2)} MXN` : "100 pts = $1 MXN"}</small>
         </div>
 
         <div className="ic-stat-card">
@@ -78,8 +120,8 @@ function InicioCliente() {
             <span className="ic-stat-label">Pagos próximos</span>
           </div>
 
-          <strong>—</strong>
-          <small>Pagos pendientes</small>
+          <strong>{resumen?.prestamosActivos > 0 ? "1 pendiente" : "Al corriente"}</strong>
+          <small>{resumen?.deudaTotal > 0 ? `Saldo: $${Number(resumen.deudaTotal).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN` : "Sin cuotas vencidas"}</small>
         </div>
 
         <div className="ic-stat-card">
@@ -90,8 +132,8 @@ function InicioCliente() {
             <span className="ic-stat-label">Notificaciones</span>
           </div>
 
-          <strong>—</strong>
-          <small>Avisos disponibles</small>
+          <strong>{notificaciones.length}</strong>
+          <small>{notificaciones.length === 1 ? "1 aviso disponible" : `${notificaciones.length} avisos disponibles`}</small>
         </div>
 
       </div>
@@ -121,7 +163,9 @@ function InicioCliente() {
                 <span>Consulta tus préstamos activos.</span>
               </div>
 
-              <span className="ic-product-value">—</span>
+              <span className="ic-product-value">
+                {resumen?.prestamosActivos > 0 ? `${resumen.prestamosActivos} activo(s)` : "Sin préstamos"}
+              </span>
             </div>
 
             <div className="ic-product-item">
@@ -130,11 +174,13 @@ function InicioCliente() {
               </div>
 
               <div className="ic-product-info">
-                <strong>Inversiones</strong>
-                <span>Revisa tus inversiones.</span>
+                <strong>Rendimiento mensual</strong>
+                <span>Devengo diario estimado de intereses.</span>
               </div>
 
-              <span className="ic-product-value">—</span>
+              <span className="ic-product-value" style={{ color: "#16a34a" }}>
+                {resumen?.rendimientoEstimadoMes ? `+$${Number(resumen.rendimientoEstimadoMes).toFixed(2)} MXN` : "—"}
+              </span>
             </div>
 
             <div className="ic-product-item">
@@ -143,11 +189,13 @@ function InicioCliente() {
               </div>
 
               <div className="ic-product-info">
-                <strong>Cuentas</strong>
-                <span>Consulta tus cuentas registradas.</span>
+                <strong>Cuenta de Ahorro</strong>
+                <span>{resumen?.cuentaPrincipal ? resumen.cuentaPrincipal.numero : "Cuenta oficial BANUAT"}</span>
               </div>
 
-              <span className="ic-product-value">—</span>
+              <span className="ic-product-value" style={{ fontWeight: 700 }}>
+                {resumen?.cuentaPrincipal ? `$${Number(resumen.cuentaPrincipal.saldo).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN` : "—"}
+              </span>
             </div>
 
           </div>
@@ -163,18 +211,33 @@ function InicioCliente() {
             <FileText size={20} />
           </div>
 
-          <div className="ic-empty-content">
-            <div className="ic-empty-icon">
-              <Clock3 size={25} />
+          {resumen?.prestamosActivos > 0 ? (
+            <div className="ic-product-list">
+              <div className="ic-product-item">
+                <div className="ic-product-icon ic-orange">
+                  <Clock3 size={21} />
+                </div>
+                <div className="ic-product-info">
+                  <strong>Préstamo autorizado</strong>
+                  <span>Contrato en cumplimiento de cuotas</span>
+                </div>
+                <span className="ic-product-value" style={{ color: "#16a34a" }}>Activo</span>
+              </div>
             </div>
+          ) : (
+            <div className="ic-empty-content">
+              <div className="ic-empty-icon">
+                <Clock3 size={25} />
+              </div>
 
-            <h3>Sin solicitudes disponibles</h3>
+              <h3>Sin solicitudes pendientes</h3>
 
-            <p>
-              Cuando realices una solicitud de algún producto,
-              podrás consultar aquí su estado.
-            </p>
-          </div>
+              <p>
+                Cuando realices una solicitud de algún producto con tu ejecutivo,
+                podrás consultar aquí su estado y resolución.
+              </p>
+            </div>
+          )}
         </div>
 
       </div>
@@ -192,18 +255,37 @@ function InicioCliente() {
             <Activity size={20} />
           </div>
 
-          <div className="ic-empty-content">
-            <div className="ic-empty-icon">
-              <TrendingUp size={25} />
+          {movimientos.length === 0 ? (
+            <div className="ic-empty-content">
+              <div className="ic-empty-icon">
+                <TrendingUp size={25} />
+              </div>
+
+              <h3>Sin movimientos registrados</h3>
+
+              <p>
+                Tus operaciones y movimientos aparecerán
+                en este apartado.
+              </p>
             </div>
-
-            <h3>Sin movimientos registrados</h3>
-
-            <p>
-              Tus operaciones y movimientos aparecerán
-              en este apartado.
-            </p>
-          </div>
+          ) : (
+            <div className="ic-product-list">
+              {movimientos.slice(0, 3).map((m: any) => (
+                <div key={m.id} className="ic-product-item">
+                  <div className={`ic-product-icon ${m.esEntrada ? "ic-green" : "ic-orange"}`}>
+                    <TrendingUp size={20} />
+                  </div>
+                  <div className="ic-product-info">
+                    <strong>{m.tipoLabel || m.tipo}</strong>
+                    <span>{m.fecha} · Ref: {m.referencia}</span>
+                  </div>
+                  <span className="ic-product-value" style={{ color: m.esEntrada ? "#16a34a" : "#dc2626", fontWeight: 700 }}>
+                    {m.esEntrada ? "+" : "-"}${Number(m.monto).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
 
         </div>
 
@@ -218,40 +300,29 @@ function InicioCliente() {
           </div>
 
           <div className="ic-notification-list">
-
-            <div className="ic-notification-item">
-              <div className="ic-notification-icon ic-orange">
-                <Bell size={18} />
+            {notificaciones.length === 0 ? (
+              <div className="ic-notification-item">
+                <div className="ic-notification-icon ic-orange">
+                  <Bell size={18} />
+                </div>
+                <div>
+                  <strong>Sin notificaciones</strong>
+                  <p>No tienes mensajes pendientes en tu bandeja.</p>
+                </div>
               </div>
-
-              <div>
-                <strong>Comunicados</strong>
-                <p>Aquí aparecerán los avisos importantes.</p>
-              </div>
-            </div>
-
-            <div className="ic-notification-item">
-              <div className="ic-notification-icon ic-green">
-                <CircleDollarSign size={18} />
-              </div>
-
-              <div>
-                <strong>Información de pagos</strong>
-                <p>Consulta avisos relacionados con tus pagos.</p>
-              </div>
-            </div>
-
-            <div className="ic-notification-item">
-              <div className="ic-notification-icon ic-purple">
-                <FileText size={18} />
-              </div>
-
-              <div>
-                <strong>Estado de solicitudes</strong>
-                <p>Recibe actualizaciones sobre tus trámites.</p>
-              </div>
-            </div>
-
+            ) : (
+              notificaciones.slice(0, 3).map((n: any) => (
+                <div key={n.id} className="ic-notification-item">
+                  <div className="ic-notification-icon ic-orange">
+                    <Bell size={18} />
+                  </div>
+                  <div>
+                    <strong>{n.titulo}</strong>
+                    <p>{n.mensaje}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

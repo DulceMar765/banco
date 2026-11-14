@@ -49,17 +49,43 @@ authRouter.post('/login', async (req: Request, res: Response) => {
 
     if (
       (credencial === 'ejecutivo@banuat.local' && clave === 'Ejecutivo123!') ||
-      (credencial === 'canalizacion@banuat.local' && clave === 'Canalizacion123!')
+      (credencial === 'canalizacion@banuat.local' && clave === 'Canalizacion123!') ||
+      (credencial === 'recepcion@banuat.local' && clave === 'Recepcion123!')
     ) {
       intentosFallidos.delete(credencial);
-      const esCanalizacion = credencial.startsWith('canalizacion');
+      const esCanalizacion = credencial.startsWith('canalizacion') || credencial.startsWith('recepcion');
       return res.json({
-        id: esCanalizacion ? '3' : '2',
-        usuario: esCanalizacion ? 'canalizacion' : 'ejecutivo',
+        id: esCanalizacion ? '4' : '2',
+        usuario: esCanalizacion ? 'recepcion' : 'ejecutivo',
         correo: credencial,
-        nombre: esCanalizacion ? 'Pedro Gómez' : 'Laura Mendoza',
-        rol: esCanalizacion ? 'CANALIZACION' : 'EJECUTIVO',
-        puesto: esCanalizacion ? 'Personal de Canalización' : 'Ejecutivo de Escritorio'
+        nombre: esCanalizacion ? 'Sofía Navarro' : 'Laura Mendoza',
+        rol: esCanalizacion ? 'RECEPCION' : 'EJECUTIVO',
+        puesto: esCanalizacion ? 'Personal de Recepción' : 'Ejecutivo de Escritorio'
+      });
+    }
+
+    if (credencial === 'cajero@banuat.local' && clave === 'Cajero123!') {
+      intentosFallidos.delete(credencial);
+      return res.json({
+        id: '3',
+        usuario: 'cajero',
+        correo: 'cajero@banuat.local',
+        nombre: 'Marcos Delgado',
+        rol: 'CAJERO',
+        puesto: 'Cajero de Sucursal'
+      });
+    }
+
+    if (credencial === 'cliente@banuat.local' && clave === 'Cliente123!') {
+      intentosFallidos.delete(credencial);
+      return res.json({
+        id: '5',
+        usuario: 'cliente',
+        correo: 'cliente@banuat.local',
+        nombre: 'Juan Pérez',
+        rol: 'CLIENTE',
+        customer_id: '1',
+        puesto: 'Socio de la Cooperativa'
       });
     }
 
@@ -141,10 +167,19 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       data: { last_login_at: new Date() }
     });
 
-    const roles = user.app_user_roles_app_user_roles_user_idToapp_users.map(
+    const rolesCodes = user.app_user_roles_app_user_roles_user_idToapp_users.map(
+      (ur) => ur.roles.code
+    );
+    const rolesNames = user.app_user_roles_app_user_roles_user_idToapp_users.map(
       (ur) => ur.roles.name
     );
-    const rolPrincipal = roles[0] || (user.employee_id ? 'EMPLEADO' : 'CLIENTE');
+    const primerRolCode = rolesCodes[0] || (user.employee_id ? 'EXECUTIVE' : 'CUSTOMER');
+    let rolNormalizado = 'EJECUTIVO';
+    if (primerRolCode === 'SUPERVISOR') rolNormalizado = 'SUPERVISOR';
+    else if (primerRolCode === 'CASHIER') rolNormalizado = 'CAJERO';
+    else if (primerRolCode === 'ROUTING') rolNormalizado = 'RECEPCION';
+    else if (primerRolCode === 'CUSTOMER') rolNormalizado = 'CLIENTE';
+    else if (primerRolCode === 'EXECUTIVE') rolNormalizado = 'EJECUTIVO';
 
     const nombreCompleto = user.employees
       ? `${user.employees.first_name} ${user.employees.paternal_surname}`
@@ -158,8 +193,8 @@ authRouter.post('/login', async (req: Request, res: Response) => {
         usuario: user.username,
         correo: user.email,
         nombre: nombreCompleto,
-        rol: rolPrincipal,
-        roles,
+        rol: rolNormalizado,
+        roles: rolesNames,
         employee_id: user.employee_id?.toString() || null,
         customer_id: user.customer_id?.toString() || null
       })

@@ -1,4 +1,4 @@
-
+import { useState, useEffect } from "react";
 import {
   Wallet,
   HandCoins,
@@ -9,9 +9,37 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import { fetchSocio } from "../../services/auth";
 import "./ProductosCliente.css";
 
 export default function ProductosCliente() {
+  const [productos, setProductos] = useState<{ cuentas: any[]; prestamos: any[] }>({
+    cuentas: [],
+    prestamos: [],
+  });
+
+  useEffect(() => {
+    const cargarProductos = async () => {
+      try {
+        const res = await fetchSocio("/api/socio/productos");
+        const data = await res.json();
+        if (data && !data.error) {
+          setProductos({
+            cuentas: Array.isArray(data.cuentas) ? data.cuentas : [],
+            prestamos: Array.isArray(data.prestamos) ? data.prestamos : [],
+          });
+        }
+      } catch (err) {
+        console.error("Error al cargar productos:", err);
+      }
+    };
+
+    cargarProductos();
+  }, []);
+
+  const totalProductos = productos.cuentas.length + productos.prestamos.length;
+  const saldoTotalCuentas = productos.cuentas.reduce((acc, c) => acc + (Number(c.saldo) || 0), 0);
+
   return (
     <section className="productos-cliente">
 
@@ -44,8 +72,8 @@ export default function ProductosCliente() {
 
           <div>
             <span>Productos asociados</span>
-            <strong>—</strong>
-            <small>Información de tu cuenta</small>
+            <strong>{totalProductos}</strong>
+            <small>{totalProductos === 1 ? "1 producto activo" : `${totalProductos} productos activos`}</small>
           </div>
         </div>
 
@@ -56,7 +84,7 @@ export default function ProductosCliente() {
 
           <div>
             <span>Préstamos</span>
-            <strong>—</strong>
+            <strong>{productos.prestamos.length}</strong>
             <small>Productos de financiamiento</small>
           </div>
         </div>
@@ -67,9 +95,9 @@ export default function ProductosCliente() {
           </div>
 
           <div>
-            <span>Saldo asociado</span>
-            <strong>—</strong>
-            <small>Información disponible de tus productos</small>
+            <span>Saldo en ahorro</span>
+            <strong>${saldoTotalCuentas.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN</strong>
+            <small>Disponible en tus cuentas</small>
           </div>
         </div>
 
@@ -100,18 +128,50 @@ export default function ProductosCliente() {
           </div>
         </div>
 
-        <div className="prc-empty-state">
-          <div className="prc-empty-icon">
-            <FileText size={27} />
+        {productos.prestamos.length === 0 ? (
+          <div className="prc-empty-state">
+            <div className="prc-empty-icon">
+              <FileText size={27} />
+            </div>
+
+            <h3>Información de préstamos</h3>
+
+            <p>
+              Actualmente no cuentas con contratos de préstamo activos.
+              Acércate con tu ejecutivo de sucursal para originar una solicitud.
+            </p>
           </div>
-
-          <h3>Información de préstamos</h3>
-
-          <p>
-            Aquí aparecerán los préstamos asociados a tu cuenta,
-            junto con sus datos y detalles correspondientes.
-          </p>
-        </div>
+        ) : (
+          <div style={{ padding: "16px 24px" }}>
+            {productos.prestamos.map((p) => (
+              <div
+                key={p.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "16px 0",
+                  borderBottom: "1px solid #f0f0f0",
+                }}
+              >
+                <div>
+                  <strong style={{ fontSize: "16px", color: "#4b2e1f", display: "block" }}>
+                    {p.nombre}
+                  </strong>
+                  <span style={{ fontSize: "13px", color: "#777" }}>
+                    Contrato: <code>{p.numero}</code> · Plazo: {p.plazoMeses} meses · Tasa: {p.tasa}
+                  </span>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <span style={{ fontSize: "12px", color: "#888", display: "block" }}>Saldo pendiente</span>
+                  <strong style={{ fontSize: "18px", color: "#b45309" }}>
+                    ${Number(p.saldoPendiente).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN
+                  </strong>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
       </div>
 
@@ -140,18 +200,50 @@ export default function ProductosCliente() {
           </div>
         </div>
 
-        <div className="prc-empty-state">
-          <div className="prc-empty-icon">
-            <Wallet size={27} />
+        {productos.cuentas.length === 0 ? (
+          <div className="prc-empty-state">
+            <div className="prc-empty-icon">
+              <Wallet size={27} />
+            </div>
+
+            <h3>Información de productos</h3>
+
+            <p>
+              En este apartado se mostrarán los demás productos
+              que estén asociados a tu cuenta.
+            </p>
           </div>
-
-          <h3>Información de productos</h3>
-
-          <p>
-            En este apartado se mostrarán los demás productos
-            que estén asociados a tu cuenta.
-          </p>
-        </div>
+        ) : (
+          <div style={{ padding: "16px 24px" }}>
+            {productos.cuentas.map((c) => (
+              <div
+                key={c.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "16px 0",
+                  borderBottom: "1px solid #f0f0f0",
+                }}
+              >
+                <div>
+                  <strong style={{ fontSize: "16px", color: "#4b2e1f", display: "block" }}>
+                    {c.nombre}
+                  </strong>
+                  <span style={{ fontSize: "13px", color: "#777" }}>
+                    Cuenta: <code>{c.numero}</code> · Rendimiento: {c.tasa}
+                  </span>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <span style={{ fontSize: "12px", color: "#888", display: "block" }}>Saldo disponible</span>
+                  <strong style={{ fontSize: "18px", color: "#16a34a" }}>
+                    ${Number(c.saldo).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN
+                  </strong>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
       </div>
 
@@ -165,8 +257,7 @@ export default function ProductosCliente() {
           <strong>Información de tus productos</strong>
 
           <p>
-            Los datos de tus productos financieros estarán
-            disponibles para su consulta desde este apartado.
+            Los saldos y rendimientos se actualizan de forma instantánea conforme a los movimientos de la cooperativa.
           </p>
         </div>
 

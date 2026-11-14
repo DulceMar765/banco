@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchSocio } from "../../services/auth";
 import {
   Bell,
   Search,
@@ -40,6 +41,32 @@ export default function NotificacionesCliente() {
 
   const [notificaciones, setNotificaciones] =
     useState<Notificacion[]>([]);
+
+  useEffect(() => {
+    const cargarNotificaciones = async () => {
+      try {
+        const res = await fetchSocio("/api/socio/notificaciones");
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          const mapped = data.map((n: any, idx: number) => ({
+            id: Number(n.id) || idx + 1,
+            titulo: n.titulo,
+            descripcion: n.mensaje,
+            fecha: `${n.fecha} ${n.hora}`,
+            categoria: n.tipo === "PAYMENT_REMINDER" ? "Pagos" : n.tipo === "PROMOTION" ? "Promociones" : "General",
+            leida: Boolean(n.leida),
+            icono: Bell,
+            clase: n.leida ? "verde" : "naranja",
+          }));
+          setNotificaciones(mapped);
+        }
+      } catch (err) {
+        console.error("Error al cargar notificaciones:", err);
+      }
+    };
+
+    cargarNotificaciones();
+  }, []);
 
   const filtros: EstadoFiltro[] = [
     "Todas",

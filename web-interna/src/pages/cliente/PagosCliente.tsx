@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CreditCard,
   CalendarDays,
@@ -11,18 +10,70 @@ import {
   Search,
   Filter,
   FileText,
-  CircleHelp,
 } from "lucide-react";
 
+import { fetchSocio } from "../../services/auth";
 import "./PagosCliente.css";
 
 type FiltroPago = "Todos" | "Pendientes" | "Realizados" | "Vencidos";
 
 export default function PagosCliente() {
-  const [filtroActivo, setFiltroActivo] =
-    useState<FiltroPago>("Todos");
-
+  const [filtroActivo, setFiltroActivo] = useState<FiltroPago>("Todos");
   const [busqueda, setBusqueda] = useState("");
+  const [pagos, setPagos] = useState<any[]>([]);
+  const [proximoPago, setProximoPago] = useState<any>(null);
+
+  useEffect(() => {
+    const cargarPagos = async () => {
+      try {
+        const resP = await fetchSocio("/api/socio/pagos");
+        const dataP = await resP.json();
+        
+        const resM = await fetchSocio("/api/socio/movimientos");
+        const dataM = await resM.json();
+
+        const lista: any[] = [];
+
+        if (Array.isArray(dataP) && dataP.length > 0) {
+          const prox = dataP[0];
+          setProximoPago(prox);
+
+          dataP.forEach((p, idx) => {
+            lista.push({
+              id: `pend-${idx}`,
+              concepto: `Cuota ${p.producto} (Cap: $${p.amortizacionCapital} + Int: $${p.interesesDevengados})`,
+              referencia: p.folioPrestamo,
+              fecha: p.proximaFechaPago,
+              monto: `$${Number(p.cuotaMensual).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN`,
+              estado: "Pendiente",
+              saldoRestante: p.saldoRestante,
+            });
+          });
+        }
+
+        if (Array.isArray(dataM)) {
+          dataM
+            .filter((m: any) => m.tipo === "LOAN_PAYMENT")
+            .forEach((m: any) => {
+              lista.push({
+                id: `real-${m.id}`,
+                concepto: m.tipoLabel || "Abono a préstamo",
+                referencia: m.referencia,
+                fecha: `${m.fecha} ${m.hora}`,
+                monto: `$${Number(m.monto).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN`,
+                estado: "Realizado",
+              });
+            });
+        }
+
+        setPagos(lista);
+      } catch (err) {
+        console.error("Error al cargar pagos:", err);
+      }
+    };
+
+    cargarPagos();
+  }, []);
 
   const filtros: FiltroPago[] = [
     "Todos",
@@ -31,14 +82,8 @@ export default function PagosCliente() {
     "Vencidos",
   ];
 
-  const pagos: {
-    id: number;
-    concepto: string;
-    referencia: string;
-    fecha: string;
-    monto: string;
-    estado: "Pendiente" | "Realizado" | "Vencido";
-  }[] = [];
+  const totalPendiente = proximoPago ? Number(proximoPago.saldoRestante) : 0;
+  const totalRealizados = pagos.filter((p) => p.estado === "Realizado").length;
 
   const pagosFiltrados = pagos.filter((pago) => {
     const coincideBusqueda =
@@ -71,7 +116,6 @@ export default function PagosCliente() {
       </div>
 
       {/* RESUMEN */}
-
       <div className="pac-resumen">
         <article className="pac-tarjeta-resumen">
           <div className="pac-resumen-icono naranja">
@@ -80,8 +124,8 @@ export default function PagosCliente() {
 
           <div>
             <span>Total pendiente</span>
-            <strong>—</strong>
-            <small>Pagos por realizar</small>
+            <strong>${totalPendiente.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</strong>
+            <small>Saldo capital de préstamos</small>
           </div>
         </article>
 
@@ -92,8 +136,8 @@ export default function PagosCliente() {
 
           <div>
             <span>Pagos realizados</span>
-            <strong>—</strong>
-            <small>Operaciones registradas</small>
+            <strong>{totalRealizados}</strong>
+            <small>{totalRealizados === 1 ? "1 abono registrado" : `${totalRealizados} abonos registrados`}</small>
           </div>
         </article>
 
@@ -104,14 +148,13 @@ export default function PagosCliente() {
 
           <div>
             <span>Próximo vencimiento</span>
-            <strong>—</strong>
-            <small>Fecha de pago</small>
+            <strong>{proximoPago ? proximoPago.proximaFechaPago : "Al corriente"}</strong>
+            <small>Fecha límite de pago</small>
           </div>
         </article>
       </div>
 
       {/* PROXIMO PAGO */}
-
       <div className="pac-proximo-pago">
         <div className="pac-proximo-icono">
           <Clock size={25} />
@@ -121,19 +164,28 @@ export default function PagosCliente() {
           <span>SEGUIMIENTO DE PAGOS</span>
           <h2>Tu próximo pago</h2>
           <p>
-            Aquí podrás consultar el importe y la fecha de tu siguiente pago.
+            {proximoPago
+              ? `Préstamo ${proximoPago.folioPrestamo} · ${proximoPago.producto}`
+              : "No tienes pagos próximos pendientes en tus contratos."}
           </p>
         </div>
 
         <div className="pac-proximo-detalle">
           <span>Importe</span>
-          <strong>—</strong>
-          <small>Fecha de vencimiento: —</small>
+          <strong>
+            {proximoPago
+              ? `$${Number(proximoPago.cuotaMensual).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN`
+              : "$0.00 MXN"}
+          </strong>
+          <small>
+            {proximoPago
+              ? `Fecha de vencimiento: ${proximoPago.proximaFechaPago}`
+              : "Sin adeudo activo"}
+          </small>
         </div>
       </div>
 
       {/* HISTORIAL */}
-
       <div className="pac-panel">
         <div className="pac-panel-encabezado">
           <div>
@@ -201,7 +253,7 @@ export default function PagosCliente() {
                     </div>
                   </td>
 
-                  <td>{pago.referencia}</td>
+                  <td><code>{pago.referencia}</code></td>
                   <td>{pago.fecha}</td>
 
                   <td>
@@ -217,15 +269,12 @@ export default function PagosCliente() {
                       {pago.estado === "Realizado" && (
                         <CheckCircle2 size={13} />
                       )}
-
                       {pago.estado === "Pendiente" && (
                         <Clock size={13} />
                       )}
-
                       {pago.estado === "Vencido" && (
                         <AlertCircle size={13} />
                       )}
-
                       {pago.estado}
                     </span>
                   </td>
@@ -237,47 +286,16 @@ export default function PagosCliente() {
           {pagosFiltrados.length === 0 && (
             <div className="pac-vacio">
               <div className="pac-vacio-icono">
-                <ReceiptText size={29} />
+                <ReceiptText size={28} />
               </div>
 
-              <h3>
-                {busqueda
-                  ? "No se encontraron pagos"
-                  : "No hay pagos registrados"}
-              </h3>
+              <h3>Sin pagos disponibles</h3>
 
               <p>
-                {busqueda
-                  ? "Intenta realizar otra búsqueda."
-                  : "Cuando tengas pagos asociados a tus productos, podrás consultar aquí sus detalles."}
+                No se encontraron pagos con el filtro o término de búsqueda seleccionado.
               </p>
             </div>
           )}
-        </div>
-
-        <div className="pac-pie-tabla">
-          <span>
-            Mostrando {pagosFiltrados.length} pagos
-          </span>
-
-          <span>Información de tu cuenta</span>
-        </div>
-      </div>
-
-      {/* INFORMACION */}
-
-      <div className="pac-informacion">
-        <div className="pac-informacion-icono">
-          <CircleHelp size={22} />
-        </div>
-
-        <div>
-          <strong>Información sobre tus pagos</strong>
-          <p>
-            En este apartado podrás consultar los pagos relacionados
-            con tus préstamos, identificar los pendientes y revisar
-            las operaciones que ya fueron registradas.
-          </p>
         </div>
       </div>
     </section>
