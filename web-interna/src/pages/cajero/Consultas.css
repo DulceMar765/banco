@@ -1,0 +1,406 @@
+
+.cs-contenedor {
+  width: 100%;
+  color: #252525;
+  font-family: "DM Sans", sans-serif;
+}
+
+.cs-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.cs-etiqueta {
+  color: #ff7a1a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.cs-encabezado h1 {
+  margin: 7px 0;
+  color: #4b2e1f;
+  font-size: 27px;
+  font-weight: 800;
+}
+
+.cs-encabezado p {
+  margin: 0;
+  color: #858585;
+  font-size: 14px;
+}
+
+.cs-encabezado-icono {
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff7a1a;
+  background: #fff0e5;
+  border-radius: 16px;
+}
+
+.cs-buscador {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  margin-bottom: 17px;
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 15px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.035);
+}
+
+.cs-buscador-icono {
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ff7a1a;
+  background: #fff0e5;
+  border-radius: 12px;
+}
+
+.cs-buscador-campo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cs-buscador-campo label {
+  color: #4b2e1f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cs-buscador-campo input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 0;
+  color: #333333;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.cs-buscador-campo input::placeholder {
+  color: #b2b2b2;
+}
+
+.cs-buscador-campo span {
+  color: #999999;
+  font-size: 11px;
+}
+
+.cs-boton-buscar {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 17px;
+  color: #ffffff;
+  background: #ff7a1a;
+  border: none;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cs-boton-buscar:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cs-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 16px;
+  margin-bottom: 20px;
+  color: #8b693e;
+  background: #fff8e9;
+  border: 1px solid #f5ebd5;
+  border-radius: 11px;
+}
+
+.cs-aviso svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cs-aviso p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.cs-panel {
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.035);
+}
+
+.cs-panel-encabezado {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 22px 24px;
+}
+
+.cs-cliente-icono {
+  width: 47px;
+  height: 47px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ff7a1a;
+  background: #fff0e5;
+  border-radius: 13px;
+}
+
+.cs-cliente-titulo {
+  flex: 1;
+  min-width: 0;
+}
+
+.cs-cliente-titulo h2 {
+  margin: 0;
+  color: #4b2e1f;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.cs-cliente-titulo p {
+  margin: 5px 0 0;
+  color: #929292;
+  font-size: 12px;
+}
+
+.cs-estado {
+  padding: 7px 11px;
+  color: #858585;
+  background: #f3f3f3;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cs-separador {
+  height: 1px;
+  background: #eeeeee;
+}
+
+.cs-pestanas {
+  display: flex;
+  gap: 5px;
+  padding: 0 20px;
+  overflow-x: auto;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.cs-pestana {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 13px;
+  color: #898989;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.cs-pestana:hover {
+  color: #ff7a1a;
+}
+
+.cs-pestana.activa {
+  color: #ff7a1a;
+  border-bottom-color: #ff7a1a;
+}
+
+.cs-contenido {
+  min-height: 245px;
+  padding: 24px;
+}
+
+.cs-subtitulo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 21px;
+  color: #ff7a1a;
+}
+
+.cs-subtitulo h3 {
+  margin: 0;
+  color: #4b2e1f;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.cs-datos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.cs-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-height: 65px;
+  padding: 15px;
+  background: #fafafa;
+  border: 1px solid #eeeeee;
+  border-radius: 11px;
+}
+
+.cs-dato span {
+  color: #929292;
+  font-size: 11px;
+}
+
+.cs-dato strong {
+  color: #4b2e1f;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cs-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 205px;
+  padding: 20px;
+  text-align: center;
+}
+
+.cs-vacio > svg {
+  margin-bottom: 13px;
+  color: #ff9b52;
+}
+
+.cs-vacio h3 {
+  margin: 0 0 8px;
+  color: #4b2e1f;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.cs-vacio p {
+  max-width: 390px;
+  margin: 0;
+  color: #858585;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.cs-vacio span {
+  margin-top: 15px;
+  color: #aaaaaa;
+  font-size: 11px;
+}
+
+.cs-pie {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 17px;
+  margin-top: 18px;
+  background: #f5f9f7;
+  border: 1px solid #e4eee8;
+  border-radius: 13px;
+}
+
+.cs-pie-icono {
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #1f9d6b;
+  background: #e4f3eb;
+  border-radius: 10px;
+}
+
+.cs-pie strong {
+  color: #285b43;
+  font-size: 12px;
+}
+
+.cs-pie p {
+  margin: 5px 0 0;
+  color: #718579;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+@media (max-width: 650px) {
+  .cs-encabezado h1 {
+    font-size: 23px;
+  }
+
+  .cs-buscador {
+    flex-wrap: wrap;
+  }
+
+  .cs-buscador-campo {
+    flex-basis: calc(100% - 65px);
+  }
+
+  .cs-boton-buscar {
+    width: 100%;
+  }
+
+  .cs-panel-encabezado {
+    flex-wrap: wrap;
+    padding: 17px;
+  }
+
+  .cs-estado {
+    margin-left: 60px;
+  }
+
+  .cs-pestanas {
+    padding: 0 10px;
+  }
+
+  .cs-pestana {
+    padding: 14px 10px;
+    font-size: 11px;
+  }
+
+  .cs-contenido {
+    padding: 17px;
+  }
+
+  .cs-datos-grid {
+    grid-template-columns: 1fr;
+  }
+}

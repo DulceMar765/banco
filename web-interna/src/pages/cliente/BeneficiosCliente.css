@@ -1,0 +1,616 @@
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap");
+
+.beneficios-cliente {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  color: #242424;
+  font-family: "DM Sans", sans-serif;
+}
+
+/* ENCABEZADO */
+
+.bec-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.bec-etiqueta {
+  color: #f07824;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.bec-encabezado h1 {
+  margin: 5px 0;
+  color: #262626;
+  font-size: 29px;
+  font-weight: 800;
+}
+
+.bec-encabezado p {
+  margin: 0;
+  color: #888;
+  font-size: 14px;
+}
+
+.bec-encabezado-icono {
+  width: 55px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e98232;
+  background: #fff0e5;
+  border-radius: 17px;
+}
+
+/* PUNTOS */
+
+.bec-puntos {
+  position: relative;
+  min-height: 245px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 30px 35px;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(115deg, #3d2920, #68432e);
+  border-radius: 20px;
+}
+
+.bec-puntos-contenido {
+  position: relative;
+  z-index: 2;
+  max-width: 550px;
+}
+
+.bec-puntos-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 17px;
+}
+
+.bec-puntos-icono {
+  width: 37px;
+  height: 37px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffbd72;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+}
+
+.bec-puntos-titulo span {
+  color: #f5c59c;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+.bec-puntos-contenido h2 {
+  margin: 0 0 8px;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.bec-puntos-contenido > p {
+  max-width: 410px;
+  margin: 0;
+  color: #ddc8b9;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.bec-puntos-total {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.bec-puntos-total strong {
+  color: #ffbf77;
+  font-size: 35px;
+  font-weight: 800;
+}
+
+.bec-puntos-total span {
+  color: #e5d2c3;
+  font-size: 12px;
+}
+
+.bec-puntos-nota {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  color: #e9c5a6;
+  font-size: 10px;
+}
+
+.bec-puntos-decoracion {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f5b86f;
+}
+
+.bec-circulo {
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 50%;
+}
+
+.bec-circulo-uno {
+  width: 170px;
+  height: 170px;
+}
+
+.bec-circulo-dos {
+  width: 125px;
+  height: 125px;
+}
+
+.bec-puntos-decoracion svg {
+  position: relative;
+  z-index: 1;
+}
+
+/* RESUMEN */
+
+.bec-resumen {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.bec-resumen-card {
+  min-height: 110px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid #edf0ed;
+  border-radius: 17px;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.025);
+}
+
+.bec-resumen-icono {
+  width: 47px;
+  height: 47px;
+  min-width: 47px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+}
+
+.bec-resumen-icono.naranja {
+  color: #ed852d;
+  background: #fff0e4;
+}
+
+.bec-resumen-icono.verde {
+  color: #219b70;
+  background: #e7f7ef;
+}
+
+.bec-resumen-icono.morado {
+  color: #8170ce;
+  background: #f0edff;
+}
+
+.bec-resumen-card div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bec-resumen-card span {
+  color: #777;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bec-resumen-card strong {
+  color: #252525;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.bec-resumen-card small {
+  color: #aaa;
+  font-size: 11px;
+}
+
+/* SECCIONES */
+
+.bec-seccion {
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #edf0ed;
+  border-radius: 19px;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.025);
+}
+
+.bec-seccion-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.bec-seccion-encabezado h2 {
+  margin: 0 0 5px;
+  color: #303030;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.bec-seccion-encabezado p {
+  margin: 0;
+  color: #999;
+  font-size: 12px;
+}
+
+.bec-categoria-icono {
+  width: 41px;
+  height: 41px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e98232;
+  background: #fff0e5;
+  border-radius: 12px;
+}
+
+/* FORMAS DE UTILIZAR PUNTOS */
+
+.bec-usos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.bec-uso-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 19px;
+  background: #fafbfa;
+  border: 1px solid #eef0ee;
+  border-radius: 14px;
+  transition: 0.2s;
+}
+
+.bec-uso-card:hover {
+  border-color: #f2c6a2;
+  transform: translateY(-2px);
+}
+
+.bec-uso-icono {
+  width: 45px;
+  height: 45px;
+  min-width: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.bec-uso-icono.naranja {
+  color: #e98232;
+  background: #fff0e5;
+}
+
+.bec-uso-icono.verde {
+  color: #219b70;
+  background: #e7f7ef;
+}
+
+.bec-uso-card h3 {
+  margin: 2px 0 7px;
+  color: #333;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.bec-uso-card p {
+  margin: 0;
+  color: #999;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.bec-uso-flecha {
+  margin-left: auto;
+  color: #bbb;
+}
+
+/* FILTROS */
+
+.bec-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.bec-filtros button {
+  padding: 9px 14px;
+  color: #777;
+  background: #f7f8f7;
+  border: 1px solid #ecefec;
+  border-radius: 9px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.bec-filtros button:hover {
+  color: #f07824;
+  border-color: #f07824;
+}
+
+.bec-filtros button.activo {
+  color: #fff;
+  background: #f07824;
+  border-color: #f07824;
+}
+
+/* TARJETAS DE BENEFICIOS */
+
+.bec-beneficios-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.bec-beneficio-card {
+  min-height: 210px;
+  padding: 19px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: #fafbfa;
+  border: 1px solid #eef0ee;
+  border-radius: 15px;
+  transition: 0.2s;
+}
+
+.bec-beneficio-card:hover {
+  border-color: #f2c6a2;
+  transform: translateY(-2px);
+}
+
+.bec-beneficio-icono {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  border-radius: 13px;
+}
+
+.bec-beneficio-icono.naranja {
+  color: #e98232;
+  background: #fff0e5;
+}
+
+.bec-beneficio-icono.verde {
+  color: #219b70;
+  background: #e7f7ef;
+}
+
+.bec-beneficio-icono.morado {
+  color: #8170ce;
+  background: #f0edff;
+}
+
+.bec-beneficio-categoria {
+  margin-bottom: 7px;
+  color: #e98232;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.bec-beneficio-card h3 {
+  margin: 0 0 7px;
+  color: #333;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.bec-beneficio-card p {
+  margin: 0 0 15px;
+  color: #999;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.bec-beneficio-link {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  padding: 0;
+  color: #e98232;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ESTADO VACIO */
+
+.bec-vacio {
+  grid-column: 1 / -1;
+  min-height: 220px;
+  padding: 30px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.bec-vacio-icono {
+  width: 59px;
+  height: 59px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  color: #e98232;
+  background: #fff0e5;
+  border-radius: 18px;
+}
+
+.bec-vacio h3 {
+  margin: 0 0 7px;
+  color: #333;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.bec-vacio p {
+  max-width: 390px;
+  margin: 0;
+  color: #999;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* INFORMACION */
+
+.bec-informacion {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 18px 20px;
+  background: #fff9f3;
+  border: 1px solid #f8e9da;
+  border-radius: 15px;
+}
+
+.bec-informacion-icono {
+  color: #e68a3d;
+}
+
+.bec-informacion strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #67452f;
+  font-size: 13px;
+}
+
+.bec-informacion p {
+  margin: 0;
+  color: #997c67;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1050px) {
+  .bec-resumen {
+    grid-template-columns: 1fr;
+  }
+
+  .bec-beneficios-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .beneficios-cliente {
+    gap: 18px;
+  }
+
+  .bec-encabezado h1 {
+    font-size: 23px;
+  }
+
+  .bec-puntos {
+    min-height: auto;
+    padding: 23px;
+  }
+
+  .bec-puntos-decoracion {
+    width: 90px;
+    min-width: 90px;
+    height: 110px;
+  }
+
+  .bec-puntos-decoracion svg {
+    width: 65px;
+  }
+
+  .bec-circulo-uno {
+    width: 100px;
+    height: 100px;
+  }
+
+  .bec-circulo-dos {
+    width: 75px;
+    height: 75px;
+  }
+
+  .bec-puntos-contenido h2 {
+    font-size: 20px;
+  }
+
+  .bec-seccion {
+    padding: 17px;
+  }
+
+  .bec-usos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bec-beneficios-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .bec-encabezado h1 {
+    font-size: 20px;
+  }
+
+  .bec-puntos-decoracion {
+    display: none;
+  }
+
+  .bec-puntos {
+    padding: 20px;
+  }
+
+  .bec-resumen-card {
+    padding: 15px;
+  }
+}

@@ -1,0 +1,509 @@
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap");
+
+/* =========================================
+   ESTRUCTURA GENERAL
+========================================= */
+
+.inicio-cliente {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: #29231f;
+  font-family: "DM Sans", sans-serif;
+  padding-bottom: 25px;
+}
+
+.inicio-cliente * {
+  box-sizing: border-box;
+}
+
+/* =========================================
+   BIENVENIDA
+========================================= */
+
+.ic-welcome {
+  width: 100%;
+  min-height: 175px;
+  padding: 30px 34px;
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      circle at 90% 20%,
+      rgba(255, 122, 26, 0.19),
+      transparent 30%
+    ),
+    linear-gradient(115deg, #4b2e1f, #302018);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.ic-eyebrow {
+  display: block;
+  color: #ffb276;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+
+.ic-welcome h1 {
+  margin: 0 0 9px;
+  font-size: 29px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+
+.ic-welcome p {
+  margin: 0;
+  max-width: 520px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.ic-welcome-icon {
+  width: 78px;
+  height: 78px;
+  flex-shrink: 0;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  color: #ff9a4b;
+}
+
+/* =========================================
+   ENCABEZADOS
+========================================= */
+
+.ic-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: -10px;
+}
+
+.ic-section-heading h2,
+.ic-card-heading h2 {
+  margin: 0;
+  color: #29231f;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ic-section-heading p,
+.ic-card-heading p {
+  margin: 5px 0 0;
+  color: #92908d;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* =========================================
+   ESTADÍSTICAS
+========================================= */
+
+.ic-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ic-stat-card {
+  min-width: 0;
+  padding: 20px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #eeeae6;
+  box-shadow: 0 3px 12px rgba(40, 30, 20, 0.025);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ic-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 7px 18px rgba(40, 30, 20, 0.07);
+}
+
+.ic-stat-top {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 17px;
+}
+
+.ic-stat-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ic-stat-label {
+  color: #77716b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ic-stat-card > strong {
+  display: block;
+  font-size: 27px;
+  font-weight: 800;
+  color: #302720;
+  line-height: 1.2;
+}
+
+.ic-stat-card > small {
+  display: block;
+  margin-top: 7px;
+  color: #a09a94;
+  font-size: 10px;
+}
+
+/* =========================================
+   COLORES DE ICONOS
+========================================= */
+
+.ic-orange {
+  background: #fff0e4;
+  color: #ef812e;
+}
+
+.ic-green {
+  background: #e6f5ed;
+  color: #24976a;
+}
+
+.ic-purple {
+  background: #f0eafb;
+  color: #8762c5;
+}
+
+.ic-brown {
+  background: #f1e9e3;
+  color: #81573d;
+}
+
+/* =========================================
+   TARJETAS GENERALES
+========================================= */
+
+.ic-main-grid,
+.ic-bottom-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 18px;
+}
+
+.ic-bottom-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.ic-card {
+  min-width: 0;
+  padding: 23px;
+  border-radius: 17px;
+  background: #fff;
+  border: 1px solid #eeeae6;
+  box-shadow: 0 3px 12px rgba(40, 30, 20, 0.025);
+}
+
+.ic-card-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 19px;
+  border-bottom: 1px solid #f0eeeb;
+}
+
+.ic-card-heading > svg {
+  flex-shrink: 0;
+  color: #b0a69c;
+}
+
+/* =========================================
+   MIS PRODUCTOS
+========================================= */
+
+.ic-product-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.ic-product-item {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 17px 0;
+  border-bottom: 1px solid #f2efec;
+}
+
+.ic-product-item:last-child {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+.ic-product-icon {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ic-product-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ic-product-info strong {
+  color: #39312b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ic-product-info span {
+  color: #99928b;
+  font-size: 10px;
+}
+
+.ic-product-value {
+  color: #7c7168;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* =========================================
+   SOLICITUDES Y ACTIVIDAD VACÍA
+========================================= */
+
+.ic-empty-content {
+  min-height: 195px;
+  padding: 25px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.ic-empty-icon {
+  width: 55px;
+  height: 55px;
+  margin-bottom: 13px;
+  border-radius: 17px;
+  background: #f7f2ed;
+  color: #a27c5d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ic-empty-content h3 {
+  margin: 0 0 7px;
+  color: #51463e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ic-empty-content p {
+  max-width: 270px;
+  margin: 0;
+  color: #a09a94;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   NOTIFICACIONES
+========================================= */
+
+.ic-notification-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.ic-notification-item {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 17px 0;
+  border-bottom: 1px solid #f2efec;
+}
+
+.ic-notification-item:last-child {
+  border-bottom: none;
+}
+
+.ic-notification-icon {
+  width: 39px;
+  height: 39px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ic-notification-item > div:last-child {
+  min-width: 0;
+}
+
+.ic-notification-item strong {
+  display: block;
+  color: #40372f;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ic-notification-item p {
+  margin: 5px 0 0;
+  color: #99928b;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* =========================================
+   NOTA INFERIOR
+========================================= */
+
+.ic-footer-note {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 19px 22px;
+  border-radius: 15px;
+  background: #f7f2ed;
+  border: 1px solid #eee5dc;
+}
+
+.ic-footer-icon {
+  width: 39px;
+  height: 39px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: #fff;
+  color: #ed812e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ic-footer-note strong {
+  display: block;
+  color: #59402e;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ic-footer-note p {
+  margin: 5px 0 0;
+  color: #938579;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1100px) {
+  .ic-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ic-main-grid,
+  .ic-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .inicio-cliente {
+    gap: 17px;
+  }
+
+  .ic-welcome {
+    min-height: 150px;
+    padding: 23px 20px;
+    border-radius: 16px;
+  }
+
+  .ic-welcome h1 {
+    font-size: 22px;
+  }
+
+  .ic-welcome p {
+    font-size: 11px;
+  }
+
+  .ic-welcome-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 15px;
+  }
+
+  .ic-welcome-icon svg {
+    width: 25px;
+  }
+
+  .ic-stats-grid {
+    gap: 10px;
+  }
+
+  .ic-stat-card {
+    padding: 14px;
+  }
+
+  .ic-stat-top {
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 12px;
+  }
+
+  .ic-stat-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .ic-stat-label {
+    font-size: 10px;
+  }
+
+  .ic-stat-card > strong {
+    font-size: 23px;
+  }
+
+  .ic-card {
+    padding: 17px;
+  }
+
+  .ic-product-info span {
+    font-size: 9px;
+  }
+
+  .ic-footer-note {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 370px) {
+  .ic-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

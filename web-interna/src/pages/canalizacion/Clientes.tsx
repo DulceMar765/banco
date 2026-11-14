@@ -12,6 +12,8 @@ import {
   MapPin,
   FileText,
   UserRound,
+  Wallet,
+  HandCoins,
 } from "lucide-react";
 
 import type { Cliente } from "./Escritorio";
@@ -26,7 +28,7 @@ type ClientesProps = {
 };
 
 function moneda(cantidad?: number) {
-  if (cantidad === undefined) return "No registrado";
+  if (cantidad === undefined) return "—";
 
   return cantidad.toLocaleString("es-MX", {
     style: "currency",
@@ -44,14 +46,16 @@ function Clientes({
   const [clienteSeleccionado, setClienteSeleccionado] =
     useState<Cliente | null>(null);
 
-  const listaClientes = useMemo(() => {
-    const todos = clientes;
+  // =========================================
+  // FILTRAR CLIENTES
+  // =========================================
 
+  const listaClientes = useMemo(() => {
     const termino = busqueda.toLowerCase().trim();
 
-    if (!termino) return todos;
+    if (!termino) return clientes;
 
-    return todos.filter((cliente) =>
+    return clientes.filter((cliente) =>
       [
         cliente.nombre,
         cliente.correo,
@@ -64,15 +68,32 @@ function Clientes({
     );
   }, [clientes, busqueda]);
 
-  const activos = listaClientes.filter(
+  // =========================================
+  // ESTADÍSTICAS
+  // =========================================
+
+  const activos = clientes.filter(
     (cliente) => cliente.estado === "Activo"
   ).length;
 
-  const pendientes = listaClientes.filter(
-    (cliente) =>
-      cliente.estado.toLowerCase().includes("pendiente") ||
-      cliente.estado.toLowerCase().includes("revisión")
+  const pendientes = clientes.filter(
+    (cliente) => {
+      const estado = cliente.estado.toLowerCase();
+
+      return (
+        estado.includes("pendiente") ||
+        estado.includes("revisión")
+      );
+    }
   ).length;
+
+  const cuentasVinculadas = clientes.filter(
+    (cliente) => Boolean(cliente.cuenta)
+  ).length;
+
+  // =========================================
+  // CLASE DEL ESTADO
+  // =========================================
 
   const estadoClase = (estado: string) => {
     const valor = estado.toLowerCase();
@@ -83,15 +104,31 @@ function Clientes({
     return "clientes-estado-revision";
   };
 
-  // Vista individual del cliente
+  // =========================================
+  // EXPEDIENTE INDIVIDUAL DEL CLIENTE
+  // =========================================
+
   if (clienteSeleccionado) {
     const cliente = clienteSeleccionado;
 
     return (
       <section className="es-section clientes">
 
-        <div className="clientes-detail-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div
+          className="clientes-detail-heading"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
             <button
               className="es-btn es-btn-secondary"
               onClick={() => setClienteSeleccionado(null)}
@@ -109,7 +146,11 @@ function Clientes({
             <button
               className="es-btn es-btn-primary"
               onClick={() => onIniciarSolicitud(cliente)}
-              style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
             >
               <FileText size={16} />
               Solicitar Producto / Crédito
@@ -117,21 +158,30 @@ function Clientes({
           )}
         </div>
 
+        {/* PERFIL DEL CLIENTE */}
+
         <div className="clientes-profile-card">
           <div className="clientes-profile-avatar">
             {cliente.nombre.charAt(0)}
           </div>
 
           <div className="clientes-profile-info">
-            <span className="es-eyebrow">EXPEDIENTE DEL CLIENTE</span>
+            <span className="es-eyebrow">
+              EXPEDIENTE DEL CLIENTE
+            </span>
+
             <h1>{cliente.nombre}</h1>
+
             <p>{cliente.cuenta}</p>
           </div>
         </div>
 
+        {/* INFORMACIÓN GENERAL */}
+
         <div className="clientes-detail-grid">
 
           <div className="es-card clientes-information-card">
+
             <div className="es-card-heading">
               <div>
                 <h2>Información personal</h2>
@@ -142,8 +192,10 @@ function Clientes({
             </div>
 
             <div className="clientes-information-list">
+
               <div className="clientes-information-item">
                 <Mail size={17} />
+
                 <div>
                   <span>Correo electrónico</span>
                   <strong>{cliente.correo}</strong>
@@ -152,6 +204,7 @@ function Clientes({
 
               <div className="clientes-information-item">
                 <Phone size={17} />
+
                 <div>
                   <span>Teléfono</span>
                   <strong>{cliente.telefono}</strong>
@@ -160,6 +213,7 @@ function Clientes({
 
               <div className="clientes-information-item">
                 <CreditCard size={17} />
+
                 <div>
                   <span>RFC</span>
                   <strong>{cliente.rfc || "No registrado"}</strong>
@@ -168,6 +222,7 @@ function Clientes({
 
               <div className="clientes-information-item">
                 <FileText size={17} />
+
                 <div>
                   <span>CURP</span>
                   <strong>{cliente.curp || "No registrado"}</strong>
@@ -176,19 +231,24 @@ function Clientes({
 
               <div className="clientes-information-item">
                 <MapPin size={17} />
+
                 <div>
                   <span>Dirección</span>
                   <strong>{cliente.direccion || "No registrada"}</strong>
                 </div>
               </div>
+
             </div>
           </div>
 
+          {/* INFORMACIÓN FINANCIERA */}
+
           <div className="es-card clientes-financial-card">
+
             <div className="es-card-heading">
               <div>
                 <h2>Información financiera</h2>
-                <p>Datos económicos proporcionados.</p>
+                <p>Datos económicos del cliente.</p>
               </div>
 
               <CreditCard size={19} />
@@ -213,11 +273,70 @@ function Clientes({
               <span>Número de cuenta</span>
               <strong>{cliente.cuenta}</strong>
             </div>
+
           </div>
 
         </div>
 
+        {/* CUENTAS BANCARIAS */}
+
+        <div className="es-card clientes-products-card">
+
+          <div className="es-card-heading">
+            <div>
+              <h2>Cuentas bancarias</h2>
+              <p>Consulta las cuentas registradas del socio.</p>
+            </div>
+
+            <Wallet size={19} />
+          </div>
+
+          <div className="clientes-empty-products">
+            <div className="clientes-empty-products-icon">
+              <CreditCard size={23} />
+            </div>
+
+            <h3>Sin cuentas adicionales para mostrar</h3>
+
+            <p>
+              Las cuentas bancarias asociadas al cliente aparecerán aquí.
+            </p>
+          </div>
+
+        </div>
+
+        {/* PRODUCTOS CONTRATADOS */}
+
+        <div className="es-card clientes-products-card">
+
+          <div className="es-card-heading">
+            <div>
+              <h2>Productos contratados</h2>
+              <p>Productos y servicios financieros del socio.</p>
+            </div>
+
+            <HandCoins size={19} />
+          </div>
+
+          <div className="clientes-empty-products">
+            <div className="clientes-empty-products-icon">
+              <HandCoins size={23} />
+            </div>
+
+            <h3>Sin productos para mostrar</h3>
+
+            <p>
+              Los préstamos, inversiones y otros productos contratados
+              aparecerán aquí.
+            </p>
+          </div>
+
+        </div>
+
+        {/* DOCUMENTACIÓN */}
+
         <div className="es-card clientes-documents-card">
+
           <div className="es-card-heading">
             <div>
               <h2>Documentación del cliente</h2>
@@ -228,26 +347,29 @@ function Clientes({
           </div>
 
           <div className="clientes-document-list">
+
             {[
               "Identificación oficial",
               "Comprobante de domicilio",
               "RFC",
               "Constancia de situación fiscal",
             ].map((documento) => (
-              <div className="clientes-document-item" key={documento}>
+
+              <div
+                className="clientes-document-item"
+                key={documento}
+              >
                 <div className="clientes-document-icon">
                   <FileText size={18} />
                 </div>
 
                 <span>{documento}</span>
 
-                <small>
-                  {cliente.estado === "Activo"
-                    ? "Registrado"
-                    : "Por verificar"}
-                </small>
+                <small>Por verificar</small>
               </div>
+
             ))}
+
           </div>
         </div>
 
@@ -255,27 +377,40 @@ function Clientes({
     );
   }
 
+  // =========================================
+  // DIRECTORIO DE CLIENTES
+  // =========================================
+
   return (
     <section className="es-section clientes">
 
-      {/* Encabezado */}
       <div className="es-page-heading">
+
         <div>
-          <span className="es-eyebrow">GESTIÓN DE SOCIOS</span>
+          <span className="es-eyebrow">
+            GESTIÓN DE SOCIOS
+          </span>
+
           <h1>Clientes</h1>
+
           <p>
             Consulta y administra la información de los clientes
             registrados en BANUAT.
           </p>
         </div>
 
-        <button className="es-btn es-btn-primary" onClick={onRegistrar}>
+        <button
+          className="es-btn es-btn-primary"
+          onClick={onRegistrar}
+        >
           <UserPlus size={17} />
           Registrar cliente
         </button>
+
       </div>
 
-      {/* Estadísticas */}
+      {/* ESTADÍSTICAS */}
+
       <div className="es-stats-grid clientes-stats">
 
         <div className="es-stat-card">
@@ -285,7 +420,7 @@ function Clientes({
 
           <div className="es-stat-content">
             <span>Total de clientes</span>
-            <strong>{listaClientes.length}</strong>
+            <strong>{clientes.length}</strong>
             <small>Socios registrados</small>
           </div>
         </div>
@@ -321,17 +456,19 @@ function Clientes({
 
           <div className="es-stat-content">
             <span>Cuentas vinculadas</span>
-            <strong>{listaClientes.filter((c) => Boolean(c.cuenta)).length}</strong>
-            <small>Cuentas activas en BD</small>
+            <strong>{cuentasVinculadas}</strong>
+            <small>Cuentas registradas</small>
           </div>
         </div>
 
       </div>
 
-      {/* Directorio */}
+      {/* DIRECTORIO */}
+
       <div className="es-card es-table-card clientes-directory">
 
         <div className="es-table-heading">
+
           <div>
             <h2>Directorio de clientes</h2>
             <p>Listado general de socios registrados.</p>
@@ -340,15 +477,21 @@ function Clientes({
           <span className="es-count">
             {listaClientes.length} clientes
           </span>
+
         </div>
 
         <div className="clientes-search-mobile">
           <Search size={17} />
-          <span>Utiliza el buscador superior para filtrar clientes.</span>
+
+          <span>
+            Utiliza el buscador superior para filtrar clientes.
+          </span>
         </div>
 
         <div className="es-table-wrap">
+
           <table className="es-table">
+
             <thead>
               <tr>
                 <th>Cliente</th>
@@ -361,15 +504,20 @@ function Clientes({
             </thead>
 
             <tbody>
+
               {listaClientes.map((cliente) => (
+
                 <tr key={cliente.id}>
+
                   <td>
                     <div className="clientes-table-person">
+
                       <div className="clientes-table-avatar">
                         {cliente.nombre.charAt(0)}
                       </div>
 
                       <strong>{cliente.nombre}</strong>
+
                     </div>
                   </td>
 
@@ -380,7 +528,9 @@ function Clientes({
                   <td>{cliente.cuenta}</td>
 
                   <td>
-                    <span className={`es-status ${estadoClase(cliente.estado)}`}>
+                    <span
+                      className={`es-status ${estadoClase(cliente.estado)}`}
+                    >
                       {cliente.estado}
                     </span>
                   </td>
@@ -393,10 +543,14 @@ function Clientes({
                     >
                       <Eye size={16} />
                     </button>
+
                     {onIniciarSolicitud && (
                       <button
                         className="es-action-button"
-                        style={{ color: "#d97706", marginLeft: "6px" }}
+                        style={{
+                          color: "#d97706",
+                          marginLeft: "6px",
+                        }}
                         title="Nueva solicitud financiera para este socio"
                         onClick={() => onIniciarSolicitud(cliente)}
                       >
@@ -404,24 +558,33 @@ function Clientes({
                       </button>
                     )}
                   </td>
+
                 </tr>
+
               ))}
+
             </tbody>
+
           </table>
+
         </div>
 
         {listaClientes.length === 0 && (
+
           <div className="es-empty-state">
+
             <div className="es-empty-icon">
               <Users size={24} />
             </div>
 
-            <h3>No se encontraron clientes</h3>
+            <h3>Sin clientes registrados</h3>
 
             <p>
-              Intenta con otro nombre, correo o número de cuenta.
+              Los clientes registrados aparecerán aquí.
             </p>
+
           </div>
+
         )}
 
       </div>

@@ -1,0 +1,537 @@
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap");
+
+/* =========================================
+   ESTRUCTURA GENERAL
+========================================= */
+
+.PerfilCliente {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding-bottom: 25px;
+  color: #29231f;
+  font-family: "DM Sans", sans-serif;
+}
+
+.PerfilCliente * {
+  box-sizing: border-box;
+}
+
+/* =========================================
+   ENCABEZADO
+========================================= */
+
+.mc-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mc-eyebrow {
+  display: block;
+  margin-bottom: 9px;
+  color: #e87b2c;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+.mc-page-heading h1 {
+  margin: 0;
+  color: #35271f;
+  font-size: 27px;
+  font-weight: 800;
+}
+
+.mc-page-heading p {
+  margin: 7px 0 0;
+  color: #96908a;
+  font-size: 12px;
+}
+
+.mc-heading-icon {
+  width: 53px;
+  height: 53px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  background: #fff0e4;
+  color: #ed812e;
+}
+
+/* =========================================
+   PERFIL
+========================================= */
+
+.mc-profile-card {
+  min-height: 125px;
+  padding: 23px 26px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at 90% 20%,
+      rgba(255, 122, 26, 0.17),
+      transparent 30%
+    ),
+    linear-gradient(110deg, #4b2e1f, #302018);
+  color: white;
+}
+
+.mc-profile-avatar {
+  width: 66px;
+  height: 66px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffad70;
+}
+
+.mc-profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mc-profile-info > span {
+  color: #ffb276;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+}
+
+.mc-profile-info h2 {
+  margin: 6px 0 4px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.mc-profile-info p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 11px;
+}
+
+.mc-profile-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.11);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* =========================================
+   ENCABEZADOS DE SECCIÓN
+========================================= */
+
+.mc-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: -9px;
+}
+
+.mc-section-heading h2 {
+  margin: 0;
+  color: #352d27;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.mc-section-heading p {
+  margin: 5px 0 0;
+  color: #99918a;
+  font-size: 11px;
+}
+
+.mc-section-heading > svg {
+  color: #a99d92;
+}
+
+/* =========================================
+   COLORES
+========================================= */
+
+.mc-orange {
+  background: #fff0e4;
+  color: #ed812e;
+}
+
+.mc-green {
+  background: #e6f5ed;
+  color: #24976a;
+}
+
+.mc-purple {
+  background: #f0eafb;
+  color: #8762c5;
+}
+
+.mc-brown {
+  background: #f1e9e3;
+  color: #81573d;
+}
+
+/* =========================================
+   INFORMACIÓN PERSONAL
+========================================= */
+
+.mc-information-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.mc-information-card {
+  min-width: 0;
+  min-height: 85px;
+  padding: 17px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: #fff;
+  border: 1px solid #eeeae6;
+  border-radius: 15px;
+  box-shadow: 0 3px 12px rgba(40, 30, 20, 0.025);
+}
+
+.mc-field-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.mc-information-card > div:last-child,
+.mc-contact-item > div:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.mc-information-card span,
+.mc-contact-item span {
+  color: #98918b;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.mc-information-card strong,
+.mc-contact-item strong {
+  color: #40362f;
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* =========================================
+   TARJETAS
+========================================= */
+
+.mc-card {
+  padding: 21px;
+  background: #fff;
+  border: 1px solid #eeeae6;
+  border-radius: 17px;
+  box-shadow: 0 3px 12px rgba(40, 30, 20, 0.025);
+}
+
+/* =========================================
+   CONTACTO
+========================================= */
+
+.mc-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.mc-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+}
+
+.mc-address-item {
+  grid-column: 1 / -1;
+}
+
+/* =========================================
+   DATOS DE CUENTA
+========================================= */
+
+.mc-account-card {
+  padding: 23px;
+  border-radius: 17px;
+  background: #fff;
+  border: 1px solid #eeeae6;
+  box-shadow: 0 3px 12px rgba(40, 30, 20, 0.025);
+}
+
+.mc-account-header {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0eeeb;
+}
+
+.mc-account-icon {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: #fff0e4;
+  color: #ed812e;
+}
+
+.mc-account-header span {
+  color: #e87b2c;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.mc-account-header h3 {
+  margin: 5px 0 0;
+  color: #40362f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mc-account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 23px;
+  padding-top: 20px;
+}
+
+.mc-account-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.mc-account-grid span {
+  color: #99918a;
+  font-size: 10px;
+}
+
+.mc-account-grid strong {
+  color: #40362f;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* =========================================
+   SEGURIDAD
+========================================= */
+
+.mc-security-card {
+  padding: 0 21px;
+  background: #fff;
+  border: 1px solid #eeeae6;
+  border-radius: 17px;
+  box-shadow: 0 3px 12px rgba(40, 30, 20, 0.025);
+}
+
+.mc-security-item {
+  min-height: 78px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border-bottom: 1px solid #f0eeeb;
+}
+
+.mc-security-item:last-child {
+  border-bottom: none;
+}
+
+.mc-security-item > div:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mc-security-item strong {
+  color: #40362f;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mc-security-item span {
+  color: #99918a;
+  font-size: 10px;
+}
+
+.mc-security-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #24976a;
+}
+
+/* =========================================
+   DOCUMENTACIÓN
+========================================= */
+
+.mc-document-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-document-item {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border-bottom: 1px solid #f0eeeb;
+}
+
+.mc-document-item:last-child {
+  border-bottom: none;
+}
+
+.mc-document-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #f7f0e9;
+  color: #9b7250;
+}
+
+.mc-document-item > div:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mc-document-item strong {
+  color: #40362f;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mc-document-item span {
+  color: #99918a;
+  font-size: 10px;
+}
+
+.mc-document-item small {
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: #f5f2ef;
+  color: #93877c;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 750px) {
+  .mc-profile-card {
+    flex-wrap: wrap;
+  }
+
+  .mc-profile-status {
+    margin-left: 84px;
+  }
+}
+
+@media (max-width: 550px) {
+  .mi-cuenta {
+    gap: 17px;
+  }
+
+  .mc-page-heading h1 {
+    font-size: 23px;
+  }
+
+  .mc-page-heading p {
+    max-width: 260px;
+    line-height: 1.6;
+  }
+
+  .mc-profile-card {
+    padding: 18px;
+    gap: 12px;
+  }
+
+  .mc-profile-avatar {
+    width: 53px;
+    height: 53px;
+  }
+
+  .mc-profile-info h2 {
+    font-size: 17px;
+  }
+
+  .mc-profile-status {
+    margin-left: 65px;
+  }
+
+  .mc-information-grid,
+  .mc-contact-grid,
+  .mc-account-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mc-address-item {
+    grid-column: auto;
+  }
+
+  .mc-information-card {
+    min-height: 75px;
+    padding: 13px;
+  }
+
+  .mc-card,
+  .mc-account-card {
+    padding: 17px;
+  }
+
+  .mc-security-card {
+    padding: 0 15px;
+  }
+
+  .mc-document-item {
+    gap: 9px;
+  }
+
+  .mc-document-item strong {
+    font-size: 10px;
+  }
+
+  .mc-document-item small {
+    padding: 5px 7px;
+  }
+}
