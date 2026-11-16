@@ -90,9 +90,9 @@ function InicioAdministrador() {
       color: "brown",
     },
     {
-      titulo: "Personal conectado",
+      titulo: "Personal activo",
       valor: String(datos.indicadores.personalConectado),
-      descripcion: "Sesiones activas",
+      descripcion: "Cuentas habilitadas",
       icono: Activity,
       color: "blue",
     },
@@ -248,7 +248,7 @@ function InicioAdministrador() {
           <div className="iad-section-heading">
             <div>
               <h3>Personal conectado</h3>
-              <p>Trabajadores con sesión activa.</p>
+              <p>Trabajadores con cuenta habilitada.</p>
             </div>
 
             <div className="iad-heading-icon green">

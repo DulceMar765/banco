@@ -309,7 +309,7 @@ function Clientes() {
                         {cli.nombre} · <span style={{ color: "#9a6b3b" }}>{cli.codigo}</span>
                       </strong>
                       <p style={{ margin: "4px 0 0", fontSize: "0.84rem", color: "#686057" }}>
-                        RFC: {cli.rfc} · CURP: {cli.curp} · Ingreso declarado: ${cli.ingresoMensual.toLocaleString("es-MX")} MXN · Alta: {cli.fechaAlta}
+                        RFC: {cli.rfc} · CURP: {cli.curp} · Ingreso declarado: {cli.ingresoMensual > 0 ? `$${cli.ingresoMensual.toLocaleString("es-MX")} MXN` : "No registrado"} · Alta: {cli.fechaAlta}
                       </p>
                     </div>
 

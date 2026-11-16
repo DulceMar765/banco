@@ -71,14 +71,12 @@ adminRouter.get('/resumen', async (_req: Request, res: Response) => {
   try {
     const [
       totalClientes,
-      clientesInactivos,
       solicitudesPendientes,
       empleadosActivos,
       ultimosLogs,
       ultimasTx
     ] = await Promise.all([
       prisma.customers.count(),
-      prisma.customers.count({ where: { status: { not: 'ACTIVE' } } }),
       prisma.loan_applications.count({
         where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } }
       }),
@@ -107,10 +105,11 @@ adminRouter.get('/resumen', async (_req: Request, res: Response) => {
       })
     ]);
 
-    const clientesSinCuenta = await prisma.customers.count({
-      where: { accounts: { none: {} } }
+    const altasPendientes = await prisma.customers.count({
+      where: {
+        OR: [{ status: { not: 'ACTIVE' } }, { accounts: { none: {} } }]
+      }
     });
-    const altasPendientes = clientesInactivos + clientesSinCuenta;
 
     const personalConectado = empleadosActivos.map((emp) => {
       const rolObj = emp.app_users?.app_user_roles_app_user_roles_user_idToapp_users?.[0]?.roles;
@@ -215,8 +214,8 @@ adminRouter.get('/clientes', async (_req: Request, res: Response) => {
         cuenta: cuentaPrincipal,
         saldoTotal: c.accounts.reduce((acc, a) => acc + Number(a.balance || 0), 0),
         puntos: Number(c.loyalty_accounts?.points_balance || 0),
-        ingresoMensual: Number(ingresoRecord?.monthly_amount || 18000),
-        egresoMensual: 4500,
+        ingresoMensual: Number(ingresoRecord?.monthly_amount || 0),
+        egresoMensual: 0,
         estado: estadoUI,
         statusRaw: c.status,
         fechaAlta: c.created_at.toISOString().split('T')[0],
