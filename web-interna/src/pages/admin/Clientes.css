@@ -1,0 +1,442 @@
+
+/* =========================================
+   CONTENEDOR GENERAL
+========================================= */
+
+.cla-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* =========================================
+   ENCABEZADO
+========================================= */
+
+.cla-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cla-eyebrow {
+  color: #e97822;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.cla-heading h2 {
+  margin: 7px 0;
+  color: #332a24;
+  font-size: 25px;
+  font-weight: 750;
+}
+
+.cla-heading p {
+  margin: 0;
+  color: #87918a;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   INDICADORES
+========================================= */
+
+.cla-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.cla-stat-card {
+  min-width: 0;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border: 1px solid #e9eeeb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(25, 50, 35, 0.025);
+}
+
+.cla-stat-icon {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+}
+
+.cla-stat-icon.orange {
+  color: #f17a26;
+  background: #fff1e6;
+}
+
+.cla-stat-icon.green {
+  color: #1f9d6b;
+  background: #eaf7f0;
+}
+
+.cla-stat-icon.brown {
+  color: #79533c;
+  background: #f5eee9;
+}
+
+.cla-stat-icon.blue {
+  color: #5484b5;
+  background: #edf4fb;
+}
+
+.cla-stat-card > div:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cla-stat-card span {
+  color: #87918a;
+  font-size: 11px;
+}
+
+.cla-stat-card strong {
+  color: #332a24;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+/* =========================================
+   SECCIÓN PRINCIPAL
+========================================= */
+
+.cla-section {
+  overflow: hidden;
+  border: 1px solid #e9eeeb;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(25, 50, 35, 0.025);
+}
+
+/* =========================================
+   PESTAÑAS
+========================================= */
+
+.cla-tabs {
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  border-bottom: 1px solid #edf0ee;
+  overflow-x: auto;
+}
+
+.cla-tabs button {
+  min-height: 59px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #8a938d;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cla-tabs button:hover {
+  color: #e97822;
+}
+
+.cla-tabs button.active {
+  border-bottom-color: #ff7a1a;
+  color: #e97822;
+}
+
+/* =========================================
+   CONTENIDO
+========================================= */
+
+.cla-content {
+  padding: 23px;
+}
+
+.cla-content-heading {
+  margin-bottom: 20px;
+}
+
+.cla-content-heading h3 {
+  margin: 0 0 6px;
+  color: #332a24;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.cla-content-heading p {
+  margin: 0;
+  color: #929b95;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   BÚSQUEDA Y FILTROS
+========================================= */
+
+.cla-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 23px;
+}
+
+.cla-search {
+  min-height: 42px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 13px;
+  border: 1px solid #e8ede9;
+  border-radius: 9px;
+  background: #fff;
+  color: #9ba49e;
+}
+
+.cla-search:focus-within {
+  border-color: #ffb47f;
+  box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.08);
+}
+
+.cla-search input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #414941;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.cla-search input::placeholder {
+  color: #aab1ac;
+}
+
+.cla-filter {
+  min-height: 42px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e8ede9;
+  border-radius: 9px;
+  background: #fff;
+  color: #89938c;
+}
+
+.cla-filter select {
+  max-width: 150px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #69736c;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* =========================================
+   ESTADOS VACÍOS
+========================================= */
+
+.cla-empty-state {
+  min-height: 230px;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #e5ebe6;
+  border-radius: 11px;
+  background: #fcfdfc;
+  text-align: center;
+}
+
+.cla-empty-icon {
+  width: 51px;
+  height: 51px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+}
+
+.cla-empty-icon.orange {
+  color: #f17a26;
+  background: #fff1e6;
+}
+
+.cla-empty-icon.green {
+  color: #1f9d6b;
+  background: #eaf7f0;
+}
+
+.cla-empty-icon.blue {
+  color: #5484b5;
+  background: #edf4fb;
+}
+
+.cla-empty-state h4 {
+  margin: 0 0 8px;
+  color: #515b53;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.cla-empty-state p {
+  max-width: 390px;
+  margin: 0;
+  color: #9aa39d;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   INFORMACIÓN ADMINISTRATIVA
+========================================= */
+
+.cla-info {
+  padding: 17px 19px;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  border: 1px solid #f1e6db;
+  border-radius: 12px;
+  background: #fffaf5;
+}
+
+.cla-info-icon {
+  width: 37px;
+  height: 37px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #fff0e1;
+  color: #e97822;
+}
+
+.cla-info h4 {
+  margin: 1px 0 5px;
+  color: #59402e;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.cla-info p {
+  margin: 0;
+  color: #947e6e;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1050px) {
+  .cla-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .cla-container {
+    gap: 17px;
+  }
+
+  .cla-heading h2 {
+    font-size: 22px;
+  }
+
+  .cla-content {
+    padding: 17px;
+  }
+
+  .cla-tabs {
+    gap: 19px;
+    padding: 0 15px;
+  }
+
+  .cla-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cla-filter select {
+    max-width: none;
+    flex: 1;
+  }
+
+  .cla-filter {
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cla-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .cla-stat-card {
+    padding: 12px;
+    gap: 9px;
+  }
+
+  .cla-stat-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .cla-stat-icon svg {
+    width: 18px;
+  }
+
+  .cla-stat-card span {
+    font-size: 10px;
+  }
+
+  .cla-stat-card strong {
+    font-size: 20px;
+  }
+
+  .cla-tabs {
+    gap: 16px;
+  }
+
+  .cla-tabs button {
+    font-size: 11px;
+  }
+
+  .cla-empty-state {
+    padding: 22px 14px;
+  }
+
+  .cla-info {
+    padding: 14px;
+  }
+}

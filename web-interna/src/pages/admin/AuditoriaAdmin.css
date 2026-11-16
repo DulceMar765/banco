@@ -1,0 +1,407 @@
+
+.aua-page {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  color: #242424;
+}
+
+/* ENCABEZADO */
+
+.aua-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.aua-superior {
+  display: inline-block;
+  margin-bottom: 7px;
+  color: #ff7a1a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.aua-encabezado h2 {
+  margin: 0 0 6px;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.aua-encabezado p {
+  margin: 0;
+  color: #777;
+  font-size: 13px;
+}
+
+.aua-encabezado-icon {
+  width: 55px;
+  height: 55px;
+  border-radius: 16px;
+  background: #fff0e5;
+  color: #ff7a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* INDICADORES */
+
+.aua-indicadores {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.aua-indicador {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 17px;
+  min-width: 0;
+  border: 1px solid #ecefec;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.aua-indicador-icon {
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.aua-indicador-icon.naranja {
+  color: #f07820;
+  background: #fff0e5;
+}
+
+.aua-indicador-icon.verde {
+  color: #1f9d6b;
+  background: #e7f6ef;
+}
+
+.aua-indicador-icon.azul {
+  color: #4787bd;
+  background: #eaf3fa;
+}
+
+.aua-indicador > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.aua-indicador span {
+  color: #777;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.aua-indicador strong {
+  color: #292929;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+/* FILTROS */
+
+.aua-filtros {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+  gap: 13px;
+  padding: 17px;
+  border: 1px solid #ecefec;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.aua-filtro-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.aua-filtro-campo label {
+  color: #666;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.aua-input-icon {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 11px;
+  border: 1px solid #e5e8e5;
+  border-radius: 8px;
+  color: #999;
+}
+
+.aua-input-icon input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #444;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.aua-filtro-campo select {
+  width: 100%;
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid #e5e8e5;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #555;
+  font-size: 12px;
+}
+
+.aua-input-icon:focus-within,
+.aua-filtro-campo select:focus {
+  border-color: #ff9b55;
+  box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.08);
+}
+
+/* PESTAÑAS */
+
+.aua-secciones {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e9ece9;
+  overflow-x: auto;
+}
+
+.aua-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #777;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.aua-tab:hover {
+  background: #f7f7f7;
+  color: #333;
+}
+
+.aua-tab.activo {
+  background: #fff1e7;
+  border-color: #ffdfc8;
+  color: #e96e16;
+}
+
+/* DESCRIPCIÓN */
+
+.aua-descripcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 17px 20px;
+  border: 1px solid #ecefec;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.aua-descripcion h3 {
+  margin: 0 0 5px;
+  color: #292929;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.aua-descripcion p {
+  margin: 0;
+  color: #777;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.aua-descripcion-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: #f4f5f4;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* PANEL */
+
+.aua-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  padding: 21px;
+  border: 1px solid #ecefec;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.aua-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #e87924;
+}
+
+.aua-panel-header h3 {
+  margin: 0 0 6px;
+  color: #292929;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.aua-panel-header p {
+  margin: 0;
+  color: #858585;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ESTADO VACÍO */
+
+.aua-empty {
+  min-height: 230px;
+  padding: 25px 18px;
+  border: 1px dashed #dfe4df;
+  border-radius: 11px;
+  background: #fafbfa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.aua-empty-icon {
+  width: 53px;
+  height: 53px;
+  margin-bottom: 12px;
+  border-radius: 15px;
+  background: #fff0e5;
+  color: #f07820;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aua-empty h4 {
+  margin: 0 0 7px;
+  color: #393939;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.aua-empty p {
+  max-width: 380px;
+  margin: 0;
+  color: #888;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* NOTA */
+
+.aua-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 15px;
+  border-radius: 10px;
+  background: #f5f8f6;
+  color: #54816b;
+}
+
+.aua-nota svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.aua-nota p {
+  margin: 0;
+  color: #63776a;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .aua-filtros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .aua-page {
+    gap: 17px;
+  }
+
+  .aua-encabezado h2 {
+    font-size: 21px;
+  }
+
+  .aua-indicadores {
+    grid-template-columns: 1fr;
+  }
+
+  .aua-secciones {
+    gap: 4px;
+  }
+
+  .aua-tab {
+    padding: 10px 11px;
+    font-size: 11px;
+  }
+
+  .aua-panel {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 450px) {
+  .aua-filtros {
+    grid-template-columns: 1fr;
+  }
+
+  .aua-encabezado-icon {
+    width: 45px;
+    height: 45px;
+  }
+
+  .aua-descripcion {
+    padding: 14px;
+  }
+}

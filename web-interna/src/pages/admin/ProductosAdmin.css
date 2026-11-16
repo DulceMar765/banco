@@ -1,0 +1,674 @@
+
+/* =========================================
+   CONTENEDOR GENERAL
+========================================= */
+
+.pad-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* =========================================
+   ENCABEZADO
+========================================= */
+
+.pad-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pad-eyebrow {
+  color: #e97822;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.pad-heading h2 {
+  margin: 7px 0;
+  color: #332a24;
+  font-size: 25px;
+  font-weight: 750;
+}
+
+.pad-heading p {
+  margin: 0;
+  color: #87918a;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   INDICADORES
+========================================= */
+
+.pad-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.pad-stat-card {
+  min-width: 0;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border: 1px solid #e9eeeb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(25, 50, 35, 0.025);
+}
+
+.pad-stat-icon {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+}
+
+.pad-stat-icon.orange {
+  color: #f17a26;
+  background: #fff1e6;
+}
+
+.pad-stat-icon.green {
+  color: #1f9d6b;
+  background: #eaf7f0;
+}
+
+.pad-stat-icon.blue {
+  color: #5484b5;
+  background: #edf4fb;
+}
+
+.pad-stat-icon.brown {
+  color: #79533c;
+  background: #f5eee9;
+}
+
+.pad-stat-card > div:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pad-stat-card span {
+  color: #87918a;
+  font-size: 11px;
+}
+
+.pad-stat-card strong {
+  color: #332a24;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+/* =========================================
+   SECCIÓN PRINCIPAL
+========================================= */
+
+.pad-section {
+  overflow: hidden;
+  border: 1px solid #e9eeeb;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(25, 50, 35, 0.025);
+}
+
+/* =========================================
+   PESTAÑAS
+========================================= */
+
+.pad-tabs {
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  border-bottom: 1px solid #edf0ee;
+  overflow-x: auto;
+}
+
+.pad-tabs button {
+  min-height: 59px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #8a938d;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pad-tabs button:hover {
+  color: #e97822;
+}
+
+.pad-tabs button.active {
+  border-bottom-color: #ff7a1a;
+  color: #e97822;
+}
+
+/* =========================================
+   CONTENIDO
+========================================= */
+
+.pad-content {
+  padding: 23px;
+}
+
+.pad-content-heading {
+  margin-bottom: 20px;
+}
+
+.pad-content-heading h3 {
+  margin: 0 0 6px;
+  color: #332a24;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.pad-content-heading p {
+  margin: 0;
+  color: #929b95;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   BÚSQUEDA Y FILTROS
+========================================= */
+
+.pad-toolbar {
+  margin-bottom: 23px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pad-search {
+  min-height: 42px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 13px;
+  border: 1px solid #e8ede9;
+  border-radius: 9px;
+  background: #fff;
+  color: #9ba49e;
+}
+
+.pad-search:focus-within {
+  border-color: #ffb47f;
+  box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.08);
+}
+
+.pad-search input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #414941;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.pad-search input::placeholder {
+  color: #aab1ac;
+}
+
+.pad-filter {
+  min-height: 42px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e8ede9;
+  border-radius: 9px;
+  background: #fff;
+  color: #89938c;
+}
+
+.pad-filter select {
+  max-width: 160px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #69736c;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* =========================================
+   BOTONES
+========================================= */
+
+.pad-primary-button {
+  min-height: 39px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #ff7a1a;
+  color: #fff;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.pad-primary-button:hover:not(:disabled) {
+  background: #e96a10;
+}
+
+.pad-primary-button:disabled {
+  background: #d9deda;
+  color: #89928c;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   ESTADO VACÍO
+========================================= */
+
+.pad-empty-state {
+  min-height: 240px;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #e5ebe6;
+  border-radius: 11px;
+  background: #fcfdfc;
+  text-align: center;
+}
+
+.pad-empty-icon {
+  width: 51px;
+  height: 51px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+}
+
+.pad-empty-icon.orange {
+  color: #f17a26;
+  background: #fff1e6;
+}
+
+/* =========================================
+   REGISTRO DE PRODUCTOS
+========================================= */
+
+.pad-registration {
+  padding: 20px;
+  border: 1px solid #e9eeeb;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.pad-registration-notice {
+  padding: 14px;
+  margin-bottom: 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid #f1e6db;
+  border-radius: 9px;
+  background: #fffaf5;
+}
+
+.pad-notice-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #fff0e1;
+  color: #e97822;
+}
+
+.pad-registration-notice strong {
+  display: block;
+  margin: 1px 0 5px;
+  color: #59402e;
+  font-size: 12px;
+}
+
+.pad-registration-notice p {
+  margin: 0;
+  color: #947e6e;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.pad-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.pad-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pad-field-full {
+  grid-column: 1 / -1;
+}
+
+.pad-field label {
+  color: #59635c;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pad-field input,
+.pad-field select,
+.pad-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #e5ebe6;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #59635c;
+  font-family: inherit;
+  font-size: 11px;
+  transition: border 0.2s ease;
+}
+
+.pad-field input,
+.pad-field select {
+  min-height: 42px;
+}
+
+.pad-field textarea {
+  min-height: 85px;
+  resize: vertical;
+}
+
+.pad-field input:focus,
+.pad-field select:focus,
+.pad-field textarea:focus {
+  border-color: #ffb47f;
+  box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.07);
+}
+
+.pad-field input::placeholder,
+.pad-field textarea::placeholder {
+  color: #aab1ac;
+}
+
+.pad-registration-footer {
+  margin-top: 23px;
+  padding-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border-top: 1px solid #edf0ee;
+}
+
+.pad-registration-footer p {
+  max-width: 420px;
+  margin: 0;
+  color: #929b95;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   CONDICIONES
+========================================= */
+
+.pad-conditions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.pad-condition-card {
+  padding: 19px;
+  border: 1px solid #e9eeeb;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.pad-condition-icon {
+  width: 42px;
+  height: 42px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.pad-condition-icon.orange {
+  color: #f17a26;
+  background: #fff1e6;
+}
+
+.pad-condition-icon.green {
+  color: #1f9d6b;
+  background: #eaf7f0;
+}
+
+.pad-condition-icon.blue {
+  color: #5484b5;
+  background: #edf4fb;
+}
+
+.pad-condition-icon.brown {
+  color: #79533c;
+  background: #f5eee9;
+}
+
+.pad-condition-card h4 {
+  margin: 0 0 8px;
+  color: #332a24;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.pad-condition-card p {
+  margin: 0;
+  color: #87918a;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.pad-condition-note {
+  margin-top: 18px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid #e6edf4;
+  border-radius: 9px;
+  background: #f7fafd;
+  color: #5484b5;
+}
+
+.pad-condition-note svg {
+  flex-shrink: 0;
+}
+
+.pad-condition-note p {
+  margin: 0;
+  color: #71859a;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   INFORMACIÓN ADMINISTRATIVA
+========================================= */
+
+.pad-info {
+  padding: 17px 19px;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  border: 1px solid #f1e6db;
+  border-radius: 12px;
+  background: #fffaf5;
+}
+
+.pad-info-icon {
+  width: 37px;
+  height: 37px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #fff0e1;
+  color: #e97822;
+}
+
+.pad-info h4 {
+  margin: 1px 0 5px;
+  color: #59402e;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.pad-info p {
+  margin: 0;
+  color: #947e6e;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1050px) {
+  .pad-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .pad-container {
+    gap: 17px;
+  }
+
+  .pad-heading h2 {
+    font-size: 22px;
+  }
+
+  .pad-content {
+    padding: 17px;
+  }
+
+  .pad-tabs {
+    gap: 19px;
+    padding: 0 15px;
+  }
+
+  .pad-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pad-filter select {
+    max-width: none;
+    flex: 1;
+  }
+
+  .pad-registration {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pad-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .pad-stat-card {
+    padding: 12px;
+    gap: 9px;
+  }
+
+  .pad-stat-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .pad-stat-icon svg {
+    width: 18px;
+  }
+
+  .pad-stat-card span {
+    font-size: 10px;
+  }
+
+  .pad-stat-card strong {
+    font-size: 20px;
+  }
+
+  .pad-tabs {
+    gap: 16px;
+  }
+
+  .pad-tabs button {
+    font-size: 11px;
+  }
+
+  .pad-fields,
+  .pad-conditions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pad-field-full {
+    grid-column: auto;
+  }
+
+  .pad-registration-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pad-registration-footer .pad-primary-button {
+    width: 100%;
+  }
+
+  .pad-info {
+    padding: 14px;
+  }
+}

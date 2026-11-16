@@ -1,0 +1,718 @@
+
+/* =========================================
+   CONTENEDOR GENERAL
+========================================= */
+
+.tra-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* =========================================
+   ENCABEZADO
+========================================= */
+
+.tra-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tra-eyebrow {
+  color: #e97822;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.tra-heading h2 {
+  margin: 7px 0;
+  color: #332a24;
+  font-size: 25px;
+  font-weight: 750;
+}
+
+.tra-heading p {
+  margin: 0;
+  color: #87918a;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   INDICADORES
+========================================= */
+
+.tra-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.tra-stat-card {
+  min-width: 0;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border: 1px solid #e9eeeb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(25, 50, 35, 0.025);
+}
+
+.tra-stat-icon {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+}
+
+.tra-stat-icon.orange,
+.tra-role-icon.orange {
+  color: #f17a26;
+  background: #fff1e6;
+}
+
+.tra-stat-icon.green,
+.tra-role-icon.green {
+  color: #1f9d6b;
+  background: #eaf7f0;
+}
+
+.tra-stat-icon.brown,
+.tra-role-icon.brown {
+  color: #79533c;
+  background: #f5eee9;
+}
+
+.tra-stat-icon.blue,
+.tra-role-icon.blue {
+  color: #5484b5;
+  background: #edf4fb;
+}
+
+.tra-stat-card > div:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tra-stat-card span {
+  color: #87918a;
+  font-size: 11px;
+}
+
+.tra-stat-card strong {
+  color: #332a24;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+/* =========================================
+   SECCIÓN PRINCIPAL
+========================================= */
+
+.tra-section {
+  overflow: hidden;
+  border: 1px solid #e9eeeb;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(25, 50, 35, 0.025);
+}
+
+/* =========================================
+   PESTAÑAS
+========================================= */
+
+.tra-tabs {
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  border-bottom: 1px solid #edf0ee;
+  overflow-x: auto;
+}
+
+.tra-tabs button {
+  min-height: 59px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #8a938d;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tra-tabs button:hover {
+  color: #e97822;
+}
+
+.tra-tabs button.active {
+  border-bottom-color: #ff7a1a;
+  color: #e97822;
+}
+
+/* =========================================
+   CONTENIDO
+========================================= */
+
+.tra-content {
+  padding: 23px;
+}
+
+.tra-content-heading {
+  margin-bottom: 20px;
+}
+
+.tra-content-heading h3 {
+  margin: 0 0 6px;
+  color: #332a24;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.tra-content-heading p {
+  margin: 0;
+  color: #929b95;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   BÚSQUEDA Y FILTROS
+========================================= */
+
+.tra-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 23px;
+}
+
+.tra-search {
+  min-height: 42px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 13px;
+  border: 1px solid #e8ede9;
+  border-radius: 9px;
+  background: #fff;
+  color: #9ba49e;
+}
+
+.tra-search:focus-within {
+  border-color: #ffb47f;
+  box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.08);
+}
+
+.tra-search input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #414941;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.tra-search input::placeholder {
+  color: #aab1ac;
+}
+
+.tra-filter {
+  min-height: 42px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e8ede9;
+  border-radius: 9px;
+  background: #fff;
+  color: #89938c;
+}
+
+.tra-filter select {
+  max-width: 150px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #69736c;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* =========================================
+   BOTONES
+========================================= */
+
+.tra-primary-button {
+  min-height: 39px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #ff7a1a;
+  color: #fff;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.tra-primary-button:hover:not(:disabled) {
+  background: #e96a10;
+}
+
+.tra-primary-button:disabled {
+  background: #d9deda;
+  color: #89928c;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   ESTADO VACÍO
+========================================= */
+
+.tra-empty-state {
+  min-height: 250px;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #e5ebe6;
+  border-radius: 11px;
+  background: #fcfdfc;
+  text-align: center;
+}
+
+.tra-empty-icon {
+  width: 51px;
+  height: 51px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+}
+
+.tra-empty-icon.orange {
+  color: #f17a26;
+  background: #fff1e6;
+}
+
+.tra-empty-state h4 {
+  margin: 0 0 8px;
+  color: #515b53;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.tra-empty-state p {
+  max-width: 390px;
+  margin: 0 0 17px;
+  color: #9aa39d;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   REGISTRO DE TRABAJADOR
+========================================= */
+
+.tra-registration {
+  padding: 20px;
+  border: 1px solid #e9eeeb;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.tra-registration-notice {
+  padding: 14px;
+  margin-bottom: 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid #f1e6db;
+  border-radius: 9px;
+  background: #fffaf5;
+}
+
+.tra-notice-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #fff0e1;
+  color: #e97822;
+}
+
+.tra-registration-notice strong {
+  display: block;
+  margin: 1px 0 5px;
+  color: #59402e;
+  font-size: 12px;
+}
+
+.tra-registration-notice p {
+  margin: 0;
+  color: #947e6e;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.tra-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.tra-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tra-field-full {
+  grid-column: 1 / -1;
+}
+
+.tra-field label {
+  color: #59635c;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tra-field input,
+.tra-field select {
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid #e5ebe6;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #59635c;
+  font-family: inherit;
+  font-size: 11px;
+  transition: border 0.2s ease;
+}
+
+.tra-field input:focus,
+.tra-field select:focus {
+  border-color: #ffb47f;
+  box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.07);
+}
+
+.tra-field input::placeholder {
+  color: #aab1ac;
+}
+
+.tra-registration-footer {
+  margin-top: 23px;
+  padding-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border-top: 1px solid #edf0ee;
+}
+
+.tra-registration-footer p {
+  max-width: 420px;
+  margin: 0;
+  color: #929b95;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   ROLES Y PERMISOS
+========================================= */
+
+.tra-roles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.tra-role-card {
+  min-width: 0;
+  padding: 19px;
+  border: 1px solid #e9eeeb;
+  border-radius: 11px;
+  background: #fff;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.tra-role-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 16px rgba(25, 50, 35, 0.05);
+}
+
+.tra-role-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.tra-role-icon {
+  width: 41px;
+  height: 41px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.tra-role-label {
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: #f3f5f3;
+  color: #7e8981;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.tra-role-card h4 {
+  margin: 0 0 8px;
+  color: #332a24;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.tra-role-card > p {
+  min-height: 54px;
+  margin: 0 0 17px;
+  color: #87918a;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.tra-role-permissions {
+  padding-top: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid #edf0ee;
+}
+
+.tra-role-permissions span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #667168;
+  font-size: 10px;
+}
+
+.tra-role-permissions svg {
+  flex-shrink: 0;
+  color: #1f9d6b;
+}
+
+/* =========================================
+   NOTA DE PERMISOS
+========================================= */
+
+.tra-permissions-note {
+  margin-top: 18px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid #e6edf4;
+  border-radius: 9px;
+  background: #f7fafd;
+  color: #5484b5;
+}
+
+.tra-permissions-note svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tra-permissions-note p {
+  margin: 0;
+  color: #71859a;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   INFORMACIÓN ADMINISTRATIVA
+========================================= */
+
+.tra-info {
+  padding: 17px 19px;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  border: 1px solid #f1e6db;
+  border-radius: 12px;
+  background: #fffaf5;
+}
+
+.tra-info-icon {
+  width: 37px;
+  height: 37px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #fff0e1;
+  color: #e97822;
+}
+
+.tra-info h4 {
+  margin: 1px 0 5px;
+  color: #59402e;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.tra-info p {
+  margin: 0;
+  color: #947e6e;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1050px) {
+  .tra-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .tra-container {
+    gap: 17px;
+  }
+
+  .tra-heading h2 {
+    font-size: 22px;
+  }
+
+  .tra-content {
+    padding: 17px;
+  }
+
+  .tra-tabs {
+    gap: 19px;
+    padding: 0 15px;
+  }
+
+  .tra-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tra-filter select {
+    max-width: none;
+    flex: 1;
+  }
+
+  .tra-roles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tra-role-card > p {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .tra-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .tra-stat-card {
+    padding: 12px;
+    gap: 9px;
+  }
+
+  .tra-stat-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .tra-stat-icon svg {
+    width: 18px;
+  }
+
+  .tra-stat-card span {
+    font-size: 10px;
+  }
+
+  .tra-stat-card strong {
+    font-size: 20px;
+  }
+
+  .tra-tabs {
+    gap: 16px;
+  }
+
+  .tra-tabs button {
+    font-size: 11px;
+  }
+
+  .tra-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .tra-field-full {
+    grid-column: auto;
+  }
+
+  .tra-registration {
+    padding: 14px;
+  }
+
+  .tra-registration-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tra-registration-footer .tra-primary-button {
+    width: 100%;
+  }
+
+  .tra-info {
+    padding: 14px;
+  }
+}

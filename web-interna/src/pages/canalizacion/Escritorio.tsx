@@ -10,6 +10,7 @@ import {
   History,
   Bell,
   MessageSquare,
+  MessageCircleQuestion,
   Menu,
   X,
   Search,
@@ -23,6 +24,7 @@ import Solicitudes from "./Solicitudes";
 import Productos, { type ProductoFinanciero } from "./Productos";
 import Seguimiento from "./Seguimiento";
 import Actividad from "./Actividad";
+import MensajesDuda from "./MensajesDuda";
 
 import {
   fetchClientes,
@@ -40,7 +42,8 @@ export type Modulo =
   | "Solicitudes"
   | "Productos"
   | "Seguimiento"
-  | "Actividad";
+  | "Actividad"
+  | "Mensajes de duda";
 
 export type Cliente = {
   id: number;
@@ -103,6 +106,10 @@ const menuPrincipal = [
     nombre: "Actividad" as Modulo,
     icono: History,
   },
+  {
+    nombre: "Mensajes de duda" as Modulo,
+    icono: MessageCircleQuestion,
+  },
 ];
 
 type EscritorioProps = {
@@ -138,6 +145,7 @@ function Escritorio({ onLogout }: EscritorioProps = {}) {
     }
 
     cargarDatos();
+
     return () => {
       montado = false;
     };
@@ -161,22 +169,25 @@ function Escritorio({ onLogout }: EscritorioProps = {}) {
   ) => {
     try {
       const creado = await registrarClienteApi(datos);
+
       if (creado) {
         setClientes((actuales) => [creado, ...actuales]);
         cambiarModulo("Clientes");
       }
     } catch (err: any) {
-      // Si el servidor retornó un error de validación (duplicado, formato, etc.), propagarlo al formulario
+      // Si el servidor retornó un error de validación, propagarlo al formulario
       if (err?.message && !err.message.includes("Failed to fetch")) {
         throw err;
       }
-      // Fallback local en caso de que el backend esté completamente apagado en desarrollo
+
+      // Fallback local en caso de que el backend esté apagado
       const nuevoCliente: Cliente = {
         ...datos,
         id: Date.now(),
         cuenta: `PEND-${String(clientes.length + 1).padStart(4, "0")}`,
         estado: "Pendiente de documentos",
       };
+
       setClientes((actuales) => [...actuales, nuevoCliente]);
       cambiarModulo("Clientes");
     }
@@ -187,6 +198,7 @@ function Escritorio({ onLogout }: EscritorioProps = {}) {
   ) => {
     try {
       const creada = await registrarSolicitudApi(datos);
+
       if (creada) {
         setSolicitudes((actuales) => [creada, ...actuales]);
       } else {
@@ -200,8 +212,10 @@ function Escritorio({ onLogout }: EscritorioProps = {}) {
         fecha: new Date().toLocaleDateString("es-MX"),
         estado: "Enviada a supervisión",
       };
+
       setSolicitudes((actuales) => [...actuales, nuevaSolicitud]);
     }
+
     cambiarModulo("Solicitudes");
   };
 
@@ -290,6 +304,9 @@ function Escritorio({ onLogout }: EscritorioProps = {}) {
           />
         );
 
+      case "Mensajes de duda":
+        return <MensajesDuda />;
+
       default:
         return null;
     }
@@ -350,17 +367,6 @@ function Escritorio({ onLogout }: EscritorioProps = {}) {
           </nav>
 
           <div className="es-sidebar-bottom">
-            <div className="es-sidebar-help">
-              <div className="es-help-icon">
-                <MessageSquare size={19} />
-              </div>
-
-              <div>
-                <strong>¿Necesitas ayuda?</strong>
-                <span>Contacta con soporte</span>
-              </div>
-            </div>
-
             <div className="es-sidebar-version">
               <span className="es-version-dot" />
               BANUAT · Sistema interno
@@ -436,8 +442,9 @@ function Escritorio({ onLogout }: EscritorioProps = {}) {
 
               <button
                 className="es-icon-button"
-                title="Mensajes"
-                aria-label="Mensajes"
+                title="Mensajes de duda"
+                aria-label="Abrir mensajes de duda"
+                onClick={() => cambiarModulo("Mensajes de duda")}
               >
                 <MessageSquare size={19} />
               </button>

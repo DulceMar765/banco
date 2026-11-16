@@ -1,0 +1,624 @@
+
+/* =========================================
+   CONTENEDOR GENERAL
+========================================= */
+
+.opa-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* =========================================
+   ENCABEZADO
+========================================= */
+
+.opa-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.opa-eyebrow {
+  color: #e97822;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.opa-heading h2 {
+  margin: 7px 0;
+  color: #332a24;
+  font-size: 25px;
+  font-weight: 750;
+}
+
+.opa-heading p {
+  margin: 0;
+  color: #87918a;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   INDICADORES
+========================================= */
+
+.opa-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.opa-stat-card {
+  min-width: 0;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border: 1px solid #e9eeeb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(25, 50, 35, 0.025);
+}
+
+.opa-stat-icon {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+}
+
+.opa-stat-icon.orange {
+  color: #f17a26;
+  background: #fff1e6;
+}
+
+.opa-stat-icon.green {
+  color: #1f9d6b;
+  background: #eaf7f0;
+}
+
+.opa-stat-icon.blue {
+  color: #5484b5;
+  background: #edf4fb;
+}
+
+.opa-stat-icon.brown {
+  color: #79533c;
+  background: #f5eee9;
+}
+
+.opa-stat-card > div:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.opa-stat-card span {
+  color: #87918a;
+  font-size: 11px;
+}
+
+.opa-stat-card strong {
+  color: #332a24;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+/* =========================================
+   SECCIÓN PRINCIPAL
+========================================= */
+
+.opa-section {
+  overflow: hidden;
+  border: 1px solid #e9eeeb;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(25, 50, 35, 0.025);
+}
+
+/* =========================================
+   PESTAÑAS
+========================================= */
+
+.opa-tabs {
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  border-bottom: 1px solid #edf0ee;
+  overflow-x: auto;
+}
+
+.opa-tabs button {
+  min-height: 59px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #8a938d;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.opa-tabs button:hover {
+  color: #e97822;
+}
+
+.opa-tabs button.active {
+  border-bottom-color: #ff7a1a;
+  color: #e97822;
+}
+
+/* =========================================
+   CONTENIDO
+========================================= */
+
+.opa-content {
+  padding: 23px;
+}
+
+.opa-content-heading {
+  margin-bottom: 20px;
+}
+
+.opa-content-heading h3 {
+  margin: 0 0 6px;
+  color: #332a24;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.opa-content-heading p {
+  margin: 0;
+  color: #929b95;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   TARJETAS DEL RESUMEN
+========================================= */
+
+.opa-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.opa-overview-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #e9eeeb;
+  border-radius: 11px;
+  background: #fff;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.opa-overview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 16px rgba(25, 50, 35, 0.05);
+}
+
+.opa-overview-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.opa-overview-top span {
+  color: #87918a;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.opa-overview-icon {
+  width: 41px;
+  height: 41px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.opa-overview-icon.orange {
+  color: #f17a26;
+  background: #fff1e6;
+}
+
+.opa-overview-icon.green {
+  color: #1f9d6b;
+  background: #eaf7f0;
+}
+
+.opa-overview-icon.blue {
+  color: #5484b5;
+  background: #edf4fb;
+}
+
+.opa-overview-card h4 {
+  margin: 0 0 8px;
+  color: #332a24;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.opa-overview-card p {
+  min-height: 53px;
+  margin: 0 0 15px;
+  color: #87918a;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.opa-overview-card button {
+  padding: 9px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-top: 1px solid #edf0ee;
+  background: transparent;
+  color: #e97822;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.opa-overview-card button:hover {
+  color: #c75d10;
+}
+
+/* =========================================
+   ACTIVIDAD RECIENTE
+========================================= */
+
+.opa-recent {
+  margin-top: 25px;
+}
+
+.opa-recent-heading {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #a0aaa3;
+}
+
+.opa-recent-heading h4 {
+  margin: 0 0 5px;
+  color: #424d45;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.opa-recent-heading p {
+  margin: 0;
+  color: #929b95;
+  font-size: 10px;
+}
+
+/* =========================================
+   BÚSQUEDA Y FILTROS
+========================================= */
+
+.opa-toolbar {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.opa-search {
+  min-height: 42px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 13px;
+  border: 1px solid #e8ede9;
+  border-radius: 9px;
+  background: #fff;
+  color: #9ba49e;
+}
+
+.opa-search:focus-within {
+  border-color: #ffb47f;
+  box-shadow: 0 0 0 3px rgba(255, 122, 26, 0.08);
+}
+
+.opa-search input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #414941;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.opa-search input::placeholder {
+  color: #aab1ac;
+}
+
+.opa-filter {
+  min-height: 42px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e8ede9;
+  border-radius: 9px;
+  background: #fff;
+  color: #89938c;
+}
+
+.opa-filter select {
+  max-width: 175px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #69736c;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* =========================================
+   TIPOS DE MOVIMIENTOS
+========================================= */
+
+.opa-movement-types,
+.opa-attention-types {
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.opa-movement-types div,
+.opa-attention-types div {
+  min-height: 38px;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e9eeeb;
+  border-radius: 8px;
+  background: #fcfdfc;
+  color: #6f7b72;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.opa-movement-types div:first-child {
+  color: #1f9d6b;
+}
+
+.opa-movement-types div:nth-child(2) {
+  color: #c87943;
+}
+
+.opa-movement-types div:nth-child(3) {
+  color: #5484b5;
+}
+
+.opa-attention-types div:first-child {
+  color: #79533c;
+}
+
+.opa-attention-types div:last-child {
+  color: #5484b5;
+}
+
+/* =========================================
+   ESTADOS VACÍOS
+========================================= */
+
+.opa-empty-state {
+  min-height: 220px;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #e5ebe6;
+  border-radius: 11px;
+  background: #fcfdfc;
+  text-align: center;
+}
+
+.opa-empty-icon {
+  width: 51px;
+  height: 51px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: #f1f5f2;
+  color: #7c9483;
+}
+
+.opa-empty-icon.orange {
+  color: #f17a26;
+  background: #fff1e6;
+}
+
+.opa-empty-icon.green {
+  color: #1f9d6b;
+  background: #eaf7f0;
+}
+
+.opa-empty-icon.blue {
+  color: #5484b5;
+  background: #edf4fb;
+}
+
+.opa-empty-state h4 {
+  margin: 0 0 8px;
+  color: #515b53;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.opa-empty-state p {
+  max-width: 410px;
+  margin: 0;
+  color: #9aa39d;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   INFORMACIÓN ADMINISTRATIVA
+========================================= */
+
+.opa-info {
+  padding: 17px 19px;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  border: 1px solid #f1e6db;
+  border-radius: 12px;
+  background: #fffaf5;
+}
+
+.opa-info-icon {
+  width: 37px;
+  height: 37px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #fff0e1;
+  color: #e97822;
+}
+
+.opa-info h4 {
+  margin: 1px 0 5px;
+  color: #59402e;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.opa-info p {
+  margin: 0;
+  color: #947e6e;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1050px) {
+  .opa-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .opa-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .opa-container {
+    gap: 17px;
+  }
+
+  .opa-heading h2 {
+    font-size: 22px;
+  }
+
+  .opa-content {
+    padding: 17px;
+  }
+
+  .opa-tabs {
+    gap: 19px;
+    padding: 0 15px;
+  }
+
+  .opa-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .opa-filter select {
+    max-width: none;
+    flex: 1;
+  }
+
+  .opa-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .opa-overview-card p {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .opa-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .opa-stat-card {
+    padding: 12px;
+    gap: 9px;
+  }
+
+  .opa-stat-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .opa-stat-icon svg {
+    width: 18px;
+  }
+
+  .opa-stat-card span {
+    font-size: 10px;
+  }
+
+  .opa-stat-card strong {
+    font-size: 20px;
+  }
+
+  .opa-tabs {
+    gap: 16px;
+  }
+
+  .opa-tabs button {
+    font-size: 11px;
+  }
+
+  .opa-empty-state {
+    padding: 22px 14px;
+  }
+
+  .opa-info {
+    padding: 14px;
+  }
+}

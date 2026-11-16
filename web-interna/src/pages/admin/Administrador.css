@@ -1,0 +1,536 @@
+
+/* =========================================
+   ESTRUCTURA GENERAL
+========================================= */
+
+.ad-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background: #f5f7f6;
+  color: #242424;
+  font-family: inherit;
+}
+
+/* =========================================
+   MENÚ LATERAL
+========================================= */
+
+.ad-sidebar {
+  width: 260px;
+  min-width: 260px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid #e9eeeb;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.ad-sidebar-header {
+  min-height: 86px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #edf0ee;
+}
+
+.ad-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ad-brand-icon {
+  width: 43px;
+  height: 43px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: #ff7a1a;
+}
+
+.ad-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ad-brand-text strong {
+  color: #4b2e1f;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+}
+
+.ad-brand-text span {
+  color: #89918c;
+  font-size: 11px;
+}
+
+.ad-sidebar-label {
+  padding: 27px 22px 12px;
+  color: #9ba39e;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+}
+
+.ad-navigation {
+  flex: 1;
+  padding: 0 13px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+}
+
+.ad-nav-item {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: #737d76;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ad-nav-item:hover {
+  background: #f6f8f6;
+  color: #4b2e1f;
+}
+
+.ad-nav-item.active {
+  background: #fff1e6;
+  color: #e96b13;
+  font-weight: 700;
+}
+
+.ad-nav-item.active svg:first-child {
+  color: #ff7a1a;
+}
+
+.ad-nav-item span {
+  flex: 1;
+}
+
+.ad-nav-arrow {
+  color: #ff7a1a;
+}
+
+/* =========================================
+   PERFIL Y CIERRE DE SESIÓN
+========================================= */
+
+.ad-sidebar-bottom {
+  padding: 17px 15px;
+  border-top: 1px solid #edf0ee;
+}
+
+.ad-admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 8px 5px 17px;
+}
+
+.ad-profile-avatar {
+  width: 39px;
+  height: 39px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  color: #1f9d6b;
+  background: #eaf7f0;
+}
+
+.ad-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ad-profile-info strong {
+  color: #343b36;
+  font-size: 12px;
+}
+
+.ad-profile-info span {
+  color: #929a95;
+  font-size: 10px;
+}
+
+.ad-logout-button {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid #f0e9e6;
+  border-radius: 9px;
+  background: #fff;
+  color: #a15b45;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ad-logout-button:hover {
+  background: #fff5f1;
+  border-color: #f2d8cc;
+}
+
+/* =========================================
+   CONTENIDO PRINCIPAL
+========================================= */
+
+.ad-main {
+  width: calc(100% - 260px);
+  min-height: 100vh;
+  margin-left: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ad-topbar {
+  min-height: 86px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: #fff;
+  border-bottom: 1px solid #e9eeeb;
+}
+
+.ad-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ad-topbar-caption {
+  color: #a0a7a2;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+}
+
+.ad-topbar-left h1 {
+  margin: 5px 0 0;
+  color: #292e2a;
+  font-size: 21px;
+  font-weight: 750;
+}
+
+.ad-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+}
+
+.ad-role-label {
+  padding: 7px 12px;
+  border-radius: 20px;
+  background: #edf7f1;
+  color: #23875f;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ad-notification-button {
+  width: 39px;
+  height: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 1px solid #edf0ee;
+  border-radius: 10px;
+  background: #fff;
+  color: #737d76;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ad-notification-button:hover {
+  color: #ff7a1a;
+  background: #fff7f0;
+  border-color: #ffdfc6;
+}
+
+.ad-content {
+  width: 100%;
+  flex: 1;
+  padding: 30px 32px;
+}
+
+/* =========================================
+   VISTA INICIAL PROVISIONAL
+========================================= */
+
+.ad-welcome-card {
+  min-height: 310px;
+  padding: 38px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  border: 1px solid #e9eeeb;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba(25, 50, 35, 0.035);
+}
+
+.ad-welcome-icon,
+.ad-placeholder-icon {
+  width: 58px;
+  height: 58px;
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  background: #fff1e6;
+  color: #ff7a1a;
+}
+
+.ad-eyebrow {
+  color: #e97822;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.ad-welcome-card h2 {
+  margin: 10px 0;
+  color: #332a24;
+  font-size: 27px;
+  font-weight: 750;
+}
+
+.ad-welcome-card > p {
+  max-width: 540px;
+  margin: 0;
+  color: #858e88;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.ad-welcome-footer {
+  width: 100%;
+  max-width: 540px;
+  margin-top: 28px;
+  padding-top: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #edf0ee;
+  color: #737d76;
+  font-size: 12px;
+}
+
+/* =========================================
+   MÓDULOS PROVISIONALES
+========================================= */
+
+.ad-module-placeholder {
+  min-height: 310px;
+  padding: 35px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e9eeeb;
+  border-radius: 17px;
+  background: #fff;
+  text-align: center;
+}
+
+.ad-module-placeholder .ad-placeholder-icon {
+  margin-bottom: 16px;
+}
+
+.ad-module-placeholder h2 {
+  margin: 0 0 9px;
+  color: #332a24;
+  font-size: 22px;
+}
+
+.ad-module-placeholder p {
+  max-width: 400px;
+  margin: 0;
+  color: #8b948e;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* =========================================
+   PIE DE PÁGINA
+========================================= */
+
+.ad-footer {
+  min-height: 55px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border-top: 1px solid #e9eeeb;
+  background: #fff;
+  color: #a0a7a2;
+  font-size: 10px;
+}
+
+/* =========================================
+   BOTONES MÓVILES
+========================================= */
+
+.ad-menu-toggle,
+.ad-mobile-close {
+  display: none;
+  border: none;
+  background: transparent;
+  color: #555f58;
+  cursor: pointer;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1050px) {
+  .ad-sidebar {
+    width: 245px;
+    min-width: 245px;
+  }
+
+  .ad-main {
+    width: calc(100% - 245px);
+    margin-left: 245px;
+  }
+
+  .ad-content {
+    padding: 25px;
+  }
+}
+
+@media (max-width: 760px) {
+  .ad-sidebar {
+    width: 270px;
+    min-width: 270px;
+    transform: translateX(-100%);
+  }
+
+  .ad-sidebar.ad-sidebar-open {
+    transform: translateX(0);
+  }
+
+  .ad-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(20, 30, 24, 0.4);
+  }
+
+  .ad-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .ad-topbar {
+    min-height: 75px;
+    padding: 0 17px;
+  }
+
+  .ad-menu-toggle,
+  .ad-mobile-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ad-menu-toggle {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    background: #f5f7f5;
+  }
+
+  .ad-mobile-close {
+    width: 34px;
+    height: 34px;
+  }
+
+  .ad-topbar-left h1 {
+    font-size: 18px;
+  }
+
+  .ad-topbar-caption {
+    font-size: 8px;
+  }
+
+  .ad-role-label {
+    display: none;
+  }
+
+  .ad-content {
+    padding: 20px 15px;
+  }
+
+  .ad-welcome-card {
+    min-height: 280px;
+    padding: 25px;
+  }
+
+  .ad-welcome-card h2 {
+    font-size: 23px;
+  }
+
+  .ad-footer {
+    padding: 15px;
+    flex-wrap: wrap;
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 420px) {
+  .ad-topbar {
+    gap: 8px;
+  }
+
+  .ad-topbar-actions {
+    gap: 8px;
+  }
+
+  .ad-welcome-card {
+    padding: 21px;
+  }
+
+  .ad-welcome-card h2 {
+    font-size: 21px;
+  }
+}
