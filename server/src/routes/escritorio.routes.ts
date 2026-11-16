@@ -282,7 +282,17 @@ escritorioRouter.post('/clientes', async (req: Request, res: Response) => {
       // 1. Generar número de cliente consecutivo
       const anio = new Date().getFullYear();
       const countTotal = await tx.customers.count();
-      const customerNumber = `CTE-${anio}-${String(countTotal + 1).padStart(4, '0')}`;
+      let customerSequence = countTotal + 1;
+      let customerNumber = `CTE-${anio}-${String(customerSequence).padStart(4, '0')}`;
+      while (
+        await tx.customers.findUnique({
+          where: { customer_number: customerNumber },
+          select: { id: true }
+        })
+      ) {
+        customerSequence += 1;
+        customerNumber = `CTE-${anio}-${String(customerSequence).padStart(4, '0')}`;
+      }
 
       // 2. Crear registro del cliente
       const nuevoCliente = await tx.customers.create({

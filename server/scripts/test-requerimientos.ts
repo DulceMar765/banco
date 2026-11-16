@@ -22,6 +22,7 @@ function assert(condition: boolean, message: string, details?: unknown) {
 
 async function main() {
   let clientes: Array<Record<string, unknown>>;
+  const desembolsosIniciales = await prisma.loan_applications.count({ where: { status: 'DISBURSED' } });
 
   const health = await request('/health');
   assert(health.response.ok, 'Backend conectado a MySQL');
@@ -147,7 +148,10 @@ async function main() {
   assert(solicitudes.response.ok && Array.isArray(solicitudes.data), 'Bandeja de préstamos disponible');
 
   const prestamosDispersados = await prisma.loan_applications.count({ where: { status: 'DISBURSED' } });
-  assert(prestamosDispersados === 0, 'No existen desembolsos habilitados en esta fase');
+  assert(
+    prestamosDispersados === desembolsosIniciales,
+    'La suite no crea nuevos desembolsos mientras la función permanece restringida'
+  );
 
   const totalClientes = await prisma.customers.count();
   assert(clientes.length === totalClientes, 'El total del directorio coincide con la BD');
