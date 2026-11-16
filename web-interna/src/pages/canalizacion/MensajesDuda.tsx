@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MessageCircleQuestion,
   Plus,
@@ -12,6 +11,7 @@ import {
   Send,
 } from "lucide-react";
 
+import { getApiUrl } from "../../services/auth";
 import "./MensajesDuda.css";
 
 type EstadoConsulta = "Pendiente" | "Atendida";
@@ -52,6 +52,22 @@ export default function MensajesDuda() {
   const [descripcion, setDescripcion] = useState("");
   const [respuesta, setRespuesta] = useState("");
 
+  const cargarConsultas = async () => {
+    try {
+      const res = await fetch(getApiUrl("/api/admin/dudas"));
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setConsultas(data);
+      }
+    } catch (err) {
+      console.error("Error al cargar consultas de duda:", err);
+    }
+  };
+
+  useEffect(() => {
+    cargarConsultas();
+  }, []);
+
   const pendientes = consultas.filter(
     (consulta) => consulta.estado === "Pendiente"
   ).length;
@@ -74,21 +90,39 @@ export default function MensajesDuda() {
     return coincideBusqueda && coincideEstado;
   });
 
-  const registrarConsulta = (e: React.FormEvent<HTMLFormElement>) => {
+  const registrarConsulta = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const nuevaConsulta: Consulta = {
-      id: Date.now(),
-      cliente: nombreCliente.trim(),
-      categoria,
-      asunto: asunto.trim(),
-      descripcion: descripcion.trim(),
-      respuesta: "",
-      fecha: new Date().toLocaleDateString("es-MX"),
-      estado: "Pendiente",
-    };
-
-    setConsultas((actuales) => [nuevaConsulta, ...actuales]);
+    try {
+      const res = await fetch(getApiUrl("/api/admin/dudas"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cliente: nombreCliente.trim(),
+          categoria,
+          asunto: asunto.trim(),
+          descripcion: descripcion.trim(),
+        }),
+      });
+      if (res.ok) {
+        const creada = await res.json();
+        setConsultas((actuales) => [creada, ...actuales]);
+      } else {
+        throw new Error("Fallo servidor");
+      }
+    } catch {
+      const nuevaConsulta: Consulta = {
+        id: Date.now(),
+        cliente: nombreCliente.trim(),
+        categoria,
+        asunto: asunto.trim(),
+        descripcion: descripcion.trim(),
+        respuesta: "",
+        fecha: new Date().toLocaleDateString("es-MX"),
+        estado: "Pendiente",
+      };
+      setConsultas((actuales) => [nuevaConsulta, ...actuales]);
+    }
 
     setNombreCliente("");
     setCategoria("Préstamos");
@@ -97,8 +131,18 @@ export default function MensajesDuda() {
     setModalAbierto(false);
   };
 
-  const guardarRespuesta = (id: number) => {
+  const guardarRespuesta = async (id: number) => {
     if (!respuesta.trim()) return;
+
+    try {
+      await fetch(getApiUrl(`/api/admin/dudas/${id}/responder`), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ respuesta: respuesta.trim() }),
+      });
+    } catch (err) {
+      console.error("Error al guardar respuesta:", err);
+    }
 
     setConsultas((actuales) =>
       actuales.map((consulta) =>
@@ -416,4 +460,3 @@ export default function MensajesDuda() {
     </div>
   );
 }
-

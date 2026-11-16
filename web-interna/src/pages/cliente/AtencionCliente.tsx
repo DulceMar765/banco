@@ -17,6 +17,7 @@ import {
   CalendarCheck,
 } from "lucide-react";
 
+import { getApiUrl, getSesionActual } from "../../services/auth";
 import "./AtencionCliente.css";
 
 type Pestaña = "mensajes" | "citas" | "historial";
@@ -45,16 +46,24 @@ function AtencionCliente() {
   const [citas, setCitas] = useState<Cita[]>([]);
 
   useEffect(() => {
-    setConsultas([
-      {
-        id: 1,
-        asunto: "Atención Institucional BANUAT",
-        categoria: "Ahorro e Inversión",
-        mensaje: "Estimado socio, ponemos a su disposición nuestros canales de atención en sucursal y turnos digitales con prioridad ponderada.",
-        fecha: new Date().toLocaleDateString("es-MX"),
-        estado: "Resuelta",
-      },
-    ]);
+    fetch(getApiUrl("/api/admin/dudas"))
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapeadas: Consulta[] = data.map((d: any) => ({
+            id: Number(d.id),
+            asunto: d.asunto,
+            categoria: d.categoria,
+            mensaje: d.respuesta
+              ? `${d.descripcion}\n\nRespuesta BANUAT: ${d.respuesta}`
+              : d.descripcion,
+            fecha: d.fecha,
+            estado: d.estado === "Atendida" ? "Resuelta" : "Pendiente",
+          }));
+          setConsultas(mapeadas);
+        }
+      })
+      .catch((err) => console.error("Error al cargar consultas del socio:", err));
   }, []);
 
   const [mostrarConsulta, setMostrarConsulta] = useState(false);
@@ -70,19 +79,50 @@ function AtencionCliente() {
   const [fechaCita, setFechaCita] = useState("");
   const [horaCita, setHoraCita] = useState("");
 
-  const registrarConsulta = () => {
+  const registrarConsulta = async () => {
     if (!asunto.trim() || !mensaje.trim()) return;
 
-    const nuevaConsulta: Consulta = {
-      id: Date.now(),
-      asunto,
-      categoria,
-      mensaje,
-      fecha: new Date().toLocaleDateString("es-MX"),
-      estado: "Pendiente",
-    };
+    const sesion = getSesionActual();
+    const nombreSocio = sesion?.nombre || "Juan Pérez Hernández";
 
-    setConsultas((actuales) => [nuevaConsulta, ...actuales]);
+    try {
+      const res = await fetch(getApiUrl("/api/admin/dudas"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cliente: nombreSocio,
+          categoria,
+          asunto: asunto.trim(),
+          descripcion: mensaje.trim(),
+        }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setConsultas((actuales) => [
+          {
+            id: Number(d.id),
+            asunto: d.asunto,
+            categoria: d.categoria,
+            mensaje: d.descripcion,
+            fecha: d.fecha,
+            estado: "Pendiente",
+          },
+          ...actuales,
+        ]);
+      } else {
+        throw new Error("Fallo red");
+      }
+    } catch {
+      const nuevaConsulta: Consulta = {
+        id: Date.now(),
+        asunto,
+        categoria,
+        mensaje,
+        fecha: new Date().toLocaleDateString("es-MX"),
+        estado: "Pendiente",
+      };
+      setConsultas((actuales) => [nuevaConsulta, ...actuales]);
+    }
 
     setAsunto("");
     setMensaje("");

@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FileBarChart,
   Users,
@@ -8,7 +7,6 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   Search,
-  Download,
   TrendingUp,
   ClipboardList,
   CircleDollarSign,
@@ -16,6 +14,7 @@ import {
   BarChart3,
 } from "lucide-react";
 
+import { getApiUrl } from "../../services/auth";
 import "./ReportesAdmin.css";
 
 type SeccionReporte =
@@ -32,6 +31,39 @@ export default function ReportesAdmin() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [tipoReporte, setTipoReporte] = useState("todos");
+
+  const [datos, setDatos] = useState<any>({
+    resumenGeneral: {
+      clientesRegistrados: 0,
+      prestamosGestionados: 0,
+      movimientosCaja: 0,
+      personalRegistrado: 0,
+    },
+    clientes: { total: 0, nuevos: 0, pendientes: 0, registros: [] },
+    prestamos: { recibidas: 0, autorizados: 0, rechazados: 0, pendientes: 0, registros: [] },
+    caja: { depositos: 0, retiros: 0, pagos: 0, importeTotal: 0, registros: [] },
+    personal: { supervisores: 0, escritorio: 0, cajeros: 0, recepcion: 0, registros: [] },
+  });
+
+  const cargarReportes = async (inicio = fechaInicio, fin = fechaFin) => {
+    try {
+      const params = new URLSearchParams();
+      if (inicio) params.set("fechaInicio", inicio);
+      if (fin) params.set("fechaFin", fin);
+      const qs = params.toString() ? `?${params.toString()}` : "";
+      const res = await fetch(getApiUrl(`/api/admin/reportes${qs}`));
+      const data = await res.json();
+      if (data && data.resumenGeneral) {
+        setDatos(data);
+      }
+    } catch (err) {
+      console.error("Error al cargar reportes admin:", err);
+    }
+  };
+
+  useEffect(() => {
+    cargarReportes();
+  }, []);
 
   const secciones: {
     nombre: SeccionReporte;
@@ -90,7 +122,7 @@ export default function ReportesAdmin() {
                 </div>
                 <div>
                   <span>Clientes registrados</span>
-                  <strong>—</strong>
+                  <strong>{datos.resumenGeneral.clientesRegistrados}</strong>
                 </div>
               </article>
 
@@ -100,7 +132,7 @@ export default function ReportesAdmin() {
                 </div>
                 <div>
                   <span>Préstamos gestionados</span>
-                  <strong>—</strong>
+                  <strong>{datos.resumenGeneral.prestamosGestionados}</strong>
                 </div>
               </article>
 
@@ -110,7 +142,7 @@ export default function ReportesAdmin() {
                 </div>
                 <div>
                   <span>Movimientos de caja</span>
-                  <strong>—</strong>
+                  <strong>{datos.resumenGeneral.movimientosCaja}</strong>
                 </div>
               </article>
 
@@ -120,7 +152,7 @@ export default function ReportesAdmin() {
                 </div>
                 <div>
                   <span>Personal registrado</span>
-                  <strong>—</strong>
+                  <strong>{datos.resumenGeneral.personalRegistrado}</strong>
                 </div>
               </article>
             </div>
@@ -137,9 +169,34 @@ export default function ReportesAdmin() {
                 <TrendingUp size={21} />
               </div>
 
-              {renderizarEstadoVacio(
-                "Sin información disponible",
-                "Cuando existan operaciones registradas, aquí se mostrará su comportamiento general."
+              {datos.caja.registros.length === 0 ? (
+                renderizarEstadoVacio(
+                  "Sin información disponible",
+                  "Cuando existan operaciones registradas, aquí se mostrará su comportamiento general."
+                )
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "8px" }}>
+                  {datos.caja.registros.slice(0, 5).map((r: any) => (
+                    <div
+                      key={r.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "10px 14px",
+                        borderRadius: "10px",
+                        border: "1px solid #ece5db",
+                        background: "#fcfbf9",
+                      }}
+                    >
+                      <span>
+                        <strong>{r.folio}</strong> · {r.tipo} ({r.cliente})
+                      </span>
+                      <strong>
+                        ${Number(r.monto).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN · <small>{r.fecha}</small>
+                      </strong>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
@@ -149,9 +206,29 @@ export default function ReportesAdmin() {
                   <h3>Resumen de clientes</h3>
                   <Users size={19} />
                 </div>
-                {renderizarEstadoVacio(
-                  "Sin registros",
-                  "No hay información de clientes para mostrar."
+                {datos.clientes.registros.length === 0 ? (
+                  renderizarEstadoVacio(
+                    "Sin registros",
+                    "No hay información de clientes para mostrar."
+                  )
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {datos.clientes.registros.slice(0, 5).map((c: any) => (
+                      <div
+                        key={c.id}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: "0.86rem",
+                          padding: "8px 10px",
+                          borderBottom: "1px solid #f0ebe3",
+                        }}
+                      >
+                        <span><strong>{c.nombre}</strong> ({c.codigo})</span>
+                        <span>{c.cuenta} · {c.estado}</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </article>
 
@@ -160,9 +237,29 @@ export default function ReportesAdmin() {
                   <h3>Resumen de préstamos</h3>
                   <HandCoins size={19} />
                 </div>
-                {renderizarEstadoVacio(
-                  "Sin registros",
-                  "No hay información de préstamos para mostrar."
+                {datos.prestamos.registros.length === 0 ? (
+                  renderizarEstadoVacio(
+                    "Sin registros",
+                    "No hay información de préstamos para mostrar."
+                  )
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {datos.prestamos.registros.slice(0, 5).map((p: any) => (
+                      <div
+                        key={p.id}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontSize: "0.86rem",
+                          padding: "8px 10px",
+                          borderBottom: "1px solid #f0ebe3",
+                        }}
+                      >
+                        <span><strong>{p.folio}</strong> · {p.cliente}</span>
+                        <span>${Number(p.monto).toLocaleString("es-MX")} MXN ({p.estado})</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </article>
             </div>
@@ -185,21 +282,42 @@ export default function ReportesAdmin() {
             <div className="rea-subindicadores">
               <article>
                 <span>Total de clientes</span>
-                <strong>—</strong>
+                <strong>{datos.clientes.total}</strong>
               </article>
               <article>
                 <span>Nuevos registros</span>
-                <strong>—</strong>
+                <strong>{datos.clientes.nuevos}</strong>
               </article>
               <article>
                 <span>Altas pendientes</span>
-                <strong>—</strong>
+                <strong>{datos.clientes.pendientes}</strong>
               </article>
             </div>
 
-            {renderizarEstadoVacio(
-              "No hay registros de clientes",
-              "Los datos de altas y registros aparecerán cuando estén disponibles."
+            {datos.clientes.registros.length === 0 ? (
+              renderizarEstadoVacio(
+                "No hay registros de clientes",
+                "Los datos de altas y registros aparecerán cuando estén disponibles."
+              )
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px" }}>
+                {datos.clientes.registros.map((c: any) => (
+                  <div
+                    key={c.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "11px 14px",
+                      borderRadius: "10px",
+                      border: "1px solid #ece5db",
+                      background: "#ffffff",
+                    }}
+                  >
+                    <span><strong>{c.nombre}</strong> ({c.codigo}) · RFC: {c.rfc}</span>
+                    <span>Cuenta: {c.cuenta} · <strong>{c.estado}</strong> ({c.fecha})</span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         );
@@ -220,25 +338,46 @@ export default function ReportesAdmin() {
             <div className="rea-subindicadores">
               <article>
                 <span>Solicitudes recibidas</span>
-                <strong>—</strong>
+                <strong>{datos.prestamos.recibidas}</strong>
               </article>
               <article>
                 <span>Autorizados</span>
-                <strong>—</strong>
+                <strong>{datos.prestamos.autorizados}</strong>
               </article>
               <article>
                 <span>Rechazados</span>
-                <strong>—</strong>
+                <strong>{datos.prestamos.rechazados}</strong>
               </article>
               <article>
                 <span>Pendientes</span>
-                <strong>—</strong>
+                <strong>{datos.prestamos.pendientes}</strong>
               </article>
             </div>
 
-            {renderizarEstadoVacio(
-              "No hay información de préstamos",
-              "Los reportes de solicitudes y autorizaciones aparecerán aquí."
+            {datos.prestamos.registros.length === 0 ? (
+              renderizarEstadoVacio(
+                "No hay información de préstamos",
+                "Los reportes de solicitudes y autorizaciones aparecerán aquí."
+              )
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px" }}>
+                {datos.prestamos.registros.map((p: any) => (
+                  <div
+                    key={p.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "11px 14px",
+                      borderRadius: "10px",
+                      border: "1px solid #ece5db",
+                      background: "#ffffff",
+                    }}
+                  >
+                    <span><strong>{p.folio}</strong> · {p.cliente} ({p.producto})</span>
+                    <span><strong>${Number(p.monto).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</strong> · {p.estado} ({p.fecha})</span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         );
@@ -259,25 +398,46 @@ export default function ReportesAdmin() {
             <div className="rea-subindicadores">
               <article>
                 <span>Depósitos</span>
-                <strong>—</strong>
+                <strong>{datos.caja.depositos}</strong>
               </article>
               <article>
                 <span>Retiros</span>
-                <strong>—</strong>
+                <strong>{datos.caja.retiros}</strong>
               </article>
               <article>
                 <span>Pagos</span>
-                <strong>—</strong>
+                <strong>{datos.caja.pagos}</strong>
               </article>
               <article>
                 <span>Importe total</span>
-                <strong>—</strong>
+                <strong>${Number(datos.caja.importeTotal).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</strong>
               </article>
             </div>
 
-            {renderizarEstadoVacio(
-              "No hay movimientos de caja",
-              "Los movimientos registrados por caja aparecerán en este reporte."
+            {datos.caja.registros.length === 0 ? (
+              renderizarEstadoVacio(
+                "No hay movimientos de caja",
+                "Los movimientos registrados por caja aparecerán en este reporte."
+              )
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px" }}>
+                {datos.caja.registros.map((t: any) => (
+                  <div
+                    key={t.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "11px 14px",
+                      borderRadius: "10px",
+                      border: "1px solid #ece5db",
+                      background: "#ffffff",
+                    }}
+                  >
+                    <span><strong>{t.folio}</strong> · {t.tipo} · Titular: {t.cliente}</span>
+                    <span><strong>${Number(t.monto).toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN</strong> ({t.fecha})</span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         );
@@ -298,25 +458,46 @@ export default function ReportesAdmin() {
             <div className="rea-subindicadores">
               <article>
                 <span>Supervisores</span>
-                <strong>—</strong>
+                <strong>{datos.personal.supervisores}</strong>
               </article>
               <article>
                 <span>Escritorio</span>
-                <strong>—</strong>
+                <strong>{datos.personal.escritorio}</strong>
               </article>
               <article>
                 <span>Cajeros</span>
-                <strong>—</strong>
+                <strong>{datos.personal.cajeros}</strong>
               </article>
               <article>
                 <span>Recepción</span>
-                <strong>—</strong>
+                <strong>{datos.personal.recepcion}</strong>
               </article>
             </div>
 
-            {renderizarEstadoVacio(
-              "Sin actividad registrada",
-              "Los registros de actividad del personal aparecerán aquí."
+            {datos.personal.registros.length === 0 ? (
+              renderizarEstadoVacio(
+                "Sin actividad registrada",
+                "Los registros de actividad del personal aparecerán aquí."
+              )
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px" }}>
+                {datos.personal.registros.map((e: any) => (
+                  <div
+                    key={e.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "11px 14px",
+                      borderRadius: "10px",
+                      border: "1px solid #ece5db",
+                      background: "#ffffff",
+                    }}
+                  >
+                    <span><strong>{e.nombre}</strong> ({e.numero}) · Puesto: {e.puesto}</span>
+                    <span>{e.sucursal} · <strong>{e.estado}</strong></span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         );
@@ -394,6 +575,7 @@ export default function ReportesAdmin() {
             };
 
             cambiarSeccion(seccionesPorTipo[tipoReporte]);
+            cargarReportes(fechaInicio, fechaFin);
           }}
         >
           <Search size={16} />

@@ -6,6 +6,7 @@ import Escritorio from './pages/canalizacion/Escritorio'
 import PanelCajero from './pages/cajero/PanelCajero'
 import Recepcion from './pages/recepcion/Recepcion'
 import Cliente from './pages/cliente/Cliente'
+import Administrador from './pages/admin/Administrador'
 import type { Usuario } from './services/auth'
 
 function App() {
@@ -17,6 +18,10 @@ function App() {
 
   if (!usuario) {
     return <Login onLoginSuccess={setUsuario} />
+  }
+
+  if (usuario.rol === 'admin') {
+    return <Administrador onLogout={handleLogout} />
   }
 
   if (usuario.rol === 'supervisor') {

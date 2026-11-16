@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ClipboardList,
   Search,
@@ -14,6 +13,7 @@ import {
   Info,
 } from "lucide-react";
 
+import { getApiUrl } from "../../services/auth";
 import "./AuditoriaAdmin.css";
 
 type SeccionAuditoria =
@@ -23,6 +23,19 @@ type SeccionAuditoria =
   | "Caja"
   | "Sistema";
 
+type ActividadAudit = {
+  id: string;
+  usuario: string;
+  entidad: string;
+  registroId: string;
+  accion: string;
+  tipoAccion: string;
+  modulo: "Clientes" | "Préstamos" | "Caja" | "Sistema";
+  detalle: string;
+  fechaISO: string;
+  fechaHora: string;
+};
+
 export default function AuditoriaAdmin() {
   const [seccionActiva, setSeccionActiva] =
     useState<SeccionAuditoria>("Todas las actividades");
@@ -31,6 +44,25 @@ export default function AuditoriaAdmin() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [tipoAccion, setTipoAccion] = useState("todas");
+
+  const [indicadores, setIndicadores] = useState({
+    actividadesRegistradas: 0,
+    usuariosActivos: 0,
+    accionesAdministrativas: 0,
+  });
+  const [actividades, setActividades] = useState<ActividadAudit[]>([]);
+
+  useEffect(() => {
+    fetch(getApiUrl("/api/admin/auditoria"))
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.indicadores) {
+          setIndicadores(data.indicadores);
+          setActividades(Array.isArray(data.actividades) ? data.actividades : []);
+        }
+      })
+      .catch((err) => console.error("Error al cargar auditoría admin:", err));
+  }, []);
 
   const secciones: {
     nombre: SeccionAuditoria;
@@ -64,18 +96,89 @@ export default function AuditoriaAdmin() {
     setSeccionActiva(seccion);
   };
 
-  const renderizarEstadoVacio = () => (
-    <div className="aua-empty">
-      <div className="aua-empty-icon">
-        <ClipboardList size={30} />
+  const actividadesFiltradas = actividades.filter((act) => {
+    const q = busqueda.toLowerCase();
+    const coincideTexto =
+      !q ||
+      act.usuario.toLowerCase().includes(q) ||
+      act.entidad.toLowerCase().includes(q) ||
+      act.accion.toLowerCase().includes(q) ||
+      act.detalle.toLowerCase().includes(q);
+
+    const coincideModulo =
+      seccionActiva === "Todas las actividades" ||
+      act.modulo === seccionActiva;
+
+    const coincideTipo =
+      tipoAccion === "todas" || act.tipoAccion === tipoAccion;
+
+    let coincideFecha = true;
+    if (fechaInicio && act.fechaISO < fechaInicio) coincideFecha = false;
+    if (fechaFin && act.fechaISO > fechaFin) coincideFecha = false;
+
+    return coincideTexto && coincideModulo && coincideTipo && coincideFecha;
+  });
+
+  const renderizarListaOEstadoVacio = () => {
+    if (actividadesFiltradas.length === 0) {
+      return (
+        <div className="aua-empty">
+          <div className="aua-empty-icon">
+            <ClipboardList size={30} />
+          </div>
+          <h4>Sin actividades registradas</h4>
+          <p>
+            Cuando existan acciones registradas en el sistema,
+            aparecerán aquí para su consulta.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
+        {actividadesFiltradas.map((act) => (
+          <div
+            key={act.id}
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "10px",
+              padding: "13px 16px",
+              borderRadius: "12px",
+              border: "1px solid #ece5db",
+              background: "#ffffff",
+            }}
+          >
+            <div>
+              <strong style={{ fontSize: "0.94rem", color: "#231f1b" }}>
+                [{act.modulo}] {act.accion} en {act.entidad} (#{act.registroId})
+              </strong>
+              <p style={{ margin: "3px 0 0", fontSize: "0.82rem", color: "#686057" }}>
+                Responsable: <strong>{act.usuario}</strong> · {act.detalle}
+              </p>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <span
+                style={{
+                  padding: "4px 10px",
+                  borderRadius: "999px",
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  backgroundColor: "#f3f4f6",
+                  color: "#374151",
+                }}
+              >
+                {act.fechaHora}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
-      <h4>Sin actividades registradas</h4>
-      <p>
-        Cuando existan acciones registradas en el sistema,
-        aparecerán aquí para su consulta.
-      </p>
-    </div>
-  );
+    );
+  };
 
   const renderizarContenido = () => {
     switch (seccionActiva) {
@@ -89,7 +192,7 @@ export default function AuditoriaAdmin() {
               </div>
               <ClipboardList size={21} />
             </div>
-            {renderizarEstadoVacio()}
+            {renderizarListaOEstadoVacio()}
           </div>
         );
 
@@ -105,7 +208,7 @@ export default function AuditoriaAdmin() {
               </div>
               <Users size={21} />
             </div>
-            {renderizarEstadoVacio()}
+            {renderizarListaOEstadoVacio()}
           </div>
         );
 
@@ -121,7 +224,7 @@ export default function AuditoriaAdmin() {
               </div>
               <HandCoins size={21} />
             </div>
-            {renderizarEstadoVacio()}
+            {renderizarListaOEstadoVacio()}
           </div>
         );
 
@@ -137,7 +240,7 @@ export default function AuditoriaAdmin() {
               </div>
               <Wallet size={21} />
             </div>
-            {renderizarEstadoVacio()}
+            {renderizarListaOEstadoVacio()}
           </div>
         );
 
@@ -153,7 +256,7 @@ export default function AuditoriaAdmin() {
               </div>
               <Settings size={21} />
             </div>
-            {renderizarEstadoVacio()}
+            {renderizarListaOEstadoVacio()}
           </div>
         );
     }
@@ -185,7 +288,7 @@ export default function AuditoriaAdmin() {
           </div>
           <div>
             <span>Actividades registradas</span>
-            <strong>—</strong>
+            <strong>{indicadores.actividadesRegistradas}</strong>
           </div>
         </article>
 
@@ -195,7 +298,7 @@ export default function AuditoriaAdmin() {
           </div>
           <div>
             <span>Usuarios activos</span>
-            <strong>—</strong>
+            <strong>{indicadores.usuariosActivos}</strong>
           </div>
         </article>
 
@@ -205,7 +308,7 @@ export default function AuditoriaAdmin() {
           </div>
           <div>
             <span>Acciones administrativas</span>
-            <strong>—</strong>
+            <strong>{indicadores.accionesAdministrativas}</strong>
           </div>
         </article>
       </div>

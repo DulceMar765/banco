@@ -840,6 +840,195 @@ async function seed() {
     console.log('✓ Turnos de prueba generados en cola.');
   }
 
+  // 12. Empleado y Usuario Administrador General
+  let adminEmp = await prisma.employees.findFirst({ where: { employee_number: 'EMP-008' } });
+  if (!adminEmp) {
+    adminEmp = await prisma.employees.create({
+      data: {
+        employee_number: 'EMP-008',
+        first_name: 'Andrea',
+        paternal_surname: 'Villarreal',
+        maternal_surname: 'Cortés',
+        job_title: 'ADMINISTRADOR',
+        branch_id: branch.id,
+        status: 'ACTIVE'
+      }
+    });
+    console.log('✓ Empleado administrador creado:', adminEmp.first_name);
+  }
+
+  let adminUser = await prisma.app_users.findFirst({ where: { email: 'admin@banuat.local' } });
+  if (!adminUser) {
+    adminUser = await prisma.app_users.create({
+      data: {
+        username: 'admin',
+        email: 'admin@banuat.local',
+        password_hash: 'Admin123!',
+        employee_id: adminEmp.id,
+        is_enabled: true
+      }
+    });
+    let adminRole = await prisma.roles.findFirst({ where: { code: 'ADMIN' } });
+    if (!adminRole) {
+      adminRole = await prisma.roles.create({
+        data: {
+          code: 'ADMIN',
+          name: 'Administrador General',
+          description: 'Administración integral del sistema BANUAT'
+        }
+      });
+    }
+    await prisma.app_user_roles.create({
+      data: {
+        user_id: adminUser.id,
+        role_id: adminRole.id,
+        assigned_by: adminUser.id
+      }
+    });
+    console.log('✓ Usuario administrador creado:', adminUser.email);
+  }
+
+  // 13. Promociones institucionales reales en tabla promotions
+  const promoCount = await prisma.promotions.count();
+  if (promoCount === 0) {
+    await prisma.promotions.createMany({
+      data: [
+        {
+          title: 'Tasa Preferencial de Temporada (-1.5%)',
+          message: 'Reducción de 1.5% en tasa anual ordinaria para socios con ahorro constante · Tipo: tasa · Aplica en: credito · Requisitos: 3 meses de ahorro puntual',
+          starts_at: new Date('2026-11-01T00:00:00Z'),
+          ends_at: new Date('2027-01-31T23:59:59Z'),
+          created_by_user_id: adminUser?.id ?? null,
+          status: 'ACTIVE'
+        },
+        {
+          title: 'Bono Doble de Puntos por Ahorro Navideño',
+          message: 'Obtén el doble de puntos de lealtad (100 pts = $1 MXN) en cada depósito de ahorro · Tipo: puntos · Aplica en: ahorro',
+          starts_at: new Date('2026-11-10T00:00:00Z'),
+          ends_at: new Date('2026-12-31T23:59:59Z'),
+          created_by_user_id: adminUser?.id ?? null,
+          status: 'ACTIVE'
+        },
+        {
+          title: 'Campaña de Inversión Patrimonial 2027',
+          message: 'Sobretasa de rendimiento +0.75% anual para inversiones a plazo fijo de 180 días · Tipo: producto · Aplica en: ahorro',
+          starts_at: new Date('2027-01-01T00:00:00Z'),
+          ends_at: new Date('2027-03-31T23:59:59Z'),
+          created_by_user_id: adminUser?.id ?? null,
+          status: 'DRAFT'
+        }
+      ]
+    });
+    console.log('✓ Promociones institucionales sembradas.');
+  }
+
+  // 14. Artículos del Catálogo de Lealtad
+  const catItemsCount = await prisma.loyalty_catalog_items.count();
+  if (catItemsCount === 0 && season) {
+    const prov = await prisma.suppliers.findFirst();
+    await prisma.loyalty_catalog_items.createMany({
+      data: [
+        {
+          code: 'CAT-INV-001',
+          name: 'Bono Reducción de Tasa (-1.0% Anual)',
+          description: 'Cupón aplicable al próximo préstamo personal autorizado en sucursal.',
+          points_cost: BigInt(10000),
+          stock_quantity: 100,
+          season_id: season.id,
+          supplier_id: prov?.id ?? null,
+          is_active: true
+        },
+        {
+          code: 'CAT-INV-002',
+          name: 'Kit Ejecutivo Cooperativo BANUAT',
+          description: 'Termo térmico de acero inoxidable, agenda financiera y porta documentos.',
+          points_cost: BigInt(15000),
+          stock_quantity: 45,
+          season_id: season.id,
+          supplier_id: prov?.id ?? null,
+          is_active: true
+        },
+        {
+          code: 'CAT-INV-003',
+          name: 'Monedero Electrónico de Despensa ($250 MXN)',
+          description: 'Equivalente directo a 25,000 puntos según regla fija 100 pts = $1.00 MXN.',
+          points_cost: BigInt(25000),
+          stock_quantity: 60,
+          season_id: season.id,
+          supplier_id: prov?.id ?? null,
+          is_active: true
+        }
+      ]
+    });
+    console.log('✓ Catálogo de recompensas sembrado.');
+  }
+
+  // 15. Expedientes Digitales de muestra (customer_documents con SHA-256)
+  if (customer1) {
+    const docsCount = await prisma.customer_documents.count({ where: { customer_id: customer1.id } });
+    if (docsCount === 0) {
+      await prisma.customer_documents.createMany({
+        data: [
+          {
+            customer_id: customer1.id,
+            document_type: 'INE',
+            storage_uri: 's3://banuat-vault/clientes/CTE-2026-001/ine_oficial.pdf',
+            sha256_hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+            encrypted: true,
+            status: 'VERIFIED',
+            notes: 'Identificación oficial vigente cotejada en sucursal.'
+          },
+          {
+            customer_id: customer1.id,
+            document_type: 'PROOF_OF_ADDRESS',
+            storage_uri: 's3://banuat-vault/clientes/CTE-2026-001/comprobante_domicilio.pdf',
+            sha256_hash: '8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4',
+            encrypted: true,
+            status: 'VERIFIED',
+            notes: 'Recibo CFE menor a 2 meses de antigüedad.'
+          },
+          {
+            customer_id: customer1.id,
+            document_type: 'TAX_STATUS',
+            storage_uri: 's3://banuat-vault/clientes/CTE-2026-001/constancia_fiscal.pdf',
+            sha256_hash: '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
+            encrypted: true,
+            status: 'VERIFIED',
+            notes: 'Constancia de Situación Fiscal SAT verificada.'
+          }
+        ]
+      });
+      console.log('✓ Expedientes digitales con SHA-256 sembrados para Juan Pérez.');
+    }
+
+    // 16. Consultas / Mensajes de duda iniciales en customer_notifications
+    const dudasCount = await prisma.customer_notifications.count({
+      where: { title: { startsWith: '[DUDA]' } }
+    });
+    if (dudasCount === 0) {
+      await prisma.customer_notifications.createMany({
+        data: [
+          {
+            customer_id: customer1.id,
+            title: '[DUDA][Préstamos][Juan Pérez Hernández] Requisitos para adelanto de pagos a capital',
+            message: 'Quisiera saber si puedo abonar anticipadamente a capital sin penalización y si también acumulo puntos de lealtad.\n---RESPUESTA---\nEstimado socio: En BANUAT puedes adelantar pagos a capital sin ninguna penalización; se recalculan los intereses restantes y cada abono puntual te otorga puntos de lealtad (100 pts = $1 MXN).',
+            notification_type: 'GENERAL',
+            status: 'SENT',
+            sent_at: new Date()
+          },
+          {
+            customer_id: customer3 ? customer3.id : customer1.id,
+            title: '[DUDA][Beneficios y promociones][María Gómez Treviño] Canje de puntos por reducción de tasa',
+            message: 'Tengo 25,000 puntos acumulados en mi cuenta y deseo saber cómo aplicarlos para reducir la tasa de mi próximo crédito.',
+            notification_type: 'GENERAL',
+            status: 'QUEUED'
+          }
+        ]
+      });
+      console.log('✓ Consultas iniciales de Mensajes de Duda sembradas.');
+    }
+  }
+
   console.log('🎉 Carga de datos de prueba finalizada exitosamente.');
 }
 

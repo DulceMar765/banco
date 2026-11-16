@@ -322,6 +322,7 @@ Para realizar pruebas simultáneas y validar cada interfaz sin colisiones de ses
 
 | Rol / Módulo | Correo / Identificador | Contraseña | Nombre del Usuario | Identificador | Notas y Datos de Prueba Asociados |
 | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Administrador** | `admin@banuat.local` | `Admin123!` | Andrea Villarreal | `EMP-008` | Gestión de trabajadores, clientes, productos, catálogos, promociones, reportes, auditoría, configuración y dudas. |
 | **Supervisor** | `supervisor@banuat.local` | `Banuat123!` | Carlos Ramírez | `EMP-001` | Autorización/rechazo de créditos dudosas, modificación de condiciones contractuales, reportes de productividad. |
 | **Ejecutivo (Principal)** | `ejecutivo@banuat.local` | `Ejecutivo123!` | Laura Mendoza | `EMP-002` | Flujo cronológico de 7 pasos: Inicio, Alta de cliente en 1 sesión, Directorio, Solicitudes, Productos con cálculo de ratio $\le 40\%$, Seguimiento y Actividad. |
 | **Ejecutivo (Adicional)** | `ejecutivo2@banuat.local` | `Ejecutivo123!` | Roberto Salazar | `EMP-006` | Cuenta adicional para pruebas de concurrencia y atención en escritorio sin colisión de sesión. |
@@ -331,6 +332,24 @@ Para realizar pruebas simultáneas y validar cada interfaz sin colisiones de ses
 | **Recepción (Adicional)** | `recepcion2@banuat.local` | `Recepcion123!` | Lucía Morales | `EMP-007` | Cuenta adicional para pruebas simultáneas de recepción y canalización de socios. |
 | **Socio (Ahorro y Puntos)** | `cliente@banuat.local` | `Cliente123!` | Juan Pérez Hernández | `CTE-2026-001` | Cuenta de ahorro `0100982341`, 15,300 puntos acumulados ($153 MXN), movimientos en vivo, cálculo de rendimientos mensuales. |
 | **Socia (Préstamo Activo + Cuotas)** | `socio.maria@banuat.local` | `Cliente123!` | María Gómez Treviño | `CTE-2026-003` | Cuenta de ahorro `0200881122`, 25,000 puntos ($250 MXN), préstamo activo `PREST-2026-0002` ($35,000 MXN, saldo $31,500 MXN) y desglose de cuotas de pago. |
+
+### Endpoints administrativos
+
+El rol Administrador consume la API montada bajo `/api/admin`:
+
+* `GET /api/admin/resumen`
+* `GET /api/admin/clientes`
+* `GET /api/admin/trabajadores`
+* `GET /api/admin/operaciones`
+* `GET /api/admin/productos`
+* `GET /api/admin/catalogos`
+* `GET /api/admin/promociones`
+* `GET /api/admin/reportes`
+* `GET /api/admin/auditoria`
+* `GET /api/admin/configuracion`
+* `GET /api/admin/dudas`
+* Mutaciones de trabajadores, clientes, productos, catálogos, promociones,
+  configuración y respuestas de dudas mediante los mismos recursos `/api/admin`.
 
 ---
 

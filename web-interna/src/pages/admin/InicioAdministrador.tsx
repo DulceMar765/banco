@@ -1,4 +1,4 @@
-
+import { useState, useEffect } from "react";
 import {
   Users,
   UserRoundCheck,
@@ -13,34 +13,85 @@ import {
   CircleCheck,
 } from "lucide-react";
 
+import { getApiUrl } from "../../services/auth";
 import "./InicioAdministrador.css";
 
 function InicioAdministrador() {
+  const [datos, setDatos] = useState<{
+    indicadores: {
+      clientesRegistrados: number;
+      altasPendientes: number;
+      solicitudesPendientes: number;
+      personalConectado: number;
+    };
+    personalConectado: {
+      id: string;
+      numeroEmpleado: string;
+      nombre: string;
+      puesto: string;
+      correo: string;
+      sucursal: string;
+      ultimoAcceso: string;
+      estado: string;
+    }[];
+    actividadReciente: {
+      id: string;
+      departamento: string;
+      titulo: string;
+      detalle: string;
+      fecha: string;
+    }[];
+  }>({
+    indicadores: {
+      clientesRegistrados: 0,
+      altasPendientes: 0,
+      solicitudesPendientes: 0,
+      personalConectado: 0,
+    },
+    personalConectado: [],
+    actividadReciente: [],
+  });
+
+  useEffect(() => {
+    fetch(getApiUrl("/api/admin/resumen"))
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.indicadores) {
+          setDatos({
+            indicadores: data.indicadores,
+            personalConectado: Array.isArray(data.personalConectado) ? data.personalConectado : [],
+            actividadReciente: Array.isArray(data.actividadReciente) ? data.actividadReciente : [],
+          });
+        }
+      })
+      .catch((err) => console.error("Error al cargar resumen administrativo:", err));
+  }, []);
+
   const indicadores = [
     {
       titulo: "Clientes registrados",
-      valor: "—",
+      valor: String(datos.indicadores.clientesRegistrados),
       descripcion: "Total de clientes",
       icono: Users,
       color: "orange",
     },
     {
       titulo: "Altas pendientes",
-      valor: "—",
+      valor: String(datos.indicadores.altasPendientes),
       descripcion: "Por revisar",
       icono: UserRoundCheck,
       color: "green",
     },
     {
       titulo: "Solicitudes pendientes",
-      valor: "—",
+      valor: String(datos.indicadores.solicitudesPendientes),
       descripcion: "En revisión",
       icono: ClipboardList,
       color: "brown",
     },
     {
       titulo: "Personal conectado",
-      valor: "—",
+      valor: String(datos.indicadores.personalConectado),
       descripcion: "Sesiones activas",
       icono: Activity,
       color: "blue",
@@ -205,18 +256,58 @@ function InicioAdministrador() {
             </div>
           </div>
 
-          <div className="iad-empty-state">
-            <div className="iad-empty-icon">
-              <Users size={25} />
+          {datos.personalConectado.length === 0 ? (
+            <div className="iad-empty-state">
+              <div className="iad-empty-icon">
+                <Users size={25} />
+              </div>
+
+              <h4>Sin información disponible</h4>
+
+              <p>
+                Aquí aparecerán los trabajadores que tengan
+                una sesión activa en el sistema.
+              </p>
             </div>
-
-            <h4>Sin información disponible</h4>
-
-            <p>
-              Aquí aparecerán los trabajadores que tengan
-              una sesión activa en el sistema.
-            </p>
-          </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px" }}>
+              {datos.personalConectado.map((trab) => (
+                <div
+                  key={trab.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "12px 14px",
+                    borderRadius: "12px",
+                    border: "1px solid #ece7df",
+                    background: "#fcfbf9",
+                  }}
+                >
+                  <div>
+                    <strong style={{ display: "block", fontSize: "0.95rem", color: "#26221e" }}>
+                      {trab.nombre} ({trab.numeroEmpleado})
+                    </strong>
+                    <span style={{ fontSize: "0.82rem", color: "#6f675e" }}>
+                      {trab.puesto} · {trab.correo}
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: "999px",
+                      fontSize: "0.76rem",
+                      fontWeight: 600,
+                      backgroundColor: "#dcfce7",
+                      color: "#15803d",
+                    }}
+                  >
+                    {trab.estado}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ACTIVIDAD RECIENTE */}
@@ -232,18 +323,49 @@ function InicioAdministrador() {
             </div>
           </div>
 
-          <div className="iad-empty-state">
-            <div className="iad-empty-icon">
-              <ClipboardList size={25} />
+          {datos.actividadReciente.length === 0 ? (
+            <div className="iad-empty-state">
+              <div className="iad-empty-icon">
+                <ClipboardList size={25} />
+              </div>
+
+              <h4>Sin movimientos registrados</h4>
+
+              <p>
+                Aquí se mostrarán las actividades realizadas
+                por los diferentes departamentos.
+              </p>
             </div>
-
-            <h4>Sin movimientos registrados</h4>
-
-            <p>
-              Aquí se mostrarán las actividades realizadas
-              por los diferentes departamentos.
-            </p>
-          </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "8px" }}>
+              {datos.actividadReciente.slice(0, 6).map((act) => (
+                <div
+                  key={act.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "11px 14px",
+                    borderRadius: "12px",
+                    border: "1px solid #ece7df",
+                    background: "#fcfbf9",
+                  }}
+                >
+                  <div>
+                    <strong style={{ display: "block", fontSize: "0.9rem", color: "#26221e" }}>
+                      [{act.departamento}] {act.titulo}
+                    </strong>
+                    <span style={{ fontSize: "0.82rem", color: "#6f675e" }}>
+                      {act.detalle}
+                    </span>
+                  </div>
+                  <small style={{ fontSize: "0.76rem", color: "#8c8277", whiteSpace: "nowrap" }}>
+                    {act.fecha}
+                  </small>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
       </div>

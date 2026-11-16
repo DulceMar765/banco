@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Building2,
   Settings,
@@ -18,6 +17,7 @@ import {
   KeyRound,
 } from "lucide-react";
 
+import { getApiUrl } from "../../services/auth";
 import "./ConfiguracionAdmin.css";
 
 type SeccionConfiguracion =
@@ -30,6 +30,83 @@ type SeccionConfiguracion =
 export default function ConfiguracionAdmin() {
   const [seccionActiva, setSeccionActiva] =
     useState<SeccionConfiguracion>("Datos institucionales");
+
+  const [institucion, setInstitucion] = useState({
+    nombre: "Sucursal Matriz Centro",
+    nombreComercial: "BANUAT · Cooperativa Financiera",
+    correo: "contacto@banuat.local",
+    telefono: "833 212 3456",
+    direccion: "Av. Hidalgo 1200, Zona Centro",
+    descripcion: "Plataforma Integral de Gestión Bancaria y Cooperativa Financiera orientada al ahorro, inversión y crédito social.",
+  });
+
+  const [parametros, setParametros] = useState({
+    moneda: "MXN",
+    formatoFecha: "dd/mm/yyyy",
+    zonaHoraria: "America/Mexico_City",
+  });
+
+  const [seguridad, setSeguridad] = useState({
+    maxIntentosLogin: 5,
+    bloqueoMinutos: 15,
+    sesionInactivaMinutos: 30,
+  });
+
+  const [notificaciones, setNotificaciones] = useState({
+    solicitudesPrestamos: true,
+    registrosClientes: true,
+    actividadPersonal: true,
+    promocionesBeneficios: true,
+  });
+
+  const [preferencias, setPreferencias] = useState({
+    temaVisual: "claro",
+    organizacionPanel: "predeterminado",
+  });
+
+  const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(getApiUrl("/api/admin/configuracion"))
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          if (data.institucion) setInstitucion(data.institucion);
+          if (data.parametros) setParametros(data.parametros);
+          if (data.seguridad) setSeguridad(data.seguridad);
+          if (data.notificaciones) setNotificaciones(data.notificaciones);
+          if (data.preferencias) setPreferencias(data.preferencias);
+        }
+      })
+      .catch((err) => console.error("Error al cargar configuración admin:", err));
+  }, []);
+
+  const guardarConfiguracion = async () => {
+    setGuardando(true);
+    setMensaje(null);
+    try {
+      const res = await fetch(getApiUrl("/api/admin/configuracion"), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          institucion,
+          parametros,
+          seguridad,
+          notificaciones,
+          preferencias,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMensaje(data.mensaje || "Cambios guardados y registrados en auditoría.");
+      }
+    } catch (err) {
+      console.error("Error al guardar configuración:", err);
+    } finally {
+      setGuardando(false);
+    }
+  };
 
   const secciones: {
     nombre: SeccionConfiguracion;
@@ -75,7 +152,8 @@ export default function ConfiguracionAdmin() {
           <input
             type="text"
             placeholder="Nombre de BANUAT"
-            disabled
+            value={institucion.nombre}
+            onChange={(e) => setInstitucion({ ...institucion, nombre: e.target.value })}
           />
         </div>
 
@@ -84,7 +162,8 @@ export default function ConfiguracionAdmin() {
           <input
             type="text"
             placeholder="Nombre comercial"
-            disabled
+            value={institucion.nombreComercial}
+            onChange={(e) => setInstitucion({ ...institucion, nombreComercial: e.target.value })}
           />
         </div>
 
@@ -95,7 +174,8 @@ export default function ConfiguracionAdmin() {
             <input
               type="email"
               placeholder="Correo institucional"
-              disabled
+              value={institucion.correo}
+              onChange={(e) => setInstitucion({ ...institucion, correo: e.target.value })}
             />
           </div>
         </div>
@@ -107,7 +187,8 @@ export default function ConfiguracionAdmin() {
             <input
               type="tel"
               placeholder="Teléfono de contacto"
-              disabled
+              value={institucion.telefono}
+              onChange={(e) => setInstitucion({ ...institucion, telefono: e.target.value })}
             />
           </div>
         </div>
@@ -119,7 +200,8 @@ export default function ConfiguracionAdmin() {
             <input
               type="text"
               placeholder="Dirección de la institución"
-              disabled
+              value={institucion.direccion}
+              onChange={(e) => setInstitucion({ ...institucion, direccion: e.target.value })}
             />
           </div>
         </div>
@@ -129,15 +211,21 @@ export default function ConfiguracionAdmin() {
           <textarea
             placeholder="Descripción de la cooperativa..."
             rows={4}
-            disabled
+            value={institucion.descripcion}
+            onChange={(e) => setInstitucion({ ...institucion, descripcion: e.target.value })}
           />
         </div>
       </div>
 
       <div className="coa-panel-footer">
-        <button className="coa-btn-guardar" disabled>
+        <button
+          type="button"
+          className="coa-btn-guardar"
+          disabled={guardando}
+          onClick={guardarConfiguracion}
+        >
           <Save size={16} />
-          Guardar cambios
+          {guardando ? "Guardando..." : "Guardar cambios"}
         </button>
       </div>
     </div>
@@ -162,7 +250,10 @@ export default function ConfiguracionAdmin() {
             <strong>Moneda del sistema</strong>
             <span>Moneda utilizada para mostrar importes y operaciones.</span>
           </div>
-          <select disabled defaultValue="MXN">
+          <select
+            value={parametros.moneda}
+            onChange={(e) => setParametros({ ...parametros, moneda: e.target.value })}
+          >
             <option value="MXN">Peso mexicano (MXN)</option>
           </select>
         </div>
@@ -175,8 +266,12 @@ export default function ConfiguracionAdmin() {
             <strong>Formato de fecha</strong>
             <span>Formato para presentar las fechas del sistema.</span>
           </div>
-          <select disabled defaultValue="dd/mm/yyyy">
+          <select
+            value={parametros.formatoFecha}
+            onChange={(e) => setParametros({ ...parametros, formatoFecha: e.target.value })}
+          >
             <option value="dd/mm/yyyy">DD/MM/AAAA</option>
+            <option value="yyyy-mm-dd">AAAA-MM-DD</option>
           </select>
         </div>
 
@@ -188,7 +283,10 @@ export default function ConfiguracionAdmin() {
             <strong>Zona horaria</strong>
             <span>Zona horaria utilizada para los registros.</span>
           </div>
-          <select disabled defaultValue="America/Mexico_City">
+          <select
+            value={parametros.zonaHoraria}
+            onChange={(e) => setParametros({ ...parametros, zonaHoraria: e.target.value })}
+          >
             <option value="America/Mexico_City">
               México (centro)
             </option>
@@ -197,9 +295,14 @@ export default function ConfiguracionAdmin() {
       </div>
 
       <div className="coa-panel-footer">
-        <button className="coa-btn-guardar" disabled>
+        <button
+          type="button"
+          className="coa-btn-guardar"
+          disabled={guardando}
+          onClick={guardarConfiguracion}
+        >
           <Save size={16} />
-          Guardar cambios
+          {guardando ? "Guardando..." : "Guardar cambios"}
         </button>
       </div>
     </div>
@@ -221,13 +324,14 @@ export default function ConfiguracionAdmin() {
             <KeyRound size={19} />
           </div>
           <div>
-            <strong>Política de contraseñas</strong>
+            <strong>Política de contraseñas y bloqueo preventivo</strong>
             <p>
-              Establece los requisitos mínimos para las contraseñas
-              de los usuarios.
+              Bloqueo temporal de {seguridad.bloqueoMinutos} minutos tras {seguridad.maxIntentosLogin} intentos fallidos consecutivos (RF-01 a RF-05).
             </p>
           </div>
-          <span className="coa-estado-pendiente">Por configurar</span>
+          <span className="coa-estado-pendiente" style={{ backgroundColor: "#dcfce7", color: "#15803d" }}>
+            Activo ({seguridad.maxIntentosLogin} intentos / {seguridad.bloqueoMinutos} min)
+          </span>
         </article>
 
         <article className="coa-seguridad-item">
@@ -237,11 +341,12 @@ export default function ConfiguracionAdmin() {
           <div>
             <strong>Control de sesiones</strong>
             <p>
-              Define el tiempo de inactividad permitido antes de
-              cerrar una sesión.
+              Tiempo máximo de inactividad permitido antes de cerrar una sesión ({seguridad.sesionInactivaMinutos} minutos).
             </p>
           </div>
-          <span className="coa-estado-pendiente">Por configurar</span>
+          <span className="coa-estado-pendiente" style={{ backgroundColor: "#dcfce7", color: "#15803d" }}>
+            Activo ({seguridad.sesionInactivaMinutos} min)
+          </span>
         </article>
 
         <article className="coa-seguridad-item">
@@ -249,13 +354,14 @@ export default function ConfiguracionAdmin() {
             <ShieldCheck size={19} />
           </div>
           <div>
-            <strong>Permisos por rol</strong>
+            <strong>Permisos por rol (RBAC) y Hash SHA-256</strong>
             <p>
-              Consulta los permisos asignados a administradores,
-              supervisores y demás trabajadores.
+              Matriz estricta de roles (Admin, Supervisor, Ejecutivo, Cajero, Recepción, Socio) y verificación criptográfica de expedientes.
             </p>
           </div>
-          <span className="coa-estado-pendiente">Por configurar</span>
+          <span className="coa-estado-pendiente" style={{ backgroundColor: "#dcfce7", color: "#15803d" }}>
+            Verificado
+          </span>
         </article>
       </div>
     </div>
@@ -272,7 +378,16 @@ export default function ConfiguracionAdmin() {
       </div>
 
       <div className="coa-notificaciones-lista">
-        <article className="coa-notificacion">
+        <article
+          className="coa-notificacion"
+          style={{ cursor: "pointer" }}
+          onClick={() =>
+            setNotificaciones({
+              ...notificaciones,
+              solicitudesPrestamos: !notificaciones.solicitudesPrestamos,
+            })
+          }
+        >
           <div>
             <strong>Solicitudes de préstamos</strong>
             <p>
@@ -280,30 +395,81 @@ export default function ConfiguracionAdmin() {
               pendientes de revisión.
             </p>
           </div>
-          <span className="coa-estado-pendiente">Por configurar</span>
+          <span
+            className="coa-estado-pendiente"
+            style={{
+              backgroundColor: notificaciones.solicitudesPrestamos ? "#dcfce7" : "#f3f4f6",
+              color: notificaciones.solicitudesPrestamos ? "#15803d" : "#4b5563",
+            }}
+          >
+            {notificaciones.solicitudesPrestamos ? "Habilitado" : "Pausado"}
+          </span>
         </article>
 
-        <article className="coa-notificacion">
+        <article
+          className="coa-notificacion"
+          style={{ cursor: "pointer" }}
+          onClick={() =>
+            setNotificaciones({
+              ...notificaciones,
+              registrosClientes: !notificaciones.registrosClientes,
+            })
+          }
+        >
           <div>
             <strong>Registros de nuevos clientes</strong>
             <p>
               Avisos cuando existan solicitudes de alta de clientes.
             </p>
           </div>
-          <span className="coa-estado-pendiente">Por configurar</span>
+          <span
+            className="coa-estado-pendiente"
+            style={{
+              backgroundColor: notificaciones.registrosClientes ? "#dcfce7" : "#f3f4f6",
+              color: notificaciones.registrosClientes ? "#15803d" : "#4b5563",
+            }}
+          >
+            {notificaciones.registrosClientes ? "Habilitado" : "Pausado"}
+          </span>
         </article>
 
-        <article className="coa-notificacion">
+        <article
+          className="coa-notificacion"
+          style={{ cursor: "pointer" }}
+          onClick={() =>
+            setNotificaciones({
+              ...notificaciones,
+              actividadPersonal: !notificaciones.actividadPersonal,
+            })
+          }
+        >
           <div>
             <strong>Actividad del personal</strong>
             <p>
               Avisos sobre eventos administrativos y operativos.
             </p>
           </div>
-          <span className="coa-estado-pendiente">Por configurar</span>
+          <span
+            className="coa-estado-pendiente"
+            style={{
+              backgroundColor: notificaciones.actividadPersonal ? "#dcfce7" : "#f3f4f6",
+              color: notificaciones.actividadPersonal ? "#15803d" : "#4b5563",
+            }}
+          >
+            {notificaciones.actividadPersonal ? "Habilitado" : "Pausado"}
+          </span>
         </article>
 
-        <article className="coa-notificacion">
+        <article
+          className="coa-notificacion"
+          style={{ cursor: "pointer" }}
+          onClick={() =>
+            setNotificaciones({
+              ...notificaciones,
+              promocionesBeneficios: !notificaciones.promocionesBeneficios,
+            })
+          }
+        >
           <div>
             <strong>Promociones y beneficios</strong>
             <p>
@@ -311,14 +477,27 @@ export default function ConfiguracionAdmin() {
               disponibles para los clientes.
             </p>
           </div>
-          <span className="coa-estado-pendiente">Por configurar</span>
+          <span
+            className="coa-estado-pendiente"
+            style={{
+              backgroundColor: notificaciones.promocionesBeneficios ? "#dcfce7" : "#f3f4f6",
+              color: notificaciones.promocionesBeneficios ? "#15803d" : "#4b5563",
+            }}
+          >
+            {notificaciones.promocionesBeneficios ? "Habilitado" : "Pausado"}
+          </span>
         </article>
       </div>
 
       <div className="coa-panel-footer">
-        <button className="coa-btn-guardar" disabled>
+        <button
+          type="button"
+          className="coa-btn-guardar"
+          disabled={guardando}
+          onClick={guardarConfiguracion}
+        >
           <Save size={16} />
-          Guardar preferencias
+          {guardando ? "Guardando..." : "Guardar preferencias"}
         </button>
       </div>
     </div>
@@ -343,8 +522,12 @@ export default function ConfiguracionAdmin() {
             <strong>Tema visual</strong>
             <span>Define la apariencia general del sistema.</span>
           </div>
-          <select disabled defaultValue="claro">
+          <select
+            value={preferencias.temaVisual}
+            onChange={(e) => setPreferencias({ ...preferencias, temaVisual: e.target.value })}
+          >
             <option value="claro">Claro</option>
+            <option value="institucional">Institucional Cálido</option>
           </select>
         </div>
 
@@ -356,18 +539,27 @@ export default function ConfiguracionAdmin() {
             <strong>Panel de administración</strong>
             <span>Organización de los elementos del panel.</span>
           </div>
-          <select disabled defaultValue="predeterminado">
+          <select
+            value={preferencias.organizacionPanel}
+            onChange={(e) => setPreferencias({ ...preferencias, organizacionPanel: e.target.value })}
+          >
             <option value="predeterminado">
-              Predeterminado
+              Predeterminado (1920x1080 / 1366x768)
             </option>
+            <option value="compacto">Compacto</option>
           </select>
         </div>
       </div>
 
       <div className="coa-panel-footer">
-        <button className="coa-btn-guardar" disabled>
+        <button
+          type="button"
+          className="coa-btn-guardar"
+          disabled={guardando}
+          onClick={guardarConfiguracion}
+        >
           <Save size={16} />
-          Guardar preferencias
+          {guardando ? "Guardando..." : "Guardar preferencias"}
         </button>
       </div>
     </div>
@@ -418,8 +610,9 @@ export default function ConfiguracionAdmin() {
         <div>
           <strong>Configuración del sistema</strong>
           <p>
-            Las opciones se encuentran preparadas para su
-            implementación. Los cambios todavía no se guardan.
+            {mensaje
+              ? mensaje
+              : "Los parámetros institucionales se sincronizan directamente con la base de datos y el registro de auditoría."}
           </p>
         </div>
       </div>
@@ -434,7 +627,10 @@ export default function ConfiguracionAdmin() {
               className={`coa-menu-item ${
                 seccionActiva === nombre ? "activo" : ""
               }`}
-              onClick={() => setSeccionActiva(nombre)}
+              onClick={() => {
+                setSeccionActiva(nombre);
+                setMensaje(null);
+              }}
             >
               <Icono size={18} />
               <span>{nombre}</span>

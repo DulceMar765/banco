@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Users,
   UserPlus,
@@ -7,7 +6,6 @@ import {
   ShieldCheck,
   Search,
   Filter,
-  UserRound,
   BriefcaseBusiness,
   ClipboardList,
   Wallet,
@@ -16,12 +14,26 @@ import {
   LockKeyhole,
 } from "lucide-react";
 
+import { getApiUrl } from "../../services/auth";
 import "./Trabajadores.css";
 
 type SeccionTrabajadores =
   | "Directorio"
   | "Registro"
   | "Roles";
+
+type TrabajadorItem = {
+  id: string;
+  numeroEmpleado: string;
+  nombre: string;
+  correo: string;
+  usuario: string;
+  puesto: string;
+  rolCodigo: string;
+  sucursal: string;
+  estado: "Activo" | "Suspendido";
+  fechaIngreso: string;
+};
 
 function Trabajadores() {
   const [seccionActiva, setSeccionActiva] =
@@ -30,11 +42,119 @@ function Trabajadores() {
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("Todos");
 
+  const [resumen, setResumen] = useState({
+    total: 0,
+    activos: 0,
+    supervisores: 0,
+    cuentasRegistradas: 0,
+  });
+  const [trabajadores, setTrabajadores] = useState<TrabajadorItem[]>([]);
+
+  // Campos del formulario de registro
+  const [nombreForm, setNombreForm] = useState("");
+  const [correoForm, setCorreoForm] = useState("");
+  const [puestoForm, setPuestoForm] = useState("");
+  const [estadoForm, setEstadoForm] = useState("Activo");
+  const [contrasenaForm, setContrasenaForm] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+
+  const cargarTrabajadores = async () => {
+    try {
+      const res = await fetch(getApiUrl("/api/admin/trabajadores"));
+      const data = await res.json();
+      if (data && data.resumen) {
+        setResumen(data.resumen);
+        setTrabajadores(Array.isArray(data.trabajadores) ? data.trabajadores : []);
+      }
+    } catch (err) {
+      console.error("Error al cargar trabajadores:", err);
+    }
+  };
+
+  useEffect(() => {
+    cargarTrabajadores();
+  }, []);
+
   const cambiarSeccion = (seccion: SeccionTrabajadores) => {
     setSeccionActiva(seccion);
     setBusqueda("");
     setFiltroEstado("Todos");
+    setMensaje(null);
   };
+
+  const handleCrearTrabajador = async () => {
+    if (!nombreForm.trim() || !correoForm.trim() || !puestoForm || !contrasenaForm.trim()) {
+      setMensaje({
+        tipo: "error",
+        texto: "Por favor completa nombre, correo, puesto y contraseña inicial.",
+      });
+      return;
+    }
+
+    setGuardando(true);
+    setMensaje(null);
+    try {
+      const res = await fetch(getApiUrl("/api/admin/trabajadores"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: nombreForm.trim(),
+          correo: correoForm.trim(),
+          puesto: puestoForm,
+          estado: estadoForm,
+          contrasena: contrasenaForm,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMensaje({ tipo: "error", texto: data.error || "No se pudo registrar el trabajador." });
+      } else {
+        setMensaje({
+          tipo: "ok",
+          texto: `Cuenta creada exitosamente para ${data.trabajador?.nombre} (${data.trabajador?.correo}).`,
+        });
+        setNombreForm("");
+        setCorreoForm("");
+        setPuestoForm("");
+        setEstadoForm("Activo");
+        setContrasenaForm("");
+        await cargarTrabajadores();
+      }
+    } catch {
+      setMensaje({ tipo: "error", texto: "Error de conexión con el servidor." });
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const toggleEstadoTrabajador = async (id: string) => {
+    try {
+      const res = await fetch(getApiUrl(`/api/admin/trabajadores/${id}/estado`), {
+        method: "PATCH",
+      });
+      if (res.ok) {
+        await cargarTrabajadores();
+      }
+    } catch (err) {
+      console.error("Error al cambiar estado del trabajador:", err);
+    }
+  };
+
+  const trabajadoresFiltrados = trabajadores.filter((t) => {
+    const q = busqueda.toLowerCase();
+    const coincideTexto =
+      !q ||
+      t.nombre.toLowerCase().includes(q) ||
+      t.correo.toLowerCase().includes(q) ||
+      t.puesto.toLowerCase().includes(q) ||
+      t.numeroEmpleado.toLowerCase().includes(q);
+
+    const coincideEstado =
+      filtroEstado === "Todos" || t.estado === filtroEstado;
+
+    return coincideTexto && coincideEstado;
+  });
 
   return (
     <div className="tra-container">
@@ -65,7 +185,7 @@ function Trabajadores() {
 
           <div>
             <span>Total de trabajadores</span>
-            <strong>—</strong>
+            <strong>{resumen.total}</strong>
           </div>
         </article>
 
@@ -76,7 +196,7 @@ function Trabajadores() {
 
           <div>
             <span>Personal activo</span>
-            <strong>—</strong>
+            <strong>{resumen.activos}</strong>
           </div>
         </article>
 
@@ -87,7 +207,7 @@ function Trabajadores() {
 
           <div>
             <span>Supervisores</span>
-            <strong>—</strong>
+            <strong>{resumen.supervisores}</strong>
           </div>
         </article>
 
@@ -98,7 +218,7 @@ function Trabajadores() {
 
           <div>
             <span>Cuentas registradas</span>
-            <strong>—</strong>
+            <strong>{resumen.cuentasRegistradas}</strong>
           </div>
         </article>
 
@@ -181,28 +301,90 @@ function Trabajadores() {
 
               </div>
 
-              <div className="tra-empty-state">
-                <div className="tra-empty-icon orange">
-                  <Users size={27} />
+              {trabajadoresFiltrados.length === 0 ? (
+                <div className="tra-empty-state">
+                  <div className="tra-empty-icon orange">
+                    <Users size={27} />
+                  </div>
+
+                  <h4>No hay trabajadores registrados</h4>
+
+                  <p>
+                    Cuando se creen las cuentas del personal,
+                    aparecerán aquí para consultar y administrar
+                    su información.
+                  </p>
+
+                  <button
+                    type="button"
+                    className="tra-primary-button"
+                    onClick={() => cambiarSeccion("Registro")}
+                  >
+                    <UserPlus size={16} />
+                    Registrar trabajador
+                  </button>
                 </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "14px" }}>
+                  {trabajadoresFiltrados.map((trab) => (
+                    <div
+                      key={trab.id}
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "12px",
+                        padding: "14px 16px",
+                        borderRadius: "14px",
+                        border: "1px solid #e9e2d8",
+                        background: "#ffffff",
+                      }}
+                    >
+                      <div>
+                        <strong style={{ fontSize: "0.96rem", color: "#231f1b" }}>
+                          {trab.nombre} · <span style={{ color: "#9a6b3b" }}>{trab.numeroEmpleado}</span>
+                        </strong>
+                        <p style={{ margin: "4px 0 0", fontSize: "0.84rem", color: "#686057" }}>
+                          Puesto: <strong>{trab.puesto}</strong> · Correo: {trab.correo} · Sucursal: {trab.sucursal}
+                        </p>
+                      </div>
 
-                <h4>No hay trabajadores registrados</h4>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "999px",
+                            fontSize: "0.78rem",
+                            fontWeight: 600,
+                            backgroundColor: trab.estado === "Activo" ? "#dcfce7" : "#fee2e2",
+                            color: trab.estado === "Activo" ? "#15803d" : "#b91c1c",
+                          }}
+                        >
+                          {trab.estado}
+                        </span>
 
-                <p>
-                  Cuando se creen las cuentas del personal,
-                  aparecerán aquí para consultar y administrar
-                  su información.
-                </p>
-
-                <button
-                  type="button"
-                  className="tra-primary-button"
-                  onClick={() => cambiarSeccion("Registro")}
-                >
-                  <UserPlus size={16} />
-                  Registrar trabajador
-                </button>
-              </div>
+                        <button
+                          type="button"
+                          onClick={() => toggleEstadoTrabajador(trab.id)}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: "8px",
+                            border: "1px solid #d6cfc7",
+                            background: "#faf8f5",
+                            color: "#4a433c",
+                            fontWeight: 600,
+                            fontSize: "0.8rem",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {trab.estado === "Activo" ? "Suspender" : "Reactivar"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </>
           )}
 
@@ -235,6 +417,22 @@ function Trabajadores() {
                   </div>
                 </div>
 
+                {mensaje && (
+                  <div
+                    style={{
+                      padding: "12px 16px",
+                      borderRadius: "10px",
+                      marginBottom: "14px",
+                      backgroundColor: mensaje.tipo === "ok" ? "#dcfce7" : "#fee2e2",
+                      color: mensaje.tipo === "ok" ? "#166534" : "#991b1b",
+                      fontWeight: 600,
+                      fontSize: "0.88rem",
+                    }}
+                  >
+                    {mensaje.texto}
+                  </div>
+                )}
+
                 <div className="tra-fields">
 
                   <div className="tra-field">
@@ -242,6 +440,8 @@ function Trabajadores() {
                     <input
                       type="text"
                       placeholder="Nombre y apellidos"
+                      value={nombreForm}
+                      onChange={(e) => setNombreForm(e.target.value)}
                     />
                   </div>
 
@@ -249,13 +449,18 @@ function Trabajadores() {
                     <label>Correo electrónico</label>
                     <input
                       type="email"
-                      placeholder="correo@banuat.com"
+                      placeholder="correo@banuat.local"
+                      value={correoForm}
+                      onChange={(e) => setCorreoForm(e.target.value)}
                     />
                   </div>
 
                   <div className="tra-field">
                     <label>Puesto de trabajo</label>
-                    <select defaultValue="">
+                    <select
+                      value={puestoForm}
+                      onChange={(e) => setPuestoForm(e.target.value)}
+                    >
                       <option value="" disabled>
                         Seleccionar puesto
                       </option>
@@ -268,7 +473,10 @@ function Trabajadores() {
 
                   <div className="tra-field">
                     <label>Estado de la cuenta</label>
-                    <select defaultValue="Activo">
+                    <select
+                      value={estadoForm}
+                      onChange={(e) => setEstadoForm(e.target.value)}
+                    >
                       <option value="Activo">Activo</option>
                       <option value="Suspendido">Suspendido</option>
                     </select>
@@ -279,6 +487,8 @@ function Trabajadores() {
                     <input
                       type="password"
                       placeholder="Establecer contraseña inicial"
+                      value={contrasenaForm}
+                      onChange={(e) => setContrasenaForm(e.target.value)}
                     />
                   </div>
 
@@ -286,18 +496,17 @@ function Trabajadores() {
 
                 <div className="tra-registration-footer">
                   <p>
-                    El registro y la creación de credenciales
-                    estarán disponibles al conectar el sistema
-                    de almacenamiento.
+                    Al guardar, el trabajador quedará habilitado en MySQL con su rol asignado.
                   </p>
 
                   <button
                     type="button"
                     className="tra-primary-button"
-                    disabled
+                    disabled={guardando}
+                    onClick={handleCrearTrabajador}
                   >
                     <UserPlus size={16} />
-                    Crear cuenta
+                    {guardando ? "Creando cuenta..." : "Crear cuenta"}
                   </button>
                 </div>
 

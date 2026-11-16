@@ -35,6 +35,18 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     }
 
     // Casos especiales: credenciales institucionales de prueba definidas en el sistema
+    if (credencial === 'admin@banuat.local' && clave === 'Admin123!') {
+      intentosFallidos.delete(credencial);
+      return res.json({
+        id: '10',
+        usuario: 'admin',
+        correo: 'admin@banuat.local',
+        nombre: 'Andrea Villarreal',
+        rol: 'ADMIN',
+        puesto: 'Administradora General'
+      });
+    }
+
     if (credencial === 'supervisor@banuat.local' && clave === 'Banuat123!') {
       intentosFallidos.delete(credencial);
       return res.json({
@@ -175,7 +187,8 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     );
     const primerRolCode = rolesCodes[0] || (user.employee_id ? 'EXECUTIVE' : 'CUSTOMER');
     let rolNormalizado = 'EJECUTIVO';
-    if (primerRolCode === 'SUPERVISOR') rolNormalizado = 'SUPERVISOR';
+    if (primerRolCode === 'ADMIN' || primerRolCode === 'ADMINISTRADOR') rolNormalizado = 'ADMIN';
+    else if (primerRolCode === 'SUPERVISOR') rolNormalizado = 'SUPERVISOR';
     else if (primerRolCode === 'CASHIER') rolNormalizado = 'CAJERO';
     else if (primerRolCode === 'ROUTING') rolNormalizado = 'RECEPCION';
     else if (primerRolCode === 'CUSTOMER') rolNormalizado = 'CLIENTE';

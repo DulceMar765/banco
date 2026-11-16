@@ -17,6 +17,7 @@ import { escritorioRouter } from './routes/escritorio.routes.js';
 import { turnosRouter } from './routes/turnos.routes.js';
 import { cajaRouter } from './routes/caja.routes.js';
 import { socioRouter } from './routes/socio.routes.js';
+import { adminRouter } from './routes/admin.routes.js';
 
 dotenv.config();
 
@@ -84,9 +85,10 @@ app.use('/api/escritorio', escritorioRouter);
 app.use('/api/turnos', turnosRouter);
 app.use('/api/caja', cajaRouter);
 app.use('/api/socio', socioRouter);
+app.use('/api/admin', adminRouter);
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor backend corriendo en http://localhost:${PORT}`);
   console.log(`🔌 Conexión configurada con MySQL (cooperativa_financiera).`);
-  console.log(`📡 Rutas activas: /api/auth, /api/clientes, /api/cobranza, /api/reportes, /api/productos, /api/catalogos, /api/prestamos, /api/lealtad, /api/escritorio, /api/turnos, /api/caja, /api/socio`);
+  console.log(`📡 Rutas activas: /api/auth, /api/clientes, /api/cobranza, /api/reportes, /api/productos, /api/catalogos, /api/prestamos, /api/lealtad, /api/escritorio, /api/turnos, /api/caja, /api/socio, /api/admin`);
 });

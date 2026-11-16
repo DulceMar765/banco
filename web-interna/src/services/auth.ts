@@ -1,4 +1,4 @@
-export type Rol = 'cliente' | 'supervisor' | 'canalizacion' | 'ejecutivo' | 'cajero' | 'recepcion';
+export type Rol = 'cliente' | 'supervisor' | 'canalizacion' | 'ejecutivo' | 'cajero' | 'recepcion' | 'admin';
 
 export type Usuario = {
   correo: string;
@@ -43,7 +43,8 @@ export async function iniciarSesion(
 
     let rolNormalizado: Rol = 'ejecutivo';
     const rolRaw = String(data.rol || '').toUpperCase();
-    if (rolRaw === 'SUPERVISOR') rolNormalizado = 'supervisor';
+    if (rolRaw === 'ADMIN' || rolRaw === 'ADMINISTRADOR') rolNormalizado = 'admin';
+    else if (rolRaw === 'SUPERVISOR') rolNormalizado = 'supervisor';
     else if (rolRaw === 'CANALIZACION' || rolRaw === 'ROUTING' || rolRaw === 'RECEPCION') rolNormalizado = 'recepcion';
     else if (rolRaw === 'CLIENTE' || rolRaw === 'CUSTOMER' || rolRaw === 'SOCIO') rolNormalizado = 'cliente';
     else if (rolRaw === 'CAJERO' || rolRaw === 'CASHIER') rolNormalizado = 'cajero';
@@ -65,6 +66,11 @@ export async function iniciarSesion(
     };
   } catch (error) {
     console.warn('Backend no disponible para login, intentando autenticación local de contingencia:', error);
+    if (email === 'admin@banuat.local' && contrasena === 'Admin123!') {
+      const u: Usuario = { correo: email, rol: 'admin', nombre: 'Andrea Villarreal' };
+      localStorage.setItem(CLAVE_SESION, JSON.stringify(u));
+      return { ok: true, usuario: u };
+    }
     if (email === 'supervisor@banuat.local' && contrasena === 'Banuat123!') {
       const u: Usuario = { correo: email, rol: 'supervisor', nombre: 'Carlos Ramírez' };
       localStorage.setItem(CLAVE_SESION, JSON.stringify(u));

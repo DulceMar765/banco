@@ -26,6 +26,7 @@ import InicioAdministrador from "./InicioAdministrador";
 import Clientes from "./Clientes";
 import "./Administrador.css";
 import PromocionesAdmin from "./PromocionesAdmin";
+import ReportesAdmin from "./ReportesAdmin";
 import AuditoriaAdmin from "./AuditoriaAdmin";
 import ConfiguracionAdmin from "./ConfiguracionAdmin";
 
@@ -125,6 +126,8 @@ function Administrador({ onLogout }: AdministradorProps) {
         return <CatalogosAdmin />;
       case "Promociones":
          return <PromocionesAdmin />;
+      case "Reportes":
+         return <ReportesAdmin />;
       case "Auditoría":
          return <AuditoriaAdmin />;
       case "Configuración":
@@ -274,8 +277,9 @@ function Administrador({ onLogout }: AdministradorProps) {
             <button
               type="button"
               className="ad-notification-button"
-              title="Notificaciones"
+              title="Bitácora de auditoría y alertas"
               aria-label="Notificaciones"
+              onClick={() => seleccionarModulo("Auditoría")}
             >
               <Bell size={20} />
             </button>
