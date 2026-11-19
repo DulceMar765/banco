@@ -556,6 +556,25 @@
   text-overflow: ellipsis;
 }
 
+.sp-actividad__item strong,
+.sp-actividad__item small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sp-actividad__item strong {
+  font-size: 0.82rem;
+}
+
+.sp-actividad__item small {
+  margin-top: 2px;
+  color: var(--texto-suave);
+  font-size: 0.72rem;
+  font-weight: 400;
+}
+
 .sp-actividad__mas {
   flex-shrink: 0;
   color: var(--texto-suave);

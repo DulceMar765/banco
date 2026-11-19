@@ -98,6 +98,65 @@ lealtadRouter.get('/catalogo', async (_req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/lealtad/canjear
+ * Registra un canje y descuenta puntos/stock en una sola transacción.
+ */
+lealtadRouter.post('/canjear', async (req: Request, res: Response) => {
+  try {
+    const customerId = String(req.body.customerId || '');
+    const catalogItemId = String(req.body.catalogItemId || '');
+    const quantity = Number(req.body.quantity || 1);
+
+    if (!/^\d+$/.test(customerId) || !/^\d+$/.test(catalogItemId) || !Number.isInteger(quantity) || quantity <= 0) {
+      return res.status(400).json({ error: 'Cliente, producto y cantidad válidos son obligatorios.' });
+    }
+
+    const resultado = await prisma.$transaction(async (tx) => {
+      const [cuentaPuntos, producto] = await Promise.all([
+        tx.loyalty_accounts.findUnique({ where: { customer_id: BigInt(customerId) } }),
+        tx.loyalty_catalog_items.findUnique({ where: { id: BigInt(catalogItemId) } })
+      ]);
+
+      if (!cuentaPuntos || cuentaPuntos.status !== 'ACTIVE') {
+        throw new Error('El cliente no está inscrito en el programa de lealtad.');
+      }
+      if (!producto || !producto.is_active) {
+        throw new Error('El producto no está disponible.');
+      }
+      if (producto.stock_quantity < quantity) {
+        throw new Error('No hay existencias suficientes para este producto.');
+      }
+
+      const puntosTotales = producto.points_cost * BigInt(quantity);
+      if (cuentaPuntos.points_balance < puntosTotales) {
+        throw new Error('El cliente no tiene suficientes puntos.');
+      }
+      const puntosRestantes = cuentaPuntos.points_balance - puntosTotales;
+
+      const redencion = await tx.loyalty_redemptions.create({
+        data: {
+          customer_id: BigInt(customerId),
+          catalog_item_id: BigInt(catalogItemId),
+          quantity,
+          points_redeemed: puntosTotales,
+          status: 'APPROVED'
+        }
+      });
+
+      return {
+        redencionId: redencion.id.toString(),
+        puntosRestantes: puntosRestantes.toString(),
+        stockRestante: producto.stock_quantity - quantity
+      };
+    });
+
+    res.status(201).json(serializeData({ ok: true, ...resultado }));
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
  * Inscribe de forma idempotente a cualquier cliente que ya tenga una cuenta.
  * La inscripción no depende de saldo ni de movimientos.
  */

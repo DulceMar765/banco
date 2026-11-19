@@ -35,8 +35,6 @@ type ModuloReportesProps = {
   onVolver?: () => void
 }
 
-const operacionesIniciales: Operacion[] = []
-
 const dinero = (cantidad: number) =>
   cantidad.toLocaleString('es-MX', {
     style: 'currency',
@@ -51,12 +49,20 @@ const fechaBonita = (fecha: string) =>
     year: 'numeric',
   })
 
+const fechaLocal = (fecha: Date) => {
+  const year = fecha.getFullYear()
+  const month = String(fecha.getMonth() + 1).padStart(2, '0')
+  const day = String(fecha.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export default function ModuloReportes({ onVolver }: ModuloReportesProps) {
   const [seccion, setSeccion] = useState<Seccion>('general')
   const [periodo, setPeriodo] = useState('mes')
   const [empleado, setEmpleado] = useState('todos')
   const [busqueda, setBusqueda] = useState('')
-  const [operaciones, setOperaciones] = useState<Operacion[]>(operacionesIniciales)
+  const [operaciones, setOperaciones] = useState<Operacion[]>([])
+  const [fechaActual] = useState(() => new Date())
 
   useEffect(() => {
     let activo = true
@@ -99,10 +105,15 @@ export default function ModuloReportes({ onVolver }: ModuloReportesProps) {
           .toLowerCase()
           .includes(busqueda.toLowerCase())
 
+      const hoyTexto = fechaLocal(fechaActual)
+      const inicioSemana = new Date(fechaActual)
+      inicioSemana.setDate(fechaActual.getDate() - fechaActual.getDay())
+      const inicioMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1)
+
       let coincidePeriodo = true
-      if (periodo === 'hoy') coincidePeriodo = op.fecha === '2026-10-29'
-      if (periodo === 'semana') coincidePeriodo = op.fecha >= '2026-10-23'
-      if (periodo === 'mes') coincidePeriodo = op.fecha.startsWith('2026-10')
+      if (periodo === 'hoy') coincidePeriodo = op.fecha === hoyTexto
+      if (periodo === 'semana') coincidePeriodo = op.fecha >= fechaLocal(inicioSemana)
+      if (periodo === 'mes') coincidePeriodo = op.fecha >= fechaLocal(inicioMes) && op.fecha <= hoyTexto
 
       const coincideSeccion =
         seccion === 'general' || seccion === 'comparacion'
@@ -111,7 +122,7 @@ export default function ModuloReportes({ onVolver }: ModuloReportesProps) {
 
       return coincideEmpleado && coincideBusqueda && coincidePeriodo && coincideSeccion
     })
-  }, [operaciones, empleado, busqueda, periodo, seccion])
+  }, [operaciones, empleado, busqueda, periodo, seccion, fechaActual])
 
   const completadas = operacionesFiltradas.filter(
     (op) => op.resultado === 'Completado'
@@ -551,12 +562,6 @@ export default function ModuloReportes({ onVolver }: ModuloReportesProps) {
         </div>
       </section>
 
-      <p className="mr-nota">
-        <strong>Nota:</strong> este reporte utiliza datos demostrativos.
-        Las cifras no representan operaciones reales. Para obtener resultados
-        reales será necesario conectar los módulos con el historial de operaciones
-        y la base de datos.
-      </p>
     </main>
   )
 }

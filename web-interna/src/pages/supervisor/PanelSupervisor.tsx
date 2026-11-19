@@ -28,6 +28,7 @@ import ModuloReportes from './ModuloReportes'
 import ModuloCatalogos from './ModuloCatalogos'
 import ModuloProductos from './ModuloProductos'
 import ModuloCobranza from './ModuloCobranza'
+import { getApiUrl } from '../../services/auth'
 
 import './PanelSupervisor.css'
 
@@ -109,26 +110,47 @@ type PanelSupervisorProps = {
   onLogout?: () => void
 }
 
+type ActividadReciente = {
+  id: string
+  departamento: string
+  titulo: string
+  detalle: string
+  fecha: string
+}
+
 export default function PanelSupervisor({ onLogout }: PanelSupervisorProps = {}) {
   const [activo, setActivo] = useState('inicio')
   const [prestamosPendientes, setPrestamosPendientes] = useState<any[]>([])
+  const [actividadReciente, setActividadReciente] = useState<ActividadReciente[]>([])
 
   useEffect(() => {
     let activo = true
-    fetch('http://localhost:3001/api/prestamos/solicitudes')
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data: any[]) => {
-        if (!activo || !Array.isArray(data)) return
-        setPrestamosPendientes(
-          data.filter(
-            (d) =>
-              d.estado === 'SUBMITTED' ||
-              d.estado === 'UNDER_REVIEW' ||
-              d.estado === 'PENDIENTE'
+    Promise.all([
+      fetch(getApiUrl('/api/prestamos/solicitudes')),
+      fetch(getApiUrl('/api/admin/resumen')),
+    ])
+      .then(async ([prestamosRespuesta, resumenRespuesta]) => {
+        const prestamos = prestamosRespuesta.ok ? await prestamosRespuesta.json() : []
+        const resumen = resumenRespuesta.ok ? await resumenRespuesta.json() : null
+        if (!activo) return
+
+        if (Array.isArray(prestamos)) {
+          setPrestamosPendientes(
+            prestamos.filter(
+              (d) =>
+                d.estado === 'SUBMITTED' ||
+                d.estado === 'UNDER_REVIEW' ||
+                d.estado === 'PENDIENTE'
+            )
           )
-        )
+        }
+        if (Array.isArray(resumen?.actividadReciente)) {
+          setActividadReciente(resumen.actividadReciente)
+        }
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (activo) console.error('Error al cargar actividad del supervisor:', error)
+      })
 
     return () => {
       activo = false
@@ -458,17 +480,32 @@ export default function PanelSupervisor({ onLogout }: PanelSupervisorProps = {})
                   </h2>
                 </div>
 
-                <div className="sp-vacio">
-                  <History size={30} />
-
-                  <p>No hay actividad registrada.</p>
-
-                  <small>
-                    Cuando el sistema registre préstamos,
-                    promociones, movimientos y operaciones,
-                    aparecerán aquí.
-                  </small>
-                </div>
+                {actividadReciente.length === 0 ? (
+                  <div className="sp-vacio">
+                    <History size={30} />
+                    <p>No hay actividad registrada.</p>
+                    <small>
+                      Cuando el sistema registre préstamos,
+                      promociones, movimientos y operaciones,
+                      aparecerán aquí.
+                    </small>
+                  </div>
+                ) : (
+                  <ul className="sp-actividad__lista">
+                    {actividadReciente.slice(0, 6).map((actividad) => (
+                      <li key={actividad.id}>
+                        <time>{actividad.fecha.split(',')[0]}</time>
+                        <div className="sp-actividad__item">
+                          <span className="sp-punto" aria-hidden="true" />
+                          <span title={`${actividad.titulo}. ${actividad.detalle}`}>
+                            <strong>{actividad.titulo}</strong>
+                            <small>{actividad.detalle}</small>
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </section>
 
               {/* MÓDULOS */}

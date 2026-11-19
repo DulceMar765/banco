@@ -11,41 +11,105 @@ export const reportesRouter = Router();
  */
 reportesRouter.get('/operaciones', async (_req: Request, res: Response) => {
   try {
-    const turnos = await prisma.service_turns.findMany({
-      include: {
-        turn_types: true,
-        customers: true,
-        app_users: {
-          include: {
-            employees: true
-          }
+    const [turnos, solicitudes, transacciones] = await Promise.all([
+      prisma.service_turns.findMany({
+        include: {
+          turn_types: true,
+          customers: true,
+          app_users: { include: { employees: true } }
         }
-      },
-      orderBy: { created_at: 'desc' }
-    });
+      }),
+      prisma.loan_applications.findMany({
+        include: {
+          customers: true,
+          financial_products: true,
+          app_users: { include: { employees: true } }
+        }
+      }),
+      prisma.financial_transactions.findMany({
+        include: {
+          customers: true,
+          app_users: { include: { employees: true } }
+        }
+      })
+    ]);
 
-    const resultado = turnos.map((t) => {
-      const emp = t.app_users?.employees;
-      const nombreEmp = emp
-        ? `${emp.first_name} ${emp.paternal_surname}`
+    const nombreEmpleado = (usuario: { employees: { first_name: string; paternal_surname: string; job_title: string | null } | null } | null) => {
+      const empleado = usuario?.employees;
+      return empleado
+        ? `${empleado.first_name} ${empleado.paternal_surname}`
         : 'Personal Sucursal';
-      const rolPuesto = emp?.job_title === 'CAJERO' ? 'Caja' : 'Escritorio';
-      const clienteNombre = t.customers
-        ? `${t.customers.first_name} ${t.customers.paternal_surname}`
-        : 'Persona externa';
+    };
 
-      return {
-        id: t.id.toString(),
-        empleado: nombreEmp,
-        puesto: rolPuesto,
-        actividad: t.turn_types?.name || 'Atención en sucursal',
-        cliente: clienteNombre,
-        tipoPersona: t.customers ? 'Cliente' : 'Externo',
-        fecha: t.created_at.toISOString().split('T')[0],
-        resultado: t.status === 'COMPLETED' ? 'Completado' : 'Pendiente',
-        importe: 0
-      };
-    });
+    const puestoEmpleado = (usuario: { employees: { job_title: string | null } | null } | null) =>
+      usuario?.employees?.job_title?.toUpperCase().includes('CAJ') ? 'Caja' : 'Escritorio';
+
+    const nombreCliente = (cliente: { first_name: string; paternal_surname: string } | null) =>
+      cliente ? `${cliente.first_name} ${cliente.paternal_surname}` : 'Persona externa';
+
+    const resultado = [
+      ...turnos.map((turno) => ({
+        id: `TURNO-${turno.id.toString()}`,
+        empleado: nombreEmpleado(turno.app_users),
+        puesto: puestoEmpleado(turno.app_users),
+        actividad: turno.turn_types?.name || 'Atención en sucursal',
+        cliente: nombreCliente(turno.customers),
+        tipoPersona: turno.customers ? 'Cliente' as const : 'Externo' as const,
+        fecha: turno.created_at.toISOString().split('T')[0],
+        resultado: turno.status === 'COMPLETED'
+          ? 'Completado' as const
+          : turno.status === 'CANCELLED'
+            ? 'Rechazado' as const
+            : 'Pendiente' as const,
+        importe: 0,
+        fechaOrden: turno.created_at.getTime()
+      })),
+      ...solicitudes.map((solicitud) => ({
+        id: `PRESTAMO-${solicitud.id.toString()}`,
+        empleado: nombreEmpleado(solicitud.app_users),
+        puesto: 'Escritorio' as const,
+        actividad: 'Solicitud de préstamo',
+        cliente: nombreCliente(solicitud.customers),
+        tipoPersona: 'Cliente' as const,
+        fecha: solicitud.created_at.toISOString().split('T')[0],
+        resultado: solicitud.status === 'REJECTED'
+          ? 'Rechazado' as const
+          : solicitud.status === 'CANCELLED'
+            ? 'Rechazado' as const
+          : solicitud.status === 'APPROVED'
+            ? 'Completado' as const
+            : 'Pendiente' as const,
+        importe: Number(solicitud.requested_amount),
+        fechaOrden: solicitud.created_at.getTime()
+      })),
+      ...transacciones.map((transaccion) => ({
+        id: `TX-${transaccion.id.toString()}`,
+        empleado: nombreEmpleado(transaccion.app_users),
+        puesto: transaccion.channel === 'COUNTER' ||
+          transaccion.app_users?.employees?.job_title?.toUpperCase().includes('CAJ')
+          ? 'Caja' as const
+          : 'Escritorio' as const,
+        actividad: transaccion.transaction_type === 'LOAN_PAYMENT'
+          ? 'Pago o abono de préstamo'
+          : transaccion.transaction_type === 'ACCOUNT_DEPOSIT'
+            ? 'Depósito en cuenta'
+            : transaccion.transaction_type === 'ACCOUNT_WITHDRAWAL'
+              ? 'Retiro en cuenta'
+              : 'Operación financiera',
+        cliente: nombreCliente(transaccion.customers),
+        tipoPersona: 'Cliente' as const,
+        fecha: transaccion.created_at.toISOString().split('T')[0],
+        resultado: transaccion.status === 'POSTED'
+          ? 'Completado' as const
+          : transaccion.status === 'CANCELLED'
+            ? 'Rechazado' as const
+            : 'Pendiente' as const,
+        importe: Number(transaccion.amount),
+        fechaOrden: transaccion.created_at.getTime()
+      }))
+    ]
+      .sort((a, b) => b.fechaOrden - a.fechaOrden)
+      .map(({ fechaOrden: _fechaOrden, ...operacion }) => operacion);
 
     res.json(serializeData(resultado));
   } catch (error: any) {
