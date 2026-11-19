@@ -122,6 +122,7 @@ export default function PanelSupervisor({ onLogout }: PanelSupervisorProps = {})
   const [activo, setActivo] = useState('inicio')
   const [prestamosPendientes, setPrestamosPendientes] = useState<any[]>([])
   const [actividadReciente, setActividadReciente] = useState<ActividadReciente[]>([])
+  const [notificacionesAbiertas, setNotificacionesAbiertas] = useState(false)
 
   useEffect(() => {
     let activo = true
@@ -239,13 +240,52 @@ export default function PanelSupervisor({ onLogout }: PanelSupervisorProps = {})
                 <Mail size={18} />
               </button>
 
-              <button
-                type="button"
-                className="sp-icono-btn sp-icono-btn--alerta"
-                aria-label="Notificaciones"
-              >
-                <Bell size={18} />
-              </button>
+              <div className="sp-notificaciones">
+                <button
+                  type="button"
+                  className="sp-icono-btn sp-icono-btn--alerta"
+                  aria-label="Notificaciones"
+                  aria-expanded={notificacionesAbiertas}
+                  aria-controls="supervisor-notificaciones"
+                  onClick={() => setNotificacionesAbiertas((abiertas) => !abiertas)}
+                >
+                  <Bell size={18} />
+                </button>
+
+                {notificacionesAbiertas && (
+                  <div
+                    id="supervisor-notificaciones"
+                    className="sp-notificaciones__panel"
+                    role="status"
+                  >
+                    <div className="sp-notificaciones__cabecera">
+                      <strong>Notificaciones</strong>
+                      <button
+                        type="button"
+                        onClick={() => setNotificacionesAbiertas(false)}
+                        aria-label="Cerrar notificaciones"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    {actividadReciente.length === 0 ? (
+                      <p className="sp-notificaciones__vacio">
+                        No hay notificaciones recientes.
+                      </p>
+                    ) : (
+                      <ul className="sp-notificaciones__lista">
+                        {actividadReciente.slice(0, 5).map((actividad) => (
+                          <li key={actividad.id}>
+                            <strong>{actividad.titulo}</strong>
+                            <span>{actividad.detalle}</span>
+                            <small>{actividad.fecha}</small>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
 
               <div className="sp-usuario">
                 <span className="sp-usuario__avatar" aria-hidden="true">
@@ -266,20 +306,6 @@ export default function PanelSupervisor({ onLogout }: PanelSupervisorProps = {})
                   title="Cerrar sesión"
                   aria-label="Cerrar sesión"
                   onClick={onLogout}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 14px',
-                    background: '#fef2f2',
-                    border: '1px solid #fecaca',
-                    borderRadius: '8px',
-                    color: '#dc2626',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    fontSize: '13px',
-                    marginLeft: '8px',
-                  }}
                 >
                   <LogOut size={16} />
                   <span>Salir</span>
