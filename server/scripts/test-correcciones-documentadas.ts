@@ -17,9 +17,11 @@ function assert(condition: boolean, message: string) {
 }
 
 async function main() {
-  const [operaciones, auditoria, pendientesEnBd] = await Promise.all([
+  const [operaciones, auditoria, movimientosSocio, movimientosCaja, pendientesEnBd] = await Promise.all([
     request('/reportes/operaciones'),
     request('/admin/auditoria'),
+    request('/socio/movimientos'),
+    request('/caja/movimientos'),
     prisma.loan_applications.count({
       where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } }
     })
@@ -46,6 +48,18 @@ async function main() {
       String(actividad.detalle).includes('{"')
   );
   assert(!contieneTextoTecnico, 'Auditoría no expone acciones ni JSON técnicos');
+
+  assert(movimientosSocio.response.ok && Array.isArray(movimientosSocio.data), 'El portal del socio responde movimientos');
+  const pagoSocio = (movimientosSocio.data as Array<Record<string, unknown>>).some(
+    (movimiento) => movimiento.tipo === 'LOAN_PAYMENT'
+  );
+  assert(pagoSocio, 'Los pagos de préstamo aparecen en los movimientos del socio');
+
+  assert(movimientosCaja.response.ok && Array.isArray(movimientosCaja.data?.movimientos), 'El cajero responde el historial de movimientos');
+  const pagoCaja = (movimientosCaja.data?.movimientos as Array<Record<string, unknown>>).some(
+    (movimiento) => movimiento.tipoCodigo === 'LOAN_PAYMENT'
+  );
+  assert(pagoCaja, 'Los pagos de préstamo aparecen en el historial del cajero');
 
   const canjeInvalido = await request('/lealtad/canjear', {
     method: 'POST',

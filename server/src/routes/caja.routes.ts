@@ -812,6 +812,7 @@ cajaRouter.post('/pago-prestamo', async (req: Request, res: Response) => {
           transaction_type: 'LOAN_PAYMENT',
           amount: cantidad,
           status: 'POSTED',
+          posted_at: new Date(),
           notes: observaciones || notas || `Abono a contrato ${prestamo.contract_number}`
         }
       });
@@ -856,6 +857,23 @@ cajaRouter.post('/pago-prestamo', async (req: Request, res: Response) => {
           }
         });
       }
+
+      await tx.audit_logs.create({
+        data: {
+          actor_user_id: sesionActiva ? sesionActiva.cashier_user_id : BigInt(1),
+          entity_name: 'loan_payments',
+          entity_pk: prestamo.id.toString(),
+          action: 'INSERT',
+          new_data: JSON.stringify({
+            folio,
+            contract_number: prestamo.contract_number,
+            amount: cantidad,
+            points_earned: loyaltyAccount ? Number(puntosAbono) : 0,
+            principal_balance: nuevoSaldoPrestamo
+          }),
+          connection_id: BigInt(1)
+        }
+      });
 
       return { nuevoSaldoPrestamo, folio };
     });
