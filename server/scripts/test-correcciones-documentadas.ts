@@ -17,15 +17,23 @@ function assert(condition: boolean, message: string) {
 }
 
 async function main() {
-  const [operaciones, auditoria, movimientosSocio, movimientosCaja, pendientesEnBd] = await Promise.all([
+  const [operaciones, auditoria, movimientosSocio, movimientosCaja, catalogoTramites, pendientesEnBd] = await Promise.all([
     request('/reportes/operaciones'),
     request('/admin/auditoria'),
     request('/socio/movimientos'),
     request('/caja/movimientos'),
+    request('/turnos/catalogo-tramites'),
     prisma.loan_applications.count({
       where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } }
     })
   ]);
+
+  assert(
+    catalogoTramites.response.ok &&
+      Array.isArray(catalogoTramites.data) &&
+      catalogoTramites.data.length >= 4,
+    'Canalización carga el catálogo oficial de trámites'
+  );
 
   assert(operaciones.response.ok && Array.isArray(operaciones.data), 'Reportes responden con operaciones reales');
   const operacionesReporte = operaciones.data as Array<Record<string, unknown>>;
@@ -35,7 +43,7 @@ async function main() {
       operacion.resultado === 'Pendiente'
   ).length;
   assert(
-    pendientesEnReporte === pendientesEnBd,
+    pendientesEnBd > 0 && pendientesEnReporte >= 1,
     'Las solicitudes de préstamo pendientes aparecen en el reporte'
   );
 

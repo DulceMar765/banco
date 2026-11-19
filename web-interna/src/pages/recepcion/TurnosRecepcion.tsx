@@ -14,6 +14,7 @@ import {
   MapPin,
 } from "lucide-react";
 
+import { getApiUrl } from "../../services/auth";
 import "./TurnosRecepcion.css";
 
 type TipoPersona = "cliente" | "nuevo";
@@ -31,17 +32,24 @@ export default function TurnosRecepcion() {
   const [tramitesCatalogo, setTramitesCatalogo] = useState<Array<{ id: number; nombre: string; area: string }>>([]);
   const [turnoGenerado, setTurnoGenerado] = useState<string | null>(null);
   const [mensajeExito, setMensajeExito] = useState<string | null>(null);
+  const [mensajeError, setMensajeError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/turnos/catalogo-tramites")
+    fetch(getApiUrl("/api/turnos/catalogo-tramites"))
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
           setTramitesCatalogo(data);
+          setMensajeError(data.length === 0 ? "No hay trámites activos configurados. Ejecuta el seed de datos o solicita al administrador habilitar el catálogo." : null);
+        } else {
+          setMensajeError(data.error || "No fue posible cargar el catálogo de trámites.");
         }
       })
-      .catch((err) => console.warn("Error al cargar trámites:", err));
+      .catch((err) => {
+        console.warn("Error al cargar trámites:", err);
+        setMensajeError("No fue posible conectar con el catálogo de trámites.");
+      });
   }, []);
 
   const seleccionarTipo = (tipo: TipoPersona) => {
@@ -52,12 +60,15 @@ export default function TurnosRecepcion() {
 
   const generarTurno = async () => {
     if (!nombrePersona.trim() || !tramite || !areaAtencion) {
+      setMensajeError("Completa el nombre, trámite y área de atención antes de generar el turno.");
       return;
     }
 
     try {
       setCargando(true);
-      const res = await fetch("http://localhost:3001/api/turnos", {
+      setMensajeError(null);
+      setMensajeExito(null);
+      const res = await fetch(getApiUrl("/api/turnos"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -75,9 +86,12 @@ export default function TurnosRecepcion() {
         setNombrePersona("");
         setTramite("");
         setAreaAtencion("");
+      } else {
+        setMensajeError(data.error || "No fue posible generar el turno.");
       }
     } catch (error) {
       console.error("Error al generar turno:", error);
+      setMensajeError("No fue posible conectar con el servidor de turnos.");
     } finally {
       setCargando(false);
     }
@@ -348,6 +362,12 @@ export default function TurnosRecepcion() {
             <div style={{ padding: "10px 14px", backgroundColor: "#ecfdf5", color: "#065f46", borderRadius: "8px", fontSize: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
               <CheckCircle2 size={18} />
               <span>{mensajeExito}</span>
+            </div>
+          )}
+
+          {mensajeError && (
+            <div style={{ padding: "10px 14px", backgroundColor: "#fef2f2", color: "#991b1b", borderRadius: "8px", fontSize: "14px" }}>
+              {mensajeError}
             </div>
           )}
 

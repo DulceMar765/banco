@@ -72,7 +72,7 @@ export default function Recepcion({
   const renderizarModulo = () => {
     switch (seccion) {
       case "inicio":
-        return <InicioRecepcion />;
+        return <InicioRecepcion onCambiarSeccion={cambiarSeccion} />;
 
       case "turnos":
         return <TurnosRecepcion />;
@@ -84,7 +84,7 @@ export default function Recepcion({
         return <HistorialTurnos />;
 
       default:
-        return <InicioRecepcion />;
+        return <InicioRecepcion onCambiarSeccion={cambiarSeccion} />;
     }
   };
 

@@ -644,7 +644,7 @@ async function seed() {
       if (!colCase) {
         colCase = await prisma.collection_cases.create({
           data: {
-            loan_id: loanMaria.id,
+            loan_id: prestamoMaria.id,
             classification: 'RECOVERABLE',
             sale_eligibility: 'REVIEW',
             business_days_overdue: 15,
