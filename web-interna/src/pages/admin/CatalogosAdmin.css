@@ -245,8 +245,20 @@
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
-  cursor: not-allowed;
-  opacity: 0.55;
+  cursor: pointer;
+  opacity: 1;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.caa-btn-principal:hover {
+  background: #e9680d;
+  box-shadow: 0 4px 12px rgba(255, 122, 26, 0.24);
+  transform: translateY(-1px);
+}
+
+.caa-btn-principal:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 /* BÚSQUEDA */

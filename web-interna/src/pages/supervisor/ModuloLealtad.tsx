@@ -16,10 +16,11 @@ import {
   Star,
 } from 'lucide-react'
 
+import { getApiUrl } from '../../services/auth'
 import './ModuloLealtad.css'
 
 type Cliente = {
-  id: number
+  id: string
   nombre: string
   puntos: number
   ahorroMensual: number
@@ -28,7 +29,7 @@ type Cliente = {
 }
 
 type Producto = {
-  id: number
+  id: string
   nombre: string
   temporada: string
   proveedor: string
@@ -74,25 +75,46 @@ export default function ModuloLealtad({ onVolver }: Props) {
     let activo = true
 
     Promise.all([
-      fetch('http://localhost:3001/api/lealtad/clientes'),
-      fetch('http://localhost:3001/api/lealtad/resumen'),
+      fetch(getApiUrl('/api/lealtad/clientes')),
+      fetch(getApiUrl('/api/lealtad/resumen')),
+      fetch(getApiUrl('/api/lealtad/catalogo')),
     ])
-      .then(async ([clientesRespuesta, resumenRespuesta]) => {
-        if (!clientesRespuesta.ok || !resumenRespuesta.ok) {
+      .then(async ([clientesRespuesta, resumenRespuesta, catalogoRespuesta]) => {
+        if (!clientesRespuesta.ok || !resumenRespuesta.ok || !catalogoRespuesta.ok) {
           throw new Error('No fue posible consultar la información de lealtad.')
         }
-        return Promise.all([clientesRespuesta.json(), resumenRespuesta.json()])
+        return Promise.all([
+          clientesRespuesta.json(),
+          resumenRespuesta.json(),
+          catalogoRespuesta.json(),
+        ])
       })
-      .then(([clientesReales, resumen]) => {
+      .then(([clientesReales, resumen, catalogo]) => {
         if (!activo) return
         setClientes(
           clientesReales.map((cliente: { id: string; nombre: string; puntos: string; estado: string }) => ({
-            id: Number(cliente.id),
+            id: String(cliente.id),
             nombre: cliente.nombre,
             puntos: Number(cliente.puntos),
             ahorroMensual: 0,
             estadoDeuda: cliente.estado,
             elegible: cliente.estado === 'ACTIVE',
+          }))
+        )
+        setProductos(
+          (Array.isArray(catalogo) ? catalogo : []).map((producto: {
+            id: string
+            nombre: string
+            proveedor: string
+            puntosRequeridos: number
+            disponible: boolean
+          }) => ({
+            id: String(producto.id),
+            nombre: producto.nombre,
+            temporada: 'Permanente',
+            proveedor: producto.proveedor,
+            puntos: Number(producto.puntosRequeridos),
+            estado: producto.disponible ? 'Disponible' : 'Agotado',
           }))
         )
         setPuntosAhorro(resumen.metricas.puntosPorAhorro)
@@ -118,7 +140,7 @@ export default function ModuloLealtad({ onVolver }: Props) {
     (cliente) => cliente.elegible
   ).length
 
-  const agregarProducto = () => {
+  const agregarProducto = async () => {
     if (
       !nuevoProducto.nombre.trim() ||
       !nuevoProducto.proveedor.trim() ||
@@ -135,33 +157,52 @@ export default function ModuloLealtad({ onVolver }: Props) {
       return
     }
 
-    const producto: Producto = {
-      id: Date.now(),
-      nombre: nuevoProducto.nombre.trim(),
-      temporada: nuevoProducto.temporada,
-      proveedor: nuevoProducto.proveedor.trim(),
-      puntos,
-      estado: 'Disponible',
-    }
+    try {
+      const respuesta = await fetch(getApiUrl('/api/admin/catalogos/item'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: nuevoProducto.nombre.trim(),
+          descripcion: `Recompensa de temporada ${nuevoProducto.temporada}`,
+          puntos,
+          stock: 25,
+        }),
+      })
+      const data = await respuesta.json()
+      if (!respuesta.ok) throw new Error(data.error || 'No se pudo crear el producto.')
 
-    setProductos((actuales) => [...actuales, producto])
-    setNuevoProducto({
-      nombre: '',
-      temporada: 'Navidad',
-      proveedor: '',
-      puntos: '',
-    })
-    setMostrarProducto(false)
-    setMensaje('Producto agregado correctamente.')
+      const item = data.item
+      setProductos((actuales) => [
+        ...actuales,
+        {
+          id: String(item.id),
+          nombre: item.name,
+          temporada: nuevoProducto.temporada,
+          proveedor: nuevoProducto.proveedor.trim(),
+          puntos: Number(item.points_cost),
+          estado: 'Disponible',
+        },
+      ])
+      setNuevoProducto({
+        nombre: '',
+        temporada: 'Navidad',
+        proveedor: '',
+        puntos: '',
+      })
+      setMostrarProducto(false)
+      setMensaje('Producto agregado correctamente.')
+    } catch (error) {
+      setMensaje(error instanceof Error ? error.message : 'No se pudo crear el producto.')
+    }
   }
 
-  const eliminarProducto = (id: number) => {
+  const eliminarProducto = (id: string) => {
     setProductos((actuales) =>
       actuales.filter((producto) => producto.id !== id)
     )
   }
 
-  const canjearProducto = (clienteId: number, productoId: number) => {
+  const canjearProducto = async (clienteId: string, productoId: string) => {
     const cliente = clientes.find((c) => c.id === clienteId)
     const producto = productos.find((p) => p.id === productoId)
 
@@ -177,26 +218,43 @@ export default function ModuloLealtad({ onVolver }: Props) {
       return
     }
 
-    setClientes((actuales) =>
-      actuales.map((c) =>
-        c.id === clienteId
-          ? { ...c, puntos: c.puntos - producto.puntos }
-          : c
+    try {
+      const respuesta = await fetch(getApiUrl('/api/lealtad/canjear'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: clienteId,
+          catalogItemId: productoId,
+        }),
+      })
+      const data = await respuesta.json()
+      if (!respuesta.ok) throw new Error(data.error || 'No se pudo realizar el canje.')
+
+      const puntosRestantes = Number(data.puntosRestantes)
+      setClientes((actuales) =>
+        actuales.map((c) =>
+          c.id === clienteId ? { ...c, puntos: puntosRestantes } : c
+        )
       )
-    )
-
-    setMovimientos((actuales) => [
-      {
-        id: Date.now(),
-        cliente: cliente.nombre,
-        concepto: `Canje: ${producto.nombre}`,
-        puntos: -producto.puntos,
-        fecha: new Date().toLocaleDateString('es-MX'),
-      },
-      ...actuales,
-    ])
-
-    setMensaje('Canje realizado correctamente.')
+      setProductos((actuales) =>
+        actuales.map((p) =>
+          p.id === productoId ? { ...p, estado: data.stockRestante > 0 ? 'Disponible' : 'Agotado' } : p
+        )
+      )
+      setMovimientos((actuales) => [
+        {
+          id: Date.now(),
+          cliente: cliente.nombre,
+          concepto: `Canje: ${producto.nombre}`,
+          puntos: -producto.puntos,
+          fecha: new Date().toLocaleDateString('es-MX'),
+        },
+        ...actuales,
+      ])
+      setMensaje('Canje realizado correctamente.')
+    } catch (error) {
+      setMensaje(error instanceof Error ? error.message : 'No se pudo realizar el canje.')
+    }
   }
 
   return (

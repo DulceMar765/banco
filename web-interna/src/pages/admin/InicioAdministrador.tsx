@@ -16,7 +16,11 @@ import {
 import { getApiUrl } from "../../services/auth";
 import "./InicioAdministrador.css";
 
-function InicioAdministrador() {
+type InicioAdministradorProps = {
+  onOpenPending?: () => void;
+};
+
+function InicioAdministrador({ onOpenPending }: InicioAdministradorProps) {
   const [datos, setDatos] = useState<{
     indicadores: {
       clientesRegistrados: number;
@@ -159,9 +163,18 @@ function InicioAdministrador() {
           const Icono = indicador.icono;
 
           return (
-            <article
+            <button
+              type="button"
               className="iad-stat-card"
               key={indicador.titulo}
+              onClick={
+                indicador.titulo.includes("pendientes")
+                  ? onOpenPending
+                  : undefined
+              }
+              disabled={
+                indicador.titulo.includes("pendientes") && !onOpenPending
+              }
             >
               <div className="iad-stat-top">
                 <div className={`iad-stat-icon ${indicador.color}`}>
@@ -178,7 +191,7 @@ function InicioAdministrador() {
               <span className="iad-stat-description">
                 {indicador.descripcion}
               </span>
-            </article>
+            </button>
           );
         })}
       </section>

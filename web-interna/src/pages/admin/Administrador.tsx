@@ -113,7 +113,11 @@ function Administrador({ onLogout }: AdministradorProps) {
   const renderizarModulo = () => {
     switch (moduloActivo) {
       case "Inicio":
-        return <InicioAdministrador />;
+        return (
+          <InicioAdministrador
+            onOpenPending={() => seleccionarModulo("Clientes")}
+          />
+        );
       case "Clientes":
         return <Clientes />;
       case "Trabajadores":

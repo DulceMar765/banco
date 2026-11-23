@@ -200,7 +200,7 @@ socioRouter.get('/movimientos', async (req: Request, res: Response) => {
 
     const accountIds = cliente.accounts.map((a) => a.id);
 
-    const movimientos = await prisma.account_movements.findMany({
+    const movimientosCuenta = await prisma.account_movements.findMany({
       where: {
         account_id: { in: accountIds }
       },
@@ -212,7 +212,23 @@ socioRouter.get('/movimientos', async (req: Request, res: Response) => {
       take: 30
     });
 
-    const formateados = movimientos.map((m) => {
+    const pagosPrestamo = await prisma.financial_transactions.findMany({
+      where: {
+        customer_id: cliente.id,
+        transaction_type: 'LOAN_PAYMENT',
+        status: 'POSTED'
+      },
+      include: {
+        loan_payments: {
+          include: { loans: true }
+        }
+      },
+      orderBy: { created_at: 'desc' },
+      take: 30
+    });
+
+    const cuentaPrincipal = cliente.accounts[0];
+    const movimientosFormateados = movimientosCuenta.map((m) => {
       const esEntrada = m.direction === 'CREDIT';
       const fechaObj = new Date(m.created_at);
       return {
@@ -231,9 +247,32 @@ socioRouter.get('/movimientos', async (req: Request, res: Response) => {
         cuenta: m.accounts.account_number,
         referencia: m.financial_transactions?.receipt_number || `MOV-${m.id}`,
         fecha: fechaObj.toISOString().slice(0, 10),
-        hora: fechaObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+        hora: fechaObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+        createdAt: m.created_at.getTime()
       };
     });
+
+    const pagosFormateados = pagosPrestamo.map((pago) => {
+      const fechaObj = new Date(pago.created_at);
+      const contrato = pago.loan_payments?.loans.contract_number || 'Préstamo';
+      return {
+        id: pago.id.toString(),
+        tipo: 'LOAN_PAYMENT',
+        tipoLabel: `Pago de préstamo ${contrato}`,
+        monto: Number(pago.amount),
+        esEntrada: false,
+        cuenta: cuentaPrincipal?.account_number || 'Cuenta no asociada',
+        referencia: pago.receipt_number,
+        fecha: fechaObj.toISOString().slice(0, 10),
+        hora: fechaObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
+        createdAt: fechaObj.getTime()
+      };
+    });
+
+    const formateados = [...movimientosFormateados, ...pagosFormateados]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 30)
+      .map(({ createdAt: _createdAt, ...movimiento }) => movimiento);
 
     res.json(serializeData(formateados));
   } catch (error: any) {

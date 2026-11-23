@@ -79,13 +79,14 @@ const RequisitosRecepcion = () => {
     fetch(getApiUrl("/api/turnos/catalogo-tramites"))
       .then((res) => res.json())
       .then((data) => {
-        if (data && data.success && Array.isArray(data.catalogo)) {
-          const actualizados = data.catalogo.map((t: any) => {
+        const catalogo = Array.isArray(data) ? data : data?.catalogo;
+        if (Array.isArray(catalogo) && catalogo.length > 0) {
+          const actualizados = catalogo.map((t: any) => {
             const encontrado = tramitesOficiales.find((o) => o.codigo === t.codigo);
             return {
               codigo: t.codigo,
               nombre: t.nombre,
-              area: t.areaDestino || "Sucursal",
+              area: t.areaLabel || t.areaDestino || "Sucursal",
               prioridad: t.prioridad,
               documentos: encontrado ? encontrado.documentos : ["Identificación oficial vigente", "Documentos de respaldo"],
             };

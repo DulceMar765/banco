@@ -34,6 +34,57 @@ let configInstitucionalExtra = {
   }
 };
 
+const nombresEntidades: Record<string, string> = {
+  customers: 'cliente',
+  accounts: 'cuenta',
+  loan_applications: 'solicitud de préstamo',
+  loans: 'préstamo',
+  financial_transactions: 'operación financiera',
+  loyalty_catalog_items: 'catálogo de recompensas',
+  catalog_seasons: 'temporada de catálogo',
+  employees: 'trabajador',
+  collection_cases: 'caso de cobranza',
+  promotions: 'promoción'
+};
+
+const nombresAcciones: Record<string, string> = {
+  INSERT: 'Se creó',
+  UPDATE: 'Se actualizó',
+  DELETE: 'Se eliminó',
+  AUTHORIZE: 'Se autorizó',
+  REJECT: 'Se rechazó'
+};
+
+function valorTexto(data: unknown, keys: string[]) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return '';
+  const record = data as Record<string, unknown>;
+  const key = keys.find((candidate) => typeof record[candidate] === 'string' && record[candidate]);
+  return key ? String(record[key]) : '';
+}
+
+function describirAuditoria(entityName: string, action: string, entityPk: string, data: unknown) {
+  const entidad = nombresEntidades[entityName] || 'registro administrativo';
+  const accion = nombresAcciones[action] || 'Se modificó';
+  const nombre = valorTexto(data, ['name', 'nombre', 'customerName', 'employeeName', 'code']);
+  const referencia = nombre ? ` “${nombre}”` : ` con folio ${entityPk}`;
+
+  return {
+    titulo: `${accion} ${entidad}${referencia}`,
+    detalle: `Identificador interno: ${entityPk}`
+  };
+}
+
+function describirTransaccion(transactionType: string) {
+  const nombres: Record<string, string> = {
+    ACCOUNT_DEPOSIT: 'Depósito en cuenta',
+    ACCOUNT_WITHDRAWAL: 'Retiro de cuenta',
+    LOAN_PAYMENT: 'Pago o abono de préstamo',
+    LOAN_DISBURSEMENT: 'Desembolso de préstamo',
+    INVESTMENT_CONTRIBUTION: 'Aportación de inversión'
+  };
+  return nombres[transactionType] || 'Operación financiera';
+}
+
 async function registrarAuditoriaAdmin(
   entityName: string,
   entityPk: string,
@@ -127,7 +178,9 @@ adminRouter.get('/resumen', async (_req: Request, res: Response) => {
       };
     });
 
-    const actividadLogs = ultimosLogs.map((log) => ({
+    const actividadLogs = ultimosLogs.map((log) => {
+      const descripcion = describirAuditoria(log.entity_name, log.action, log.entity_pk, log.new_data);
+      return {
       id: `LOG-${log.id.toString()}`,
       departamento: log.entity_name.includes('loan')
         ? 'Préstamos'
@@ -136,15 +189,16 @@ adminRouter.get('/resumen', async (_req: Request, res: Response) => {
         : log.entity_name.includes('cash')
         ? 'Caja'
         : 'Administración',
-      titulo: `${log.action} en ${log.entity_name}`,
-      detalle: `Registro #${log.entity_pk}`,
+      titulo: descripcion.titulo,
+      detalle: descripcion.detalle,
       fecha: log.occurred_at.toLocaleString('es-MX')
-    }));
+      };
+    });
 
     const actividadTx = ultimasTx.map((tx) => ({
       id: `TX-${tx.id.toString()}`,
       departamento: 'Caja',
-      titulo: `${tx.transaction_type} (${tx.receipt_number})`,
+      titulo: describirTransaccion(tx.transaction_type),
       detalle: `${tx.customers ? `${tx.customers.first_name} ${tx.customers.paternal_surname}` : 'Socio'} · $${Number(tx.amount).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN`,
       fecha: tx.created_at.toLocaleString('es-MX')
     }));
@@ -1303,15 +1357,16 @@ adminRouter.get('/auditoria', async (_req: Request, res: Response) => {
         ? mapaUsuarios.get(l.actor_user_id.toString()) || `Usuario #${l.actor_user_id.toString()}`
         : 'Sistema Automático BANUAT';
 
+      const descripcion = describirAuditoria(l.entity_name, l.action, l.entity_pk, l.new_data);
       return {
         id: l.id.toString(),
         usuario: usuarioNombre,
-        entidad: l.entity_name,
+        entidad: nombresEntidades[l.entity_name] || 'registro administrativo',
         registroId: l.entity_pk,
-        accion: l.action,
+        accion: descripcion.titulo,
         tipoAccion,
         modulo,
-        detalle: l.new_data ? JSON.stringify(l.new_data).slice(0, 140) : `Operación sobre ${l.entity_name} #${l.entity_pk}`,
+        detalle: descripcion.detalle,
         fechaISO: l.occurred_at.toISOString().split('T')[0],
         fechaHora: l.occurred_at.toLocaleString('es-MX')
       };

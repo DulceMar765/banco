@@ -154,7 +154,7 @@ export default function AuditoriaAdmin() {
           >
             <div>
               <strong style={{ fontSize: "0.94rem", color: "#231f1b" }}>
-                [{act.modulo}] {act.accion} en {act.entidad} (#{act.registroId})
+                [{act.modulo}] {act.accion}
               </strong>
               <p style={{ margin: "3px 0 0", fontSize: "0.82rem", color: "#686057" }}>
                 Responsable: <strong>{act.usuario}</strong> · {act.detalle}
